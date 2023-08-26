@@ -1,0 +1,36 @@
+{
+    "version": 4,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 20,
+      "patch": 0
+    },
+    "configurePresets": [
+      {
+        "name": "default",
+        "displayName": "Default Debug Config",
+        "description": "Default build using Ninja generator",
+        "generator": "Ninja",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "CMAKE_CXX_COMPILER": "clang++",
+            "CMAKE_CXX_STANDARD": "20",
+            "CMAKE_CXX_EXTENSIONS": "OFF",
+            "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
+            "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82"
+        },
+        "environment": {
+            "CXX_WARNINGS": "-Wall -Wextra -Werror -Wno-error=unused-variable",
+            "CXX_OPTS": "-O0 -fdiagnostics-color=always"
+
+        }
+      }
+    ],
+    "buildPresets": [
+      {
+        "name": "default",
+        "configurePreset": "default"
+      }
+    ]
+}
