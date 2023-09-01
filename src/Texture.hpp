@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Handle.hpp"
 #include <string_view>
 #include <memory>

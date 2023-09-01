@@ -21,47 +21,48 @@
 #include "VAO.hpp"
 
 static std::vector<float> cube_vertices = {
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    // positions          // normals           // texture coords
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
 };
 
 void OnWindowResize(GLFWwindow*, int width, int height) {
@@ -104,11 +105,6 @@ Program LoadProgram(std::string_view vs_path, std::string_view fs_path) {
 }
 
 VAO MakeTris(std::vector<float> vertices) {
-    // unsigned int indices[] = {
-    //     0, 1, 2,
-    //     0, 2, 3
-    // };
-
     VAO vao{};
     vao.Use();
 
@@ -118,11 +114,14 @@ VAO MakeTris(std::vector<float> vertices) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // unsigned int ebo;
     // glGenBuffers(1, &ebo);
@@ -143,33 +142,6 @@ void Render(const Program& program, const VAO& vao) {
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-
-// void SetClipMatrices(const Camera& camera, const Program& program, glm::vec3 model_pos) {
-//     using namespace glm;
-
-//     auto model = mat4(1);
-//     model = translate(model, model_pos);
-//     model = rotate(model, (float) glfwGetTime(), vec3(0.5f, 1.0f, 0.0f));
-
-//     auto view = camera.GetViewMatrix();
-//     auto projection = camera.GetProjectionMatrix();
-
-//     program.Use();
-//     auto handle = program.GetHandle();
-
-//     int model_loc = glGetUniformLocation(handle, "model");
-//     glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
-
-//     int view_loc = glGetUniformLocation(handle, "view");
-//     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
-
-//     int projection_loc = glGetUniformLocation(handle, "projection");
-//     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
-// }
-
-// void SetLightColor(glm::vec3 color, std::same_as<Cube> auto&... cubes) {
-//     (Uniform::Set(cubes.program, "light_color", color), ...);
-// }
 
 int main() {
     glfwInit();
@@ -204,7 +176,7 @@ int main() {
 
     Cube cube{
         .vao = MakeTris(cube_vertices),
-        .program = LoadProgram("shaders/perspective.vert", "shaders/phong.frag"),
+        .program = LoadProgram("shaders/perspective.vert", "shaders/phong_tex.frag"),
         .position = { 1, -1, -5 }
     };
 
@@ -223,47 +195,36 @@ int main() {
     // glUniform1i(glGetUniformLocation(program.GetHandle(), "tex1"), 0);
     // glUniform1i(glGetUniformLocation(program.GetHandle(), "tex2"), 1);
 
-
-    // glm::vec3 cubes[] = {
-    //     glm::vec3( 0.0f,  0.0f,  -5.0f), 
-    //     glm::vec3( 2.0f,  5.0f, -15.0f), 
-    //     glm::vec3(-1.5f, -2.2f, -2.5f),  
-    //     glm::vec3(-3.8f, -2.0f, -12.3f),  
-    //     glm::vec3( 2.4f, -0.4f, -3.5f),  
-    //     glm::vec3(-1.7f,  3.0f, -7.5f),  
-    //     glm::vec3( 1.3f, -2.0f, -2.5f),  
-    //     glm::vec3( 1.5f,  2.0f, -2.5f), 
-    //     glm::vec3( 1.5f,  0.2f, -1.5f), 
-    //     glm::vec3(-1.3f,  1.0f, -1.5f)  
-    // };
-
     Camera& camera = Camera::Get();
     camera.UpdateWindowSize(800, 600);
 
     float last_time = 0.0f;
 
-    // Material mat{
-    //     .ambient = {1.0f, 0.5f, 0.31f},
-    //     .diffuse = {1.0f, 0.5f, 0.31f},
-    //     .specular = {0.5f, 0.5f, 0.5f},
-    //     .shininess = 32
-    // };
+    // Material mat = Materials::gold;
+    TexMaterial mat {
+        .diffuse_map = LoadTextureFromFile("res/img/crate.png"),
+        .specular_map = LoadTextureFromFile("res/img/crate_specular.png"),
+        .emission_map = LoadTextureFromFile("res/img/matrix.jpg"),
+        .shininess = 0.5
+    };
 
-    Material mat = Materials::gold;
+    mat.emission_map.Use(0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     Light light_props{
         .position = light.position,
-        .ambient{1, 1, 1},
-        .diffuse{1, 1, 1},
+        .ambient{0.3},
+        .diffuse{1},
         .specular{1, 1, 1}
     };
 
     Uniform::Set(cube.program, "material", mat);
     Uniform::Set(cube.program, "light", light_props);
+    Uniform::Set(light.program, "light_color", glm::vec3(1));
 
-    // Uniform::Set(cube.program, "object_color", glm::vec3(1.0f, 0.5f, 0.31f));
-    // Uniform::Set(cube.program, "light_pos", light.position);
-    // Uniform::Set(cube.program, "light_color", glm::vec3(1.0f));
+    
+
     auto original_light_pos = light.position;
 
     while (!glfwWindowShouldClose(window)) {
@@ -295,19 +256,19 @@ int main() {
 
         light.position = light_props.position = m * glm::vec4(original_light_pos, 1);
 
-        glm::vec3 light_color;
-        light_color.x = sin(glfwGetTime() * 2.0f);
-        light_color.y = sin(glfwGetTime() * 0.7f);
-        light_color.z = sin(glfwGetTime() * 1.3f);
+        // glm::vec3 light_color;
+        // light_color.x = sin(glfwGetTime() * 2.0f);
+        // light_color.y = sin(glfwGetTime() * 0.7f);
+        // light_color.z = sin(glfwGetTime() * 1.3f);
         
-        glm::vec3 diffuse_color = light_color; 
-        glm::vec3 ambient_color = diffuse_color; 
+        // glm::vec3 diffuse_color = light_color; 
+        // glm::vec3 ambient_color = diffuse_color; 
 
-        light_props.ambient = ambient_color;
-        light_props.diffuse = diffuse_color;
-
+        // light_props.ambient = ambient_color;
+        // light_props.diffuse = diffuse_color;
+        Uniform::Set(cube.program, "time", (float) glfwGetTime());
         Uniform::Set(cube.program, "light", light_props);
-        Uniform::Set(light.program, "light_color", light_color);
+        // Uniform::Set(light.program, "light_color", light_color);
         Uniform::Set(cube.program, "view_pos", camera.GetPosition());
 
         cube.Render(camera);

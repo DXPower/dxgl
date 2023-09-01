@@ -2,13 +2,28 @@
 
 #include <glm/glm.hpp>
 #include <dxtl/cstring_view.hpp>
+#include "Texture.hpp"
 
 struct Material {
     glm::vec3 ambient{};
     glm::vec3 diffuse{};
     glm::vec3 specular{};
     float shininess{};
-    };
+};
+
+struct TexMaterial {
+    Texture diffuse_map{};
+    Texture specular_map{};
+    Texture emission_map{};
+    float shininess{};
+};
+
+class Program;
+
+namespace Uniform {
+    void Set(Program& program, dxtl::cstring_view name, const Material& mat);
+    void Set(Program& program, dxtl::cstring_view name, const TexMaterial& mat);
+}
 
 namespace Materials {
     constexpr Material emerald        {{0.0215, 0.1745, 0.0215},       {0.07568, 0.61424, 0.07568},    {0.633, 0.727811, 0.633}, 0.6};
@@ -37,8 +52,4 @@ namespace Materials {
     constexpr Material yellow_rubber  {{0.05, 0.05, 0.0},              {0.5, 0.5, 0.4},                {0.7, 0.7, 0.04}, .078125};
 }
 
-class Program;
 
-namespace Uniform {
-    void Set(Program& program, dxtl::cstring_view name, const Material& mat);
-}
