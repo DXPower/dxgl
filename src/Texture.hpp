@@ -58,4 +58,6 @@ protected:
     friend class Handle;
 };
 
+using TextureRef = HandleRef<Texture>;
+
 Texture LoadTextureFromFile(std::string_view file);

@@ -12,9 +12,9 @@ struct Material {
 };
 
 struct TexMaterial {
-    Texture diffuse_map{};
-    Texture specular_map{};
-    Texture emission_map{};
+    TextureRef diffuse_map{};
+    TextureRef specular_map{};
+    TextureRef emission_map{};
     float shininess{};
 };
 

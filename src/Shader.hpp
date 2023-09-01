@@ -32,3 +32,6 @@ protected:
 
     friend class Handle;
 };
+
+using ProgramRef = HandleRef<Program, true>;
+using ProgramView = HandleRef<Program, false>;

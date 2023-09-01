@@ -18,7 +18,7 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Uniform.hpp"
-#include "VAO.hpp"
+#include "Vao.hpp"
 
 static std::vector<float> cube_vertices = {
     // positions          // normals           // texture coords
@@ -104,9 +104,9 @@ Program LoadProgram(std::string_view vs_path, std::string_view fs_path) {
     }
 }
 
-VAO MakeTris(std::vector<float> vertices) {
-    VAO vao{};
-    vao.Use();
+Vao MakeTris(std::vector<float> vertices) {
+    Vao Vao{};
+    Vao.Use();
 
     unsigned int vbo;
     glGenBuffers(1, &vbo);
@@ -128,7 +128,7 @@ VAO MakeTris(std::vector<float> vertices) {
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
 
-    return vao;
+    return Vao;
 }
 
 void Clear() {
@@ -136,9 +136,9 @@ void Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Render(const Program& program, const VAO& vao) {
+void Render(const Program& program, const Vao& Vao) {
     program.Use();
-    vao.Use();
+    Vao.Use();
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
@@ -174,41 +174,42 @@ int main() {
 
     glfwSetKeyCallback(window, OnInput);
 
+    auto cube_program = LoadProgram("shaders/perspective.vert", "shaders/phong_tex.frag");
+    auto light_program = LoadProgram("shaders/perspective.vert", "shaders/light.frag");
+
+    auto cube_vao = MakeTris(cube_vertices);
+
     Cube cube{
-        .vao = MakeTris(cube_vertices),
-        .program = LoadProgram("shaders/perspective.vert", "shaders/phong_tex.frag"),
+        .vao = cube_vao,
+        .program = cube_program,
         .position = { 1, -1, -5 }
     };
 
     Cube light{
-        .vao = MakeTris(cube_vertices),
-        .program = LoadProgram("shaders/perspective.vert", "shaders/light.frag"),
+        .vao = cube_vao,
+        .program = light_program,
         .position = { 3, 1.5, -5 }
     };
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    // auto crate_texture = LoadTextureFromFile("res/img/container.jpg");
-    // auto epic_texture = LoadTextureFromFile("res/img/epic.png");
-
-    // program.Use();
-    // glUniform1i(glGetUniformLocation(program.GetHandle(), "tex1"), 0);
-    // glUniform1i(glGetUniformLocation(program.GetHandle(), "tex2"), 1);
 
     Camera& camera = Camera::Get();
     camera.UpdateWindowSize(800, 600);
 
     float last_time = 0.0f;
 
-    // Material mat = Materials::gold;
+    auto crate = LoadTextureFromFile("res/img/crate.png");
+    auto crate_specular = LoadTextureFromFile("res/img/crate_specular.png");
+    auto matrix = LoadTextureFromFile("res/img/matrix.jpg");
+
     TexMaterial mat {
-        .diffuse_map = LoadTextureFromFile("res/img/crate.png"),
-        .specular_map = LoadTextureFromFile("res/img/crate_specular.png"),
-        .emission_map = LoadTextureFromFile("res/img/matrix.jpg"),
+        .diffuse_map = crate,
+        .specular_map = crate_specular,
+        .emission_map = matrix,
         .shininess = 0.5
     };
 
-    mat.emission_map.Use(0);
+    mat.emission_map->Use(0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -219,9 +220,9 @@ int main() {
         .specular{1, 1, 1}
     };
 
-    Uniform::Set(cube.program, "material", mat);
-    Uniform::Set(cube.program, "light", light_props);
-    Uniform::Set(light.program, "light_color", glm::vec3(1));
+    Uniform::Set(cube_program, "material", mat);
+    Uniform::Set(cube_program, "light", light_props);
+    Uniform::Set(light_program, "light_color", glm::vec3(1));
 
     
 
@@ -236,18 +237,6 @@ int main() {
         camera.UpdatePosition(window, delta_time);
 
         Clear();
-
-        // crate_texture.Use(0);
-        // epic_texture.Use(1);
-
-        // program.Use();
-        // glUniform1f(glGetUniformLocation(program.GetHandle(), "mix_value"), mix_value);
-        
-        // for (const auto& pos : cubes) {
-        //     SetClipMatrices(camera, program, pos);
-        //     Render(program, cube);
-        // }
-        // Uniform::Set(cube.program, "light_color", glm::vec3(mix_value));
 
         glm::mat4 m = glm::mat4(1);
         m = glm::translate(m, cube.position);
@@ -266,10 +255,9 @@ int main() {
 
         // light_props.ambient = ambient_color;
         // light_props.diffuse = diffuse_color;
-        Uniform::Set(cube.program, "time", (float) glfwGetTime());
-        Uniform::Set(cube.program, "light", light_props);
-        // Uniform::Set(light.program, "light_color", light_color);
-        Uniform::Set(cube.program, "view_pos", camera.GetPosition());
+        Uniform::Set(cube_program, "time", (float) glfwGetTime());
+        Uniform::Set(cube_program, "light", light_props);
+        Uniform::Set(cube_program, "view_pos", camera.GetPosition());
 
         cube.Render(camera);
         light.Render(camera);

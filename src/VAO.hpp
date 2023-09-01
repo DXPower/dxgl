@@ -2,9 +2,9 @@
 
 #include "Handle.hpp"
 
-class VAO : public Handle<VAO, Usable::Yes> {
+class Vao : public Handle<Vao, Usable::Yes> {
 public:
-    VAO();
+    Vao();
 
 protected:
     void UseImpl() const;
@@ -12,3 +12,5 @@ protected:
 
     friend class Handle;
 };
+
+using VaoRef = HandleRef<Vao>;

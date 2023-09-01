@@ -48,3 +48,29 @@ public:
 protected:
     void SetHandle(unsigned int handle) { this->handle = handle; }
 };
+
+template<typename T, bool Mutable = false>
+class HandleRef {
+    std::conditional_t<Mutable, T*, const T*> handle{};
+
+public:
+    HandleRef() noexcept = default;
+    HandleRef(std::conditional_t<Mutable, T&, const T&> handle) : handle(&handle) { }
+    HandleRef(T&& handle) = delete;
+
+    T& operator*() requires (Mutable) {
+        return *handle;
+    }
+
+    const T& operator*() const {
+        return *handle;
+    }
+
+    const T* operator->() const {
+        return handle;
+    }
+
+    T* operator->() requires (Mutable) {
+        return handle;
+    }
+};

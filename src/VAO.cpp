@@ -1,15 +1,15 @@
-#include "VAO.hpp"
+#include "Vao.hpp"
 
 #include <glad/glad.h>
 
-VAO::VAO() {
+Vao::Vao() {
     glGenVertexArrays(1, &handle);
 }
 
-void VAO::UseImpl() const {
+void Vao::UseImpl() const {
     glBindVertexArray(handle);
 }
 
-void VAO::DestroyImpl() const {
+void Vao::DestroyImpl() const {
     glDeleteVertexArrays(1, &handle);
 }
