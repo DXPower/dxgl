@@ -1,3 +1,5 @@
+#pragma once
+
 #include <glm/glm.hpp>
 
 struct GLFWwindow;
@@ -24,6 +26,7 @@ class Camera {
 public:
     static Camera& Get();
 
+    const glm::vec3& GetPosition() const;
     void UpdatePosition(GLFWwindow* window, float delta_time);
     void UpdateWindowSize(int width, int height);
 

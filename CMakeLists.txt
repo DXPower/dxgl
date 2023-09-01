@@ -36,8 +36,10 @@ target_link_libraries(dxgl PRIVATE
 target_sources(dxgl PRIVATE
 	${CMAKE_SOURCE_DIR}/src/main.cpp
 	${CMAKE_SOURCE_DIR}/src/Camera.cpp
+	${CMAKE_SOURCE_DIR}/src/Cube.cpp
 	${CMAKE_SOURCE_DIR}/src/Shader.cpp
 	${CMAKE_SOURCE_DIR}/src/Texture.cpp
+	${CMAKE_SOURCE_DIR}/src/Uniform.cpp
 	${CMAKE_SOURCE_DIR}/src/VAO.cpp
 )
 

@@ -12,6 +12,10 @@ Camera& Camera::Get() {
     return camera_singleton;
 }
 
+const glm::vec3& Camera::GetPosition() const {
+    return camera_pos;
+}
+
 void Camera::UpdatePosition(GLFWwindow* window, float delta_time) {
     const float camera_speed = 10.f * delta_time;
     const float rotation_speed = 75.f * delta_time;
@@ -25,6 +29,10 @@ void Camera::UpdatePosition(GLFWwindow* window, float delta_time) {
         camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        camera_pos.y += camera_speed / 3;
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        camera_pos.y -= camera_speed / 3;
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
         camera_pitch += rotation_speed;
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
