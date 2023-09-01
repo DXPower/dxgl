@@ -13,6 +13,8 @@
 
 #include "Camera.hpp"
 #include "Cube.hpp"
+#include "Light.hpp"
+#include "Material.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Uniform.hpp"
@@ -165,9 +167,9 @@ void Render(const Program& program, const VAO& vao) {
 //     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
 // }
 
-void SetLightColor(glm::vec3 color, std::same_as<Cube> auto&... cubes) {
-    (Uniform::Set(cubes.program, "light_color", color), ...);
-}
+// void SetLightColor(glm::vec3 color, std::same_as<Cube> auto&... cubes) {
+//     (Uniform::Set(cubes.program, "light_color", color), ...);
+// }
 
 int main() {
     glfwInit();
@@ -203,13 +205,13 @@ int main() {
     Cube cube{
         .vao = MakeTris(cube_vertices),
         .program = LoadProgram("shaders/perspective.vert", "shaders/phong.frag"),
-        .position = { 1, -1.f, -7 }
+        .position = { 1, -1, -5 }
     };
 
     Cube light{
         .vao = MakeTris(cube_vertices),
         .program = LoadProgram("shaders/perspective.vert", "shaders/light.frag"),
-        .position = { -1, 0, 1 }
+        .position = { 3, 1.5, -5 }
     };
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -240,12 +242,29 @@ int main() {
 
     float last_time = 0.0f;
 
-    Uniform::Set(cube.program, "object_color", glm::vec3(1.0f, 0.5f, 0.31f));
-    Uniform::Set(cube.program, "light_pos", light.position);
+    // Material mat{
+    //     .ambient = {1.0f, 0.5f, 0.31f},
+    //     .diffuse = {1.0f, 0.5f, 0.31f},
+    //     .specular = {0.5f, 0.5f, 0.5f},
+    //     .shininess = 32
+    // };
+
+    Material mat = Materials::gold;
+
+    Light light_props{
+        .position = light.position,
+        .ambient{1, 1, 1},
+        .diffuse{1, 1, 1},
+        .specular{1, 1, 1}
+    };
+
+    Uniform::Set(cube.program, "material", mat);
+    Uniform::Set(cube.program, "light", light_props);
+
+    // Uniform::Set(cube.program, "object_color", glm::vec3(1.0f, 0.5f, 0.31f));
+    // Uniform::Set(cube.program, "light_pos", light.position);
     // Uniform::Set(cube.program, "light_color", glm::vec3(1.0f));
     auto original_light_pos = light.position;
-
-    SetLightColor(glm::vec3(mix_value), cube, light);
 
     while (!glfwWindowShouldClose(window)) {
         float current_time = glfwGetTime();
@@ -268,16 +287,27 @@ int main() {
         //     Render(program, cube);
         // }
         // Uniform::Set(cube.program, "light_color", glm::vec3(mix_value));
-        SetLightColor(glm::vec3(mix_value), cube, light);
 
         glm::mat4 m = glm::mat4(1);
         m = glm::translate(m, cube.position);
-        m = glm::rotate(m, (float) glfwGetTime(), glm::vec3(0, 1, 0));
+        m = glm::rotate(m, (float) glfwGetTime() * 1.5f, glm::vec3(0, 1, 0));
         m = glm::translate(m, -cube.position);
 
-        light.position = m * glm::vec4(original_light_pos, 1);
+        light.position = light_props.position = m * glm::vec4(original_light_pos, 1);
 
-        Uniform::Set(cube.program, "light_pos", light.position);
+        glm::vec3 light_color;
+        light_color.x = sin(glfwGetTime() * 2.0f);
+        light_color.y = sin(glfwGetTime() * 0.7f);
+        light_color.z = sin(glfwGetTime() * 1.3f);
+        
+        glm::vec3 diffuse_color = light_color; 
+        glm::vec3 ambient_color = diffuse_color; 
+
+        light_props.ambient = ambient_color;
+        light_props.diffuse = diffuse_color;
+
+        Uniform::Set(cube.program, "light", light_props);
+        Uniform::Set(light.program, "light_color", light_color);
         Uniform::Set(cube.program, "view_pos", camera.GetPosition());
 
         cube.Render(camera);

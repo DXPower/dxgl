@@ -7,6 +7,9 @@
 
 #include <span>
 
+#include <dxtl/cstring_view.hpp>
+
+
 namespace Uniform {
     template<typename T, glm::length_t N>
     using Vec = glm::vec<N, T>;
@@ -15,13 +18,13 @@ namespace Uniform {
     using Mat = glm::mat<C, R, T>;
 
     namespace detail {
-        void SetFloats(Program& program, const std::string& name, std::span<const float> floats);
-        void SetInts(Program& program, const std::string& name, std::span<const int> ints);
-        void SetMatrixF(Program& program, const std::string& name, int size, std::span<const float> floats);
+        void SetFloats(Program& program, dxtl::cstring_view name, std::span<const float> floats);
+        void SetInts(Program& program, dxtl::cstring_view name, std::span<const int> ints);
+        void SetMatrixF(Program& program, dxtl::cstring_view name, int size, std::span<const float> floats);
     }
 
     template<typename T, glm::length_t N>
-    void Set(Program& program, const std::string& name, const Vec<T, N>& uniform) {
+    void Set(Program& program, dxtl::cstring_view name, const Vec<T, N>& uniform) {
         using namespace detail;
         
         if constexpr (std::is_same_v<T, float>) {
@@ -31,8 +34,16 @@ namespace Uniform {
         }
     }
 
+    inline void Set(Program& program, dxtl::cstring_view name, float uniform) {
+        detail::SetFloats(program, name, std::span(&uniform, 1));
+    }
+
+    inline void Set(Program& program, dxtl::cstring_view name, int uniform) {
+        detail::SetInts(program, name, std::span(&uniform, 1));
+    }
+
     template<glm::length_t C, glm::length_t R>
-    void Set(Program& program, const std::string& name, const Mat<float, C, R>& uniform) {
+    void Set(Program& program, dxtl::cstring_view name, const Mat<float, C, R>& uniform) {
         static_assert(C == R);
         detail::SetMatrixF(program, name, C, std::span(glm::value_ptr(uniform), C * R));
     }

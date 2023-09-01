@@ -26,7 +26,7 @@ set_target_properties(stb PROPERTIES LINKER_LANGUAGE C)
 
 
 add_executable(dxgl)
-target_include_directories(dxgl PUBLIC ${CMAKE_SOURCE_DIR}/dep/inc)
+target_include_directories(dxgl PUBLIC ${CMAKE_SOURCE_DIR}/dep/inc ${CMAKE_SOURCE_DIR}/src/inc)
 target_link_libraries(dxgl PRIVATE 
     glfw
 	glad
@@ -37,6 +37,8 @@ target_sources(dxgl PRIVATE
 	${CMAKE_SOURCE_DIR}/src/main.cpp
 	${CMAKE_SOURCE_DIR}/src/Camera.cpp
 	${CMAKE_SOURCE_DIR}/src/Cube.cpp
+	${CMAKE_SOURCE_DIR}/src/Light.cpp
+	${CMAKE_SOURCE_DIR}/src/Material.cpp
 	${CMAKE_SOURCE_DIR}/src/Shader.cpp
 	${CMAKE_SOURCE_DIR}/src/Texture.cpp
 	${CMAKE_SOURCE_DIR}/src/Uniform.cpp

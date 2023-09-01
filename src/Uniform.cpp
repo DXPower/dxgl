@@ -5,11 +5,11 @@
 
 using namespace Uniform;
 
-static unsigned int GetUniform(const Program& program, const std::string& name) {
+static unsigned int GetUniform(const Program& program, dxtl::cstring_view name) {
     return glGetUniformLocation(program.GetHandle(), name.c_str());
 }
 
-void detail::SetFloats(Program& program, const std::string& name, std::span<const float> floats) {
+void detail::SetFloats(Program& program, dxtl::cstring_view name, std::span<const float> floats) {
     auto loc = GetUniform(program, name);
     program.Use();
 
@@ -17,7 +17,7 @@ void detail::SetFloats(Program& program, const std::string& name, std::span<cons
     funcs.at(floats.size() - 1)(loc, 1, floats.data());
 }
 
-void detail::SetInts(Program& program, const std::string& name, std::span<const int> ints) {
+void detail::SetInts(Program& program, dxtl::cstring_view name, std::span<const int> ints) {
     auto loc = GetUniform(program, name);
     program.Use();
 
@@ -25,7 +25,7 @@ void detail::SetInts(Program& program, const std::string& name, std::span<const 
     funcs.at(ints.size() - 1)(loc, 1, ints.data());
 }
 
-void detail::SetMatrixF(Program& program, const std::string& name, int size, std::span<const float> floats) {
+void detail::SetMatrixF(Program& program, dxtl::cstring_view name, int size, std::span<const float> floats) {
     auto loc = GetUniform(program, name);
     program.Use();
 
