@@ -27,8 +27,8 @@ void Uniform::Set(Program& program, dxtl::cstring_view name, const TexMaterial& 
     SetUniform("specular_map", 1);
     mat.specular_map->Use(1);
 
-    SetUniform("emission_map", 2);
-    mat.emission_map->Use(2);
+    // SetUniform("emission_map", 2);
+    // mat.emission_map->Use(2);
 
     SetUniform("shininess", mat.shininess);
 }

@@ -8,10 +8,13 @@ struct TexMaterial {
 };
 
 struct Light {
-    vec3 position;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    vec3 position;
+    vec3 direction;
+    float inner_cutoff;
+    float outer_cutoff;
 };
 
 in vec3 frag_pos;
@@ -52,7 +55,15 @@ void main() {
         emission_light = vec3(0);
     }
 
+    // Spotlight
+    float theta = dot(light_dir, normalize(-light.direction));
+    float epsilon = light.inner_cutoff - light.outer_cutoff;
+    float intensity = clamp((theta - light.outer_cutoff) / epsilon, 0, 1);
+
+    diffuse_light *= intensity;
+    specular_light *= intensity;
+
     vec3 result = ambient_light + diffuse_light + specular_light + emission_light;
 
-    frag_color = vec4(result, 1.0);
+    frag_color = vec4(result, 1);
 }

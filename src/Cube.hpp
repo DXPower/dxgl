@@ -11,7 +11,7 @@ struct Cube {
     mutable ProgramRef program{};
 
     glm::vec3 position{};
-    // glm::vec3 rotation{};
+    glm::vec3 rotation{};
 
     void Render(const Camera& camera) const;
 };

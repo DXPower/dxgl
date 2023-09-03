@@ -12,12 +12,10 @@ void Cube::Render(const Camera& camera) const {
     vao->Use();
 
     auto model = mat4(1);
-    // model = rotate(model, rotation);
-    // model = rotate(model, rotation.x, vec3(1, 0, 0));
-    // model = rotate(model, rotation.y, vec3(0, 1, 0));
-    // model = rotate(model, rotation.z, vec3(0, 0, 1));
     model = translate(model, position);
-    // rotate
+    model = rotate(model, rotation.x, vec3(1, 0, 0));
+    model = rotate(model, rotation.y, vec3(0, 1, 0));
+    model = rotate(model, rotation.z, vec3(0, 0, 1));
 
     auto view = camera.GetViewMatrix();
     auto projection = camera.GetProjectionMatrix();

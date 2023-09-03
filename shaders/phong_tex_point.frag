@@ -12,6 +12,9 @@ struct Light {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 in vec3 frag_pos;
@@ -34,7 +37,7 @@ void main() {
     vec3 norm = normalize(frag_normal);
     vec3 light_dir = normalize(light.position - frag_pos);
 
-    float diff_light_strength = max(dot(light_dir, norm) / 2, 0);
+    float diff_light_strength = max(dot(light_dir, norm), 0);
     vec3 diffuse_light = light.diffuse * (diff_light_strength * tex_color);
 
     // Specular
@@ -52,7 +55,11 @@ void main() {
         emission_light = vec3(0);
     }
 
-    vec3 result = ambient_light + diffuse_light + specular_light + emission_light;
+    // Attenuation
+    float distance = length(light.position - frag_pos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+
+    vec3 result = attenuation * (ambient_light + diffuse_light + specular_light) + emission_light;
 
     frag_color = vec4(result, 1.0);
 }

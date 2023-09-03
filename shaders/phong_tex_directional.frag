@@ -8,7 +8,7 @@ struct TexMaterial {
 };
 
 struct Light {
-    vec3 position;
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -32,7 +32,7 @@ void main() {
 
     // Diffuse
     vec3 norm = normalize(frag_normal);
-    vec3 light_dir = normalize(light.position - frag_pos);
+    vec3 light_dir = normalize(-light.direction);
 
     float diff_light_strength = max(dot(light_dir, norm) / 2, 0);
     vec3 diffuse_light = light.diffuse * (diff_light_strength * tex_color);

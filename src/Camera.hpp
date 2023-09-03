@@ -27,6 +27,8 @@ public:
     static Camera& Get();
 
     const glm::vec3& GetPosition() const;
+    const glm::vec3& GetDirection() const;
+    
     void UpdatePosition(GLFWwindow* window, float delta_time);
     void UpdateWindowSize(int width, int height);
 

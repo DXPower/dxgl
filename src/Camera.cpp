@@ -16,6 +16,10 @@ const glm::vec3& Camera::GetPosition() const {
     return camera_pos;
 }
 
+const glm::vec3& Camera::GetDirection() const {
+    return camera_front;
+}
+
 void Camera::UpdatePosition(GLFWwindow* window, float delta_time) {
     const float camera_speed = 10.f * delta_time;
     const float rotation_speed = 75.f * delta_time;
