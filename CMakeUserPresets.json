@@ -21,7 +21,7 @@
             "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82"
         },
         "environment": {
-            "CXX_WARNINGS": "-Wall -Wextra -Werror -Wno-error=unused-variable",
+            "CXX_WARNINGS": "-Wall -Wextra -Werror -Wno-error=unused-variable -Wno-error=unused-function",
             "CXX_OPTS": "-O0 -fdiagnostics-color=always"
 
         }

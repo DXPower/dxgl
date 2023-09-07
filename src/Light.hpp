@@ -1,13 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <dxtl/cstring_view.hpp>
+#include "LightColor.hpp"
 
-struct LightColor {
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-};
+#include <dxtl/cstring_view.hpp>
 
 struct DirectionalLight {
     LightColor color{};

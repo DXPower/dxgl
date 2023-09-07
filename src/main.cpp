@@ -17,6 +17,7 @@
 #include "Cube.hpp"
 #include "Light.hpp"
 #include "Material.hpp"
+#include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Uniform.hpp"
@@ -281,10 +282,10 @@ int main() {
         .outer_cutoff = 20.f
     };
 
-    glm::vec3 red{1, 0, 0};
-    glm::vec3 green{0, 1, 0};
-    glm::vec3 blue{0, 0, 1};
-    glm::vec3 yellow{1, 1, 0};
+    glm::vec3 red{1, 0.75, 0.75};
+    glm::vec3 green{0.75, 1, 0.75};
+    glm::vec3 blue{0.75, 0.75, 1};
+    glm::vec3 yellow{1, 1, 0.75};
 
     auto MakePointLight = [](const glm::vec3& color) {
         return PointLight{
@@ -312,6 +313,16 @@ int main() {
 
     auto original_light_pos = red_light.position;
     float last_time = 0.0f;
+
+    auto rubiks_program = LoadProgram("shaders/mesh.vert", "shaders/phong_mesh.frag");
+
+    // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\cube\\Rubik'sCube.obj");
+    // auto rubiks = LoadModelFromFile("res/mesh/pyramid.obj");
+    auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\sherman\\M4A2_Sherman.obj");
+    rubiks.position = glm::vec3(0, 0, -3);
+    // rubiks.rotation = glm::radians(glm::vec3(180, 10, 15));
+    rubiks.program = rubiks_program;
+
 
     while (!glfwWindowShouldClose(window)) {
         float current_time = glfwGetTime();
@@ -374,9 +385,21 @@ int main() {
 
         Uniform::Set(cube_program, "dir_light", sun);
 
-        for (const auto& cube : cubes) {
-            cube.Render(camera);
-        }
+        // for (const auto& cube : cubes) {
+        //     cube.Render(camera);
+        // }
+
+        
+        Uniform::Set(rubiks_program, "point_lights[0]", red_light);
+        Uniform::Set(rubiks_program, "point_lights[1]", green_light);
+        Uniform::Set(rubiks_program, "point_lights[2]", blue_light);
+        Uniform::Set(rubiks_program, "point_lights[3]", yellow_light);
+        Uniform::Set(rubiks_program, "spotlight", spotlight);
+        Uniform::Set(rubiks_program, "dir_light", sun);
+
+        // rubiks.rotation.z += delta_time;
+
+        rubiks.Render(camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
