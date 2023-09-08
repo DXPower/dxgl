@@ -294,7 +294,7 @@ int main() {
                 .diffuse = color,
                 .specular = color
             },
-            .attenuation = Attenuations::D32
+            .attenuation = Attenuations::D100
         };
     };
 
@@ -311,18 +311,32 @@ int main() {
 
     Uniform::Set(cube_program, "dir_light", sun);
 
-    auto original_light_pos = red_light.position;
     float last_time = 0.0f;
 
     auto rubiks_program = LoadProgram("shaders/mesh.vert", "shaders/phong_mesh.frag");
 
     // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\cube\\Rubik'sCube.obj");
     // auto rubiks = LoadModelFromFile("res/mesh/pyramid.obj");
-    auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\sherman\\M4A2_Sherman.obj");
-    rubiks.position = glm::vec3(0, 0, -3);
+    TextureStore tex_store;
+    tex_store.LoadTexture("res/img/white.png");
+
+    // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\sherman\\M4A2_Sherman.obj", tex_store);
+    auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\type87\\Type_87_RCV.obj", tex_store);
+    rubiks.position = glm::vec3(0, -1, -4);
+    rubiks.scale = glm::vec3(0.075);
     // rubiks.rotation = glm::radians(glm::vec3(180, 10, 15));
     rubiks.program = rubiks_program;
 
+    red_light.position = rubiks.position + glm::vec3(0.25, 3, 0);
+    auto original_light_pos = red_light.position;
+
+    for (const auto& [path, texture] : tex_store.GetTextures()) {
+        if (path.ends_with("Metallic.png")) {
+            texture.Use(0);
+            GLint swizzle_mask[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
+        }
+    }
 
     while (!glfwWindowShouldClose(window)) {
         float current_time = glfwGetTime();
@@ -346,19 +360,19 @@ int main() {
         float rot = glfwGetTime() * 1.5f;
 
         red_light_cube.position = red_light.position = RotateAround(
-            cubes[0].position, rot
+            rubiks.position, rot
         ) * glm::vec4(original_light_pos, 1);
 
         green_light_cube.position = green_light.position = RotateAround(
-            cubes[0].position, rot + std::numbers::pi / 2
+            rubiks.position, rot + std::numbers::pi / 2
         ) * glm::vec4(original_light_pos, 1);
 
         blue_light_cube.position = blue_light.position = RotateAround(
-            cubes[0].position, rot + std::numbers::pi
+            rubiks.position, rot + std::numbers::pi
         ) * glm::vec4(original_light_pos, 1);
 
         yellow_light_cube.position = yellow_light.position = RotateAround(
-            cubes[0].position, rot + 3 * std::numbers::pi / 2
+            rubiks.position, rot + 3 * std::numbers::pi / 2
         ) * glm::vec4(original_light_pos, 1);
 
         spotlight.position = camera.GetPosition();

@@ -2,6 +2,8 @@
 
 #include "LightColor.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
+#include "TextureStore.hpp"
 #include "Vao.hpp"
 
 #include <glm/glm.hpp>
@@ -22,8 +24,15 @@ struct Triangle {
     std::array<Vertex, 3> vertices{};
 };
 
+struct TexColor {
+    TextureRef ambient{};
+    TextureRef diffuse{};
+    TextureRef specular{};
+};
+
 struct MeshMaterial {
     LightColor color{};
+    TexColor tex_color{};
     float shininess{};
 };
 
@@ -55,9 +64,10 @@ struct Model {
     mutable ProgramRef program;
 
     glm::vec3 position{};
+    glm::vec3 scale{1, 1, 1};
     glm::vec3 rotation{};
 
     void Render(const Camera& camera) const;
 };
 
-Model LoadModelFromFile(std::string_view path);
+Model LoadModelFromFile(std::string_view path, TextureStore& store);

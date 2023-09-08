@@ -1,4 +1,5 @@
 #include "Texture.hpp"
+#include "dxtl/cstring_view.hpp"
 #include <stdexcept>
 #include <format>
 #include <string>
@@ -6,20 +7,20 @@
 #include <stb/stb_image.h>
 #include <glad/glad.h>
 
-TextureSource::TextureSource(std::string_view file) {
+TextureSource::TextureSource(dxtl::cstring_view file) {
     int num_channels;
     
     stbi_set_flip_vertically_on_load(true);  
-    m_data.reset(stbi_load(std::string(file).c_str(), &size.w, &size.h, &num_channels, 0));
+    m_data.reset(stbi_load(file.c_str(), &size.w, &size.h, &num_channels, 0));
 
     if (!m_data) {
-        throw std::runtime_error(std::format("Failed to load image {}", file));
+        throw std::runtime_error(std::format("Failed to load image {}", file.c_str()));
     }
 
-    format = num_channels == 3 ? TextureFormat::RGB : TextureFormat::RGBA;
+    format = static_cast<TextureFormat>(num_channels);
 }
 
-void TextureSource::Deleter::operator()(unsigned char* ptr) {
+void TextureSource::Deleter::operator()(unsigned char* ptr) const {
     stbi_image_free(ptr);
 }
 
@@ -36,7 +37,15 @@ void Texture::Load(const TextureSource& source) {
 
     auto [w, h] = source.GetDims();
 
-    auto gl_format = source.GetFormat() == TextureFormat::RGB ? GL_RGB : GL_RGBA;
+    int gl_format;
+    switch (source.GetFormat()) {
+        using enum TextureFormat;
+        case R: gl_format = GL_RED; break;
+        case RG: gl_format = GL_RG; break;
+        case RGB: gl_format = GL_RGB; break;
+        case RGBA: gl_format = GL_RGBA; break;
+    }
+    
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, gl_format, GL_UNSIGNED_BYTE, source.GetData());
     glGenerateMipmap(GL_TEXTURE_2D);
 }
@@ -50,7 +59,7 @@ void Texture::DestroyImpl() const {
     glDeleteTextures(1, &handle);
 }
 
-Texture LoadTextureFromFile(std::string_view file) {
+Texture LoadTextureFromFile(dxtl::cstring_view file) {
     TextureSource source(file);
     return Texture(source);
 }

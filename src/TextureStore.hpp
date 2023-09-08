@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Texture.hpp"
+#include "dxtl/cstring_view.hpp"
 
 #include <unordered_map>
 
@@ -8,5 +9,7 @@ class TextureStore {
     std::unordered_map<std::string, Texture> textures;
 
 public:
-    TextureRef LoadTexture(std::string_view )
+    TextureRef LoadTexture(dxtl::cstring_view file);
+
+    const auto& GetTextures() const { return textures; }
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Handle.hpp"
-#include <string_view>
+#include <dxtl/cstring_view.hpp>
 #include <memory>
 
 struct TexSize {
@@ -10,13 +10,15 @@ struct TexSize {
 };
 
 enum class TextureFormat {
+    R = 1,
+    RG,
     RGB,
     RGBA
 };
 
 class TextureSource {
     struct Deleter {
-        void operator()(unsigned char* ptr);
+        void operator()(unsigned char* ptr) const;
     };
 
     std::unique_ptr<unsigned char, Deleter> m_data{};
@@ -25,7 +27,7 @@ class TextureSource {
 
 public:
     TextureSource() = default;
-    explicit TextureSource(std::string_view file);
+    explicit TextureSource(dxtl::cstring_view file);
 
     unsigned char* GetData() {
         return m_data.get();
@@ -60,4 +62,4 @@ protected:
 
 using TextureRef = HandleRef<Texture>;
 
-Texture LoadTextureFromFile(std::string_view file);
+Texture LoadTextureFromFile(dxtl::cstring_view file);

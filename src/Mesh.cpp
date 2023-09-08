@@ -51,9 +51,14 @@ namespace Uniform {
         SetUniform("color.ambient", material.color.ambient);
         SetUniform("color.diffuse", material.color.diffuse);
         SetUniform("color.specular", material.color.specular);
-        // SetUniform("color.ambient", glm::vec3{1, 0, 0});
-        // SetUniform("color.diffuse", glm::vec3{1, 0, 0});
-        // SetUniform("color.specular", glm::vec3(1));
+
+        SetUniform("tex_color.ambient", 0);
+        SetUniform("tex_color.diffuse", 1);
+        SetUniform("tex_color.specular", 2);
+        material.tex_color.ambient->Use(0);
+        material.tex_color.diffuse->Use(1);
+        material.tex_color.specular->Use(2);
+        
         SetUniform("shininess", material.shininess);
     }
 }
@@ -75,6 +80,7 @@ void Model::Render(const Camera& camera) const {
     model = glm::rotate(model, rotation.y, glm::vec3(0, 1, 0));
     model = glm::rotate(model, rotation.z, glm::vec3(0, 0, 1));
     model = glm::translate(model, position);
+    model = glm::scale(model, scale);
 
     auto view = camera.GetViewMatrix();
     auto projection = camera.GetProjectionMatrix();
@@ -130,8 +136,8 @@ static Triangle FormatTriangle(
     return triangle;
 }
 
-static MeshMaterial FormatMaterialData(const to::material_t& mat) {
-    return MeshMaterial{
+static MeshMaterial FormatMaterialData(const to::material_t& mat, TextureStore& store) {
+    MeshMaterial ret{
         .color{
             .ambient = FormatVec3(mat.ambient),
             .diffuse = FormatVec3(mat.diffuse),
@@ -139,9 +145,30 @@ static MeshMaterial FormatMaterialData(const to::material_t& mat) {
         },
         .shininess = mat.shininess
     };
+
+    TextureRef white = store.LoadTexture("res/img/white.png");
+
+    if (!mat.diffuse_texname.empty())
+        ret.tex_color.diffuse = store.LoadTexture(mat.diffuse_texname);
+    else
+        ret.tex_color.diffuse = white;
+
+    if (!mat.ambient_texname.empty())
+        ret.tex_color.ambient = store.LoadTexture(mat.ambient_texname);
+    else if (!mat.diffuse_texname.empty())
+        ret.tex_color.ambient = ret.tex_color.diffuse;
+    else
+        ret.tex_color.ambient = white;
+
+    if (!mat.specular_texname.empty())
+        ret.tex_color.specular = store.LoadTexture(mat.specular_texname);
+    else
+        ret.tex_color.specular = white;
+
+    return ret;
 }
 
-Model LoadModelFromFile(std::string_view obj_path_str) {
+Model LoadModelFromFile(std::string_view obj_path_str, TextureStore& store) {
     to::attrib_t attribs;
     std::vector<to::shape_t> shapes;
     std::vector<to::material_t> materials;
@@ -172,6 +199,8 @@ Model LoadModelFromFile(std::string_view obj_path_str) {
     printf("# of materials = %d\n", (int)materials.size());
     printf("# of shapes    = %d\n", (int)shapes.size());
 
+    auto cwd = fs::current_path();
+    fs::current_path(mat_dir);
 
     Model model;
 
@@ -200,7 +229,7 @@ Model LoadModelFromFile(std::string_view obj_path_str) {
 
             MeshPrimitive mesh_prim;
             mesh_prim.SetTriangles(std::move(tris));
-            mesh_prim.SetMaterial(FormatMaterialData(materials[mat_idx]));
+            mesh_prim.SetMaterial(FormatMaterialData(materials[mat_idx], store));
 
             mesh.primitives.push_back(std::move(mesh_prim));
         }
@@ -208,6 +237,8 @@ Model LoadModelFromFile(std::string_view obj_path_str) {
         if (!mesh.primitives.empty())
             model.meshes.push_back(std::move(mesh));
     }
+
+    fs::current_path(cwd);
 
     return model;
 }

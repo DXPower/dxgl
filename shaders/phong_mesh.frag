@@ -1,6 +1,6 @@
 #version 330 core
 
-struct TexMaterial {
+struct TexColor {
     sampler2D diffuse_map;
     sampler2D specular_map;
     // sampler2D emission_map;
@@ -15,6 +15,7 @@ struct LightColor {
 
 struct BasicMaterial {
     LightColor color;
+    TexColor tex_color;
     float shininess;
 };
 
@@ -95,8 +96,8 @@ LightResult CalcPhongLight(LightColor color, vec3 normal, vec3 light_dir, vec3 v
     LightResult result;
 
 
-    // vec3 tex_color = vec3(texture(material.diffuse_map, frag_tex_coords));
-    vec3 tex_color = vec3(1);
+    vec3 tex_color = vec3(texture(material.tex_color.diffuse_map, frag_tex_coords));
+    // vec3 tex_color = vec3(1);
     vec3 mat_color_amb = material.color.ambient;
 
     // Ambient
@@ -110,8 +111,8 @@ LightResult CalcPhongLight(LightColor color, vec3 normal, vec3 light_dir, vec3 v
 
     // Specular
     vec3 reflect_dir = reflect(-light_dir, normal);
-    // vec3 tex_spec = vec3(texture(material.specular_map, frag_tex_coords));
-    vec3 tex_spec = vec3(1);
+    vec3 tex_spec = vec3(texture(material.tex_color.specular_map, frag_tex_coords));
+    // vec3 tex_spec = vec3(1);
     vec3 mat_color_spec = material.color.specular;
 
     float spec_light_strength = pow(max(dot(view_dir, reflect_dir), 0), material.shininess);
