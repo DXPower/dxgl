@@ -100,7 +100,7 @@ LightResult CalcPhongLight(LightColor color, vec3 normal, vec3 light_dir, vec3 v
     vec3 reflect_dir = reflect(-light_dir, normal);
     vec3 tex_spec = vec3(texture(material.specular_map, frag_tex_coords));
 
-    float spec_light_strength = pow(max(dot(view_dir, reflect_dir), 0), material.shininess * 128);
+    float spec_light_strength = pow(max(dot(view_dir, reflect_dir), 0), material.shininess);
     result.specular = color.specular * (spec_light_strength * tex_spec);
 
     // // Emission

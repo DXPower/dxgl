@@ -140,14 +140,7 @@ Vao MakeTris(std::vector<float> vertices) {
 
 void Clear() {
     glClearColor(0.1, 0.2, 0.4, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void Render(const Program& program, const Vao& Vao) {
-    program.Use();
-    Vao.Use();
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 int main() {
@@ -178,6 +171,7 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_CULL_FACE);
 
     glfwSetKeyCallback(window, OnInput);
 
@@ -254,7 +248,7 @@ int main() {
         .diffuse_map = crate,
         .specular_map = crate_specular,
         .emission_map = blank,
-        .shininess = 0.5
+        .shininess = 128
     };
 
     mat.emission_map->Use(0);
@@ -303,7 +297,6 @@ int main() {
     auto blue_light = MakePointLight(blue);
     auto yellow_light = MakePointLight(yellow);
 
-    Uniform::Set(cube_program, "material", mat);
     Uniform::Set(light_program_red, "light_color", red);
     Uniform::Set(light_program_green, "light_color", green);
     Uniform::Set(light_program_yellow, "light_color", yellow);
@@ -313,30 +306,41 @@ int main() {
 
     float last_time = 0.0f;
 
-    auto rubiks_program = LoadProgram("shaders/mesh.vert", "shaders/phong_mesh.frag");
+    // auto rubiks_program = LoadProgram("shaders/mesh.vert", "shaders/phong_mesh.frag");
 
     // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\cube\\Rubik'sCube.obj");
     // auto rubiks = LoadModelFromFile("res/mesh/pyramid.obj");
     TextureStore tex_store;
     tex_store.LoadTexture("res/img/white.png");
+    tex_store.LoadTexture("res/img/black.png");
 
     // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\sherman\\M4A2_Sherman.obj", tex_store);
-    auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\type87\\Type_87_RCV.obj", tex_store);
-    rubiks.position = glm::vec3(0, -1, -4);
-    rubiks.scale = glm::vec3(0.075);
+    // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\type87\\Type_87_RCV.obj", tex_store);
+    // rubiks.position = glm::vec3(0, -1, -4);
+    // rubiks.scale = glm::vec3(0.5);
     // rubiks.rotation = glm::radians(glm::vec3(180, 10, 15));
-    rubiks.program = rubiks_program;
+    // auto rubiks = LoadModelFromFile("C:\\Users\\myaka\\Downloads\\gnk\\gnk.obj", tex_store);
+    // rubiks.scale = glm::vec3(0.035);
+    // rubiks.position.z -= 10;
+    // rubiks.position.y -= 3;
+    // rubiks.program = rubiks_program;
 
-    red_light.position = rubiks.position + glm::vec3(0.25, 3, 0);
+    red_light.position = glm::vec3(3, 0, 0);
     auto original_light_pos = red_light.position;
 
-    for (const auto& [path, texture] : tex_store.GetTextures()) {
-        if (path.ends_with("Metallic.png")) {
-            texture.Use(0);
-            GLint swizzle_mask[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
-        }
-    }
+    // for (const auto& [path, texture] : tex_store.GetTextures()) {
+    //     if (path.ends_with("Metallic.png")) {
+    //         texture.Use(0);
+    //         GLint swizzle_mask[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+    //         glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
+    //     }
+    // }
+
+    Uniform::Set(cube_program, "material", mat);
+
+    glEnable(GL_STENCIL_TEST);
+
+    auto outline_program = LoadProgram("shaders/perspective.vert", "shaders/frag_orange.frag");
 
     while (!glfwWindowShouldClose(window)) {
         float current_time = glfwGetTime();
@@ -360,19 +364,19 @@ int main() {
         float rot = glfwGetTime() * 1.5f;
 
         red_light_cube.position = red_light.position = RotateAround(
-            rubiks.position, rot
+            cubes[0].position, rot
         ) * glm::vec4(original_light_pos, 1);
 
         green_light_cube.position = green_light.position = RotateAround(
-            rubiks.position, rot + std::numbers::pi / 2
+            cubes[0].position, rot + std::numbers::pi / 2
         ) * glm::vec4(original_light_pos, 1);
 
         blue_light_cube.position = blue_light.position = RotateAround(
-            rubiks.position, rot + std::numbers::pi
+            cubes[0].position, rot + std::numbers::pi
         ) * glm::vec4(original_light_pos, 1);
 
         yellow_light_cube.position = yellow_light.position = RotateAround(
-            rubiks.position, rot + 3 * std::numbers::pi / 2
+            cubes[0].position, rot + 3 * std::numbers::pi / 2
         ) * glm::vec4(original_light_pos, 1);
 
         spotlight.position = camera.GetPosition();
@@ -399,21 +403,39 @@ int main() {
 
         Uniform::Set(cube_program, "dir_light", sun);
 
-        // for (const auto& cube : cubes) {
-        //     cube.Render(camera);
-        // }
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); 
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+
+        for (const auto& cube : cubes) {
+            cube.Render(camera);
+        }
+
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); 
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+
+        for (auto cube : cubes) {
+            cube.program = outline_program;
+            cube.scale *= 1.1f;
+            cube.Render(camera);
+        }
+        
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);   
+        glEnable(GL_DEPTH_TEST);  
 
         
-        Uniform::Set(rubiks_program, "point_lights[0]", red_light);
-        Uniform::Set(rubiks_program, "point_lights[1]", green_light);
-        Uniform::Set(rubiks_program, "point_lights[2]", blue_light);
-        Uniform::Set(rubiks_program, "point_lights[3]", yellow_light);
-        Uniform::Set(rubiks_program, "spotlight", spotlight);
-        Uniform::Set(rubiks_program, "dir_light", sun);
+        // Uniform::Set(rubiks_program, "point_lights[0]", red_light);
+        // Uniform::Set(rubiks_program, "point_lights[1]", green_light);
+        // Uniform::Set(rubiks_program, "point_lights[2]", blue_light);
+        // Uniform::Set(rubiks_program, "point_lights[3]", yellow_light);
+        // Uniform::Set(rubiks_program, "spotlight", spotlight);
+        // Uniform::Set(rubiks_program, "dir_light", sun);
 
         // rubiks.rotation.z += delta_time;
 
-        rubiks.Render(camera);
+        // rubiks.Render(camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

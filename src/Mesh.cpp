@@ -52,12 +52,14 @@ namespace Uniform {
         SetUniform("color.diffuse", material.color.diffuse);
         SetUniform("color.specular", material.color.specular);
 
-        SetUniform("tex_color.ambient", 0);
-        SetUniform("tex_color.diffuse", 1);
-        SetUniform("tex_color.specular", 2);
-        material.tex_color.ambient->Use(0);
-        material.tex_color.diffuse->Use(1);
-        material.tex_color.specular->Use(2);
+        // SetUniform("tex_color.ambient", 0);
+        SetUniform("tex_color.diffuse_map", 0);
+        SetUniform("tex_color.specular_map", 1);
+        SetUniform("tex_color.emission_map", 2);
+        // material.tex_color.ambient->Use(0);
+        material.tex_color.diffuse->Use(0);
+        material.tex_color.specular->Use(1);
+        material.tex_color.emission->Use(2);
         
         SetUniform("shininess", material.shininess);
     }
@@ -139,7 +141,7 @@ static Triangle FormatTriangle(
 static MeshMaterial FormatMaterialData(const to::material_t& mat, TextureStore& store) {
     MeshMaterial ret{
         .color{
-            .ambient = FormatVec3(mat.ambient),
+            // .ambient = FormatVec3(mat.ambient),
             .diffuse = FormatVec3(mat.diffuse),
             .specular = FormatVec3(mat.specular)
         },
@@ -147,23 +149,29 @@ static MeshMaterial FormatMaterialData(const to::material_t& mat, TextureStore& 
     };
 
     TextureRef white = store.LoadTexture("res/img/white.png");
+    TextureRef black = store.LoadTexture("res/img/black.png");
 
     if (!mat.diffuse_texname.empty())
         ret.tex_color.diffuse = store.LoadTexture(mat.diffuse_texname);
     else
         ret.tex_color.diffuse = white;
 
-    if (!mat.ambient_texname.empty())
-        ret.tex_color.ambient = store.LoadTexture(mat.ambient_texname);
-    else if (!mat.diffuse_texname.empty())
-        ret.tex_color.ambient = ret.tex_color.diffuse;
-    else
-        ret.tex_color.ambient = white;
+    // if (!mat.ambient_texname.empty())
+        // ret.tex_color.ambient = store.LoadTexture(mat.ambient_texname);
+    // else if (!mat.diffuse_texname.empty())
+        // ret.tex_color.ambient = ret.tex_color.diffuse;
+    // else
+        // ret.tex_color.ambient = white;
 
     if (!mat.specular_texname.empty())
         ret.tex_color.specular = store.LoadTexture(mat.specular_texname);
     else
         ret.tex_color.specular = white;
+
+    if (!mat.emissive_texname.empty())
+        ret.tex_color.emission = store.LoadTexture(mat.emissive_texname);
+    else
+        ret.tex_color.emission = black;
 
     return ret;
 }

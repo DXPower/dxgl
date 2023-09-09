@@ -25,9 +25,9 @@ struct Triangle {
 };
 
 struct TexColor {
-    TextureRef ambient{};
     TextureRef diffuse{};
     TextureRef specular{};
+    TextureRef emission{};
 };
 
 struct MeshMaterial {

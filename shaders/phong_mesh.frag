@@ -3,7 +3,7 @@
 struct TexColor {
     sampler2D diffuse_map;
     sampler2D specular_map;
-    // sampler2D emission_map;
+    sampler2D emission_map;
     float shininess;
 };
 
@@ -61,7 +61,7 @@ struct LightResult {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    // vec3 emission;
+    vec3 emission;
 };
 
 LightResult CalcPhongLight(LightColor color, vec3 normal, vec3 light_dir, vec3 view_dir);
@@ -70,7 +70,7 @@ LightResult CalcPointLight(PointLight light, vec3 normal, vec3 view_dir);
 LightResult CalcSpotlight(Spotlight light, vec3 normal, vec3 view_dir);
 
 vec3 LightResultToVec(LightResult light) {
-    return vec3(light.ambient + light.diffuse + light.specular);
+    return vec3(light.ambient + light.diffuse + light.specular + light.emission);
 }
 
 void main() {
@@ -88,7 +88,6 @@ void main() {
     }
 
     frag_color = vec4(result, 1);
-    // frag_color = vec4(1);
 }
 
 
@@ -118,8 +117,8 @@ LightResult CalcPhongLight(LightColor color, vec3 normal, vec3 light_dir, vec3 v
     float spec_light_strength = pow(max(dot(view_dir, reflect_dir), 0), material.shininess);
     result.specular = color.specular * (spec_light_strength * tex_spec * mat_color_spec);
 
-    // // Emission
-    // // result.emission = vec3(texture(material.emission_map, frag_tex_coords));
+    // Emission
+    result.emission = vec3(texture(material.tex_color.emission_map, frag_tex_coords));
 
     return result;
 }

@@ -16,6 +16,7 @@ void Cube::Render(const Camera& camera) const {
     model = rotate(model, rotation.x, vec3(1, 0, 0));
     model = rotate(model, rotation.y, vec3(0, 1, 0));
     model = rotate(model, rotation.z, vec3(0, 0, 1));
+    model = glm::scale(model, this->scale);
 
     auto view = camera.GetViewMatrix();
     auto projection = camera.GetProjectionMatrix();
