@@ -82,6 +82,6 @@ void Camera::UpdateProjectionMatrix() {
         glm::radians(fov),
         (float) window_size.x / (float) window_size.y,
         0.1f,
-        100.f
+        1000.f
     );
 }

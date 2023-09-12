@@ -49,9 +49,11 @@ target_sources(dxgl PRIVATE
 	${CMAKE_SOURCE_DIR}/src/main.cpp
 	${CMAKE_SOURCE_DIR}/src/Camera.cpp
 	${CMAKE_SOURCE_DIR}/src/Cube.cpp
+	${CMAKE_SOURCE_DIR}/src/Framebuffer.cpp
 	${CMAKE_SOURCE_DIR}/src/Light.cpp
 	${CMAKE_SOURCE_DIR}/src/Material.cpp
 	${CMAKE_SOURCE_DIR}/src/Mesh.cpp
+	${CMAKE_SOURCE_DIR}/src/Renderbuffer.cpp
 	${CMAKE_SOURCE_DIR}/src/Shader.cpp
 	${CMAKE_SOURCE_DIR}/src/Texture.cpp
 	${CMAKE_SOURCE_DIR}/src/TextureStore.cpp

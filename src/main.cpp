@@ -15,62 +15,127 @@
 
 #include "Camera.hpp"
 #include "Cube.hpp"
+#include "Framebuffer.hpp"
 #include "Light.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
+#include "Renderbuffer.hpp"
 #include "Uniform.hpp"
 #include "Vao.hpp"
 
 static std::vector<float> cube_vertices = {
-    // positions          // normals           // texture coords
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+    // Back face
+    -0.5f, -0.5f, -0.5f,  0, 0, 1, 0.0f, 0.0f, // Bottom-left
+     0.5f,  0.5f, -0.5f,  0, 0, 1, 1.0f, 1.0f, // top-right
+     0.5f, -0.5f, -0.5f,  0, 0, 1, 1.0f, 0.0f, // bottom-right         
+     0.5f,  0.5f, -0.5f,  0, 0, 1, 1.0f, 1.0f, // top-right
+    -0.5f, -0.5f, -0.5f,  0, 0, 1, 0.0f, 0.0f, // bottom-left
+    -0.5f,  0.5f, -0.5f,  0, 0, 1, 0.0f, 1.0f, // top-left
+    // Front face
+    -0.5f, -0.5f,  0.5f,  0, 0, -1, 0.0f, 0.0f, // bottom-left
+     0.5f, -0.5f,  0.5f,  0, 0, -1, 1.0f, 0.0f, // bottom-right
+     0.5f,  0.5f,  0.5f,  0, 0, -1, 1.0f, 1.0f, // top-right
+     0.5f,  0.5f,  0.5f,  0, 0, -1, 1.0f, 1.0f, // top-right
+    -0.5f,  0.5f,  0.5f,  0, 0, -1, 0.0f, 1.0f, // top-left
+    -0.5f, -0.5f,  0.5f,  0, 0, -1, 0.0f, 0.0f, // bottom-left
+    // Left face
+    -0.5f,  0.5f,  0.5f,  -1, 0, 0, 1.0f, 0.0f, // top-right
+    -0.5f,  0.5f, -0.5f,  -1, 0, 0, 1.0f, 1.0f, // top-left
+    -0.5f, -0.5f, -0.5f,  -1, 0, 0, 0.0f, 1.0f, // bottom-left
+    -0.5f, -0.5f, -0.5f,  -1, 0, 0, 0.0f, 1.0f, // bottom-left
+    -0.5f, -0.5f,  0.5f,  -1, 0, 0, 0.0f, 0.0f, // bottom-right
+    -0.5f,  0.5f,  0.5f,  -1, 0, 0, 1.0f, 0.0f, // top-right
+    // Right face
+     0.5f,  0.5f,  0.5f,  1, 0, 0, 1.0f, 0.0f, // top-left
+     0.5f, -0.5f, -0.5f,  1, 0, 0, 0.0f, 1.0f, // bottom-right
+     0.5f,  0.5f, -0.5f,  1, 0, 0, 1.0f, 1.0f, // top-right         
+     0.5f, -0.5f, -0.5f,  1, 0, 0, 0.0f, 1.0f, // bottom-right
+     0.5f,  0.5f,  0.5f,  1, 0, 0, 1.0f, 0.0f, // top-left
+     0.5f, -0.5f,  0.5f,  1, 0, 0, 0.0f, 0.0f, // bottom-left     
+    // Bottom face
+    -0.5f, -0.5f, -0.5f,  0, -1, 0, 0.0f, 1.0f, // top-right
+     0.5f, -0.5f, -0.5f,  0, -1, 0, 1.0f, 1.0f, // top-left
+     0.5f, -0.5f,  0.5f,  0, -1, 0, 1.0f, 0.0f, // bottom-left
+     0.5f, -0.5f,  0.5f,  0, -1, 0, 1.0f, 0.0f, // bottom-left
+    -0.5f, -0.5f,  0.5f,  0, -1, 0, 0.0f, 0.0f, // bottom-right
+    -0.5f, -0.5f, -0.5f,  0, -1, 0, 0.0f, 1.0f, // top-right
+    // Top face
+    -0.5f,  0.5f, -0.5f,  0, 1, 0, 0.0f, 1.0f, // top-left
+     0.5f,  0.5f,  0.5f,  0, 1, 0, 1.0f, 0.0f, // bottom-right
+     0.5f,  0.5f, -0.5f,  0, 1, 0, 1.0f, 1.0f, // top-right     
+     0.5f,  0.5f,  0.5f,  0, 1, 0, 1.0f, 0.0f, // bottom-right
+    -0.5f,  0.5f, -0.5f,  0, 1, 0, 0.0f, 1.0f, // top-left
+    -0.5f,  0.5f,  0.5f,  0, 1, 0, 0.0f, 0.0f  // bottom-left  
 };
+
+struct ScreenFramebuffer {
+    Framebuffer framebuffer{};
+    Texture color_buffer{};
+    Renderbuffer depth_stencil_buffer{};
+};
+
+std::unique_ptr<ScreenFramebuffer> MakeScreenFramebuffer(int w, int h) {
+    auto screen = std::make_unique<ScreenFramebuffer>();
+
+    screen->framebuffer.Use();
+    screen->color_buffer.Use(0);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screen->color_buffer.GetHandle(), 0);
+
+    screen->depth_stencil_buffer.Use();
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, screen->depth_stencil_buffer.GetHandle());
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	    throw std::runtime_error("Framebuffer is not complete!");
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  
+
+    return screen;
+}
+
+Vao MakeScreenVao() {
+    float vert_data[] = {
+        -1, 1, 0, 1,  // Top left
+        -1, -1, 0, 0, // Bottom left
+        1, -1, 1, 0,  // Bottom right
+        1, 1, 1, 1,   // Top right
+    };
+
+    Vao vao{};
+    vao.Use();
+
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vert_data), vert_data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    return vao;
+}
+
+std::unique_ptr<ScreenFramebuffer> main_screen_buffer{};
 
 void OnWindowResize(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
     Camera::Get().UpdateWindowSize(width, height);
+
+    main_screen_buffer = MakeScreenFramebuffer(width, height);
 }
 
 static float mix_value = 1.f;
@@ -171,7 +236,6 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
 
     glfwSetKeyCallback(window, OnInput);
 
@@ -288,7 +352,7 @@ int main() {
                 .diffuse = color,
                 .specular = color
             },
-            .attenuation = Attenuations::D100
+            .attenuation = Attenuations::D65
         };
     };
 
@@ -336,21 +400,73 @@ int main() {
     //     }
     // }
 
-    Uniform::Set(cube_program, "material", mat);
 
     glEnable(GL_STENCIL_TEST);
 
     auto outline_program = LoadProgram("shaders/perspective.vert", "shaders/frag_orange.frag");
 
+    auto floor_program = LoadProgram("shaders/perspective.vert", "shaders/phong_tex_multi.frag");
+    auto floor_tex = LoadTextureFromFile("res/img/stone.jpg");
+
+    TexMaterial floor_material{
+        .diffuse_map = floor_tex,
+        .specular_map = tex_store.LoadTexture("res/img/black.png"),
+    };
+
+    Cube floor{
+        .vao = cube_vao,
+        .program = floor_program,
+        .position{0, -5, 0},
+        .scale{100, 1, 100},
+    };
+
+    auto grass_program = LoadProgram("shaders/perspective.vert", "shaders/alpha.frag");
+
+    Cube grass{
+        .vao = cube_vao,
+        .program = grass_program,
+        .position{-3, -3, 0}
+    };
+
+    
+    TexMaterial grass_mat{
+        .diffuse_map = tex_store.LoadTexture("res/img/grass.png"),
+        .specular_map = tex_store.LoadTexture("res/img/black.png")
+    };
+    
+    auto window_program = LoadProgram("shaders/perspective.vert", "shaders/alpha.frag");
+    Cube window_cube{
+        .vao = cube_vao,
+        .program = window_program,
+        .position{0, -2, 3}
+    };
+
+    TexMaterial window_mat{
+        .diffuse_map = tex_store.LoadTexture("res/img/window.png"),
+        .specular_map = tex_store.LoadTexture("res/img/black.png")
+    };
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CW);
+
+    main_screen_buffer = MakeScreenFramebuffer(800, 600);
+    auto screen_vao = MakeScreenVao();
+    auto screen_program = LoadProgram("shaders/framebuffer.vert", "shaders/framebuffer.frag");
+
     while (!glfwWindowShouldClose(window)) {
+        main_screen_buffer->framebuffer.Use();
+        Clear();
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         float current_time = glfwGetTime();
         delta_time = current_time - last_time;
         last_time = current_time;
 
         ProcessInput(window);
         camera.UpdatePosition(window, delta_time);
-
-        Clear();
 
         auto RotateAround = [](glm::vec3 pos, float radians) {
             glm::mat4 m = glm::mat4(1);
@@ -407,6 +523,8 @@ int main() {
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
 
+        Uniform::Set(cube_program, "material", mat);
+
         for (const auto& cube : cubes) {
             cube.Render(camera);
         }
@@ -425,7 +543,19 @@ int main() {
         glStencilFunc(GL_ALWAYS, 1, 0xFF);   
         glEnable(GL_DEPTH_TEST);  
 
+        Uniform::Set(floor_program, "material", floor_material);
+        Uniform::Set(floor_program, "point_lights[0]", red_light);
+        Uniform::Set(floor_program, "point_lights[1]", green_light);
+        Uniform::Set(floor_program, "point_lights[2]", blue_light);
+        Uniform::Set(floor_program, "point_lights[3]", yellow_light);
+        Uniform::Set(floor_program, "dir_light", sun);
+        Uniform::Set(floor_program, "spotlight", spotlight);
+        Uniform::Set(floor_program, "view_pos", camera.GetPosition());
+        floor.Render(camera);
         
+
+        Uniform::Set(grass_program, "material", grass_mat);
+        grass.Render(camera);
         // Uniform::Set(rubiks_program, "point_lights[0]", red_light);
         // Uniform::Set(rubiks_program, "point_lights[1]", green_light);
         // Uniform::Set(rubiks_program, "point_lights[2]", blue_light);
@@ -436,6 +566,22 @@ int main() {
         // rubiks.rotation.z += delta_time;
 
         // rubiks.Render(camera);
+
+        Uniform::Set(window_program, "material", window_mat);
+        window_cube.Render(camera);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.5, 0.5, 0.5, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        screen_program.Use();
+        screen_vao.Use();
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        main_screen_buffer->color_buffer.Use(0);
+        Uniform::Set(screen_program, "texture", 0);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

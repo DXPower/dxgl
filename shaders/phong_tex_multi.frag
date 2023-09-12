@@ -63,14 +63,14 @@ LightResult CalcPointLight(PointLight light, vec3 normal, vec3 view_dir);
 LightResult CalcSpotlight(Spotlight light, vec3 normal, vec3 view_dir);
 
 vec3 LightResultToVec(LightResult light) {
-    return vec3(light.ambient + light.diffuse + light.specular);
+    return light.ambient + light.diffuse + light.specular;
 }
 
 void main() {
     vec3 normal = normalize(frag_normal);
     vec3 view_dir = normalize(view_pos - frag_pos);
     
-    vec3 result;
+    vec3 result = vec3(0, 0, 0);
 
     result += LightResultToVec(CalcDirectionalLight(dir_light, normal, view_dir));
     result += LightResultToVec(CalcSpotlight(spotlight, normal, view_dir));
@@ -106,6 +106,9 @@ LightResult CalcPhongLight(LightColor color, vec3 normal, vec3 light_dir, vec3 v
     // // Emission
     // // result.emission = vec3(texture(material.emission_map, frag_tex_coords));
 
+    result.ambient = max(result.ambient, vec3(0, 0, 0));
+    result.diffuse = max(result.diffuse, vec3(0, 0, 0));
+    result.specular = max(result.specular, vec3(0, 0, 0));
     return result;
 }
 
@@ -140,6 +143,5 @@ LightResult CalcSpotlight(Spotlight light, vec3 normal, vec3 view_dir) {
 
     result.diffuse *= intensity;
     result.specular *= intensity;
-
     return result;
 }
