@@ -15,11 +15,13 @@
 
 #include "Camera.hpp"
 #include "Cube.hpp"
+#include "Cubemap.hpp"
 #include "Framebuffer.hpp"
 #include "Light.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
+#include "Skybox.hpp"
 #include "Texture.hpp"
 #include "Renderbuffer.hpp"
 #include "Uniform.hpp"
@@ -446,6 +448,27 @@ int main() {
         .specular_map = tex_store.LoadTexture("res/img/black.png")
     };
 
+
+    Program skybox_program = LoadProgram("shaders/skybox.vert", "shaders/skybox.frag");
+    Cubemap skybox_cubemap = LoadCubemapFromFiles(std::array{ 
+        "res/img/skybox/right.jpg", "res/img/skybox/left.jpg",
+        "res/img/skybox/bottom.jpg", "res/img/skybox/top.jpg",
+        "res/img/skybox/front.jpg", "res/img/skybox/back.jpg"
+    });
+
+    Skybox skybox{
+        .vao = cube_vao,
+        .cubemap = skybox_cubemap,
+        .program = skybox_program
+    };
+
+    Program mirror_program = LoadProgram("shaders/perspective.vert", "shaders/cubemap_reflect.frag");
+    Cube mirror{
+        .vao = cube_vao,
+        .program = mirror_program,
+        .position{1, -1, -1}
+    };
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
@@ -542,17 +565,27 @@ int main() {
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 1, 0xFF);   
         glEnable(GL_DEPTH_TEST);  
+        glDepthFunc(GL_LEQUAL);
+        // Uniform::Set(floor_program, "material", floor_material);
+        // Uniform::Set(floor_program, "point_lights[0]", red_light);
+        // Uniform::Set(floor_program, "point_lights[1]", green_light);
+        // Uniform::Set(floor_program, "point_lights[2]", blue_light);
+        // Uniform::Set(floor_program, "point_lights[3]", yellow_light);
+        // Uniform::Set(floor_program, "dir_light", sun);
+        // Uniform::Set(floor_program, "spotlight", spotlight);
+        // Uniform::Set(floor_program, "view_pos", camera.GetPosition());
+        // floor.Render(camera);
 
-        Uniform::Set(floor_program, "material", floor_material);
-        Uniform::Set(floor_program, "point_lights[0]", red_light);
-        Uniform::Set(floor_program, "point_lights[1]", green_light);
-        Uniform::Set(floor_program, "point_lights[2]", blue_light);
-        Uniform::Set(floor_program, "point_lights[3]", yellow_light);
-        Uniform::Set(floor_program, "dir_light", sun);
-        Uniform::Set(floor_program, "spotlight", spotlight);
-        Uniform::Set(floor_program, "view_pos", camera.GetPosition());
-        floor.Render(camera);
+        Uniform::Set(mirror_program, "view_pos", camera.GetPosition());
+        skybox_cubemap.Use();
+        mirror.Render(camera);
         
+        glDisable(GL_CULL_FACE);
+        // glDepthMask(GL_FALSE);
+        skybox.Render(camera);
+        // glDepthMask(GL_TRUE);
+        glEnable(GL_CULL_FACE);
+
 
         Uniform::Set(grass_program, "material", grass_mat);
         grass.Render(camera);
@@ -569,6 +602,7 @@ int main() {
 
         Uniform::Set(window_program, "material", window_mat);
         window_cube.Render(camera);
+        
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(0.5, 0.5, 0.5, 1);
