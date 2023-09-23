@@ -8,8 +8,12 @@ out vec3 frag_pos;
 out vec2 frag_tex_coords;
 
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+
+layout (std140) uniform camera_matrices {
+    mat4 view;
+    mat4 projection;
+};
+
 
 void main() {
     gl_Position = projection * view * model * vec4(vert_pos, 1.0);

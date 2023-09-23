@@ -8,6 +8,12 @@ project(dxgl
 
 message(STATUS ${CMAKE_CXX_FLAGS})
 
+find_package(Boost 1.62.0)
+
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost not found")
+endif()
+
 add_library(glfw STATIC IMPORTED)
 set_target_properties(glfw PROPERTIES
     IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/dep/lib/glfw3.lib"
@@ -36,7 +42,11 @@ target_include_directories(glm INTERFACE ${CMAKE_SOURCE_DIR}/dep/inc)
 target_compile_definitions(glm INTERFACE GLM_FORCE_XYZW_ONLY)
 
 add_executable(dxgl)
-target_include_directories(dxgl PUBLIC ${CMAKE_SOURCE_DIR}/dep/inc ${CMAKE_SOURCE_DIR}/src/inc)
+target_include_directories(dxgl PUBLIC 
+	${CMAKE_SOURCE_DIR}/dep/inc ${CMAKE_SOURCE_DIR}/src/inc
+	${Boost_INCLUDE_DIRS}
+)
+
 target_link_libraries(dxgl PRIVATE 
     glfw
 	glad
@@ -59,6 +69,7 @@ target_sources(dxgl PRIVATE
 	${CMAKE_SOURCE_DIR}/src/Skybox.cpp
 	${CMAKE_SOURCE_DIR}/src/Texture.cpp
 	${CMAKE_SOURCE_DIR}/src/TextureStore.cpp
+	${CMAKE_SOURCE_DIR}/src/Ubo.cpp
 	${CMAKE_SOURCE_DIR}/src/Uniform.cpp
 	${CMAKE_SOURCE_DIR}/src/Vao.cpp
 )

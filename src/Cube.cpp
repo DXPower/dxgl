@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-void Cube::Render(const Camera& camera) const {
+void Cube::Render(const Camera& camera [[maybe_unused]]  ) const {
     using namespace glm;
 
     program->Use();
@@ -18,12 +18,9 @@ void Cube::Render(const Camera& camera) const {
     model = rotate(model, rotation.z, vec3(0, 0, 1));
     model = glm::scale(model, this->scale);
 
-    auto view = camera.GetViewMatrix();
-    auto projection = camera.GetProjectionMatrix();
-
     Uniform::Set(*program, "model", model);
-    Uniform::Set(*program, "view", view);
-    Uniform::Set(*program, "projection", projection);
+    // Uniform::Set(*program, "view", view);
+    // Uniform::Set(*program, "projection", projection);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }

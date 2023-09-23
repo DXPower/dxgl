@@ -25,6 +25,7 @@
 #include "Texture.hpp"
 #include "Renderbuffer.hpp"
 #include "Uniform.hpp"
+#include "Ubo.hpp"
 #include "Vao.hpp"
 
 static std::vector<float> cube_vertices = {
@@ -209,6 +210,24 @@ void Clear() {
     glClearColor(0.1, 0.2, 0.4, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
+
+struct TestUbo {
+    float value;
+    glm::vec4 vec;
+    glm::mat4 mat;
+    float values[3];
+    bool boolean;
+    int integer;
+};
+
+BOOST_DESCRIBE_STRUCT(TestUbo, (), (value, vec, mat, values, boolean, integer));
+
+struct CameraMatrices {
+    glm::mat4 view;
+    glm::mat4 projection;
+};
+
+BOOST_DESCRIBE_STRUCT(CameraMatrices, (), (view, projection));
 
 int main() {
     glfwInit();
@@ -469,6 +488,13 @@ int main() {
         .position{1, -1, -1}
     };
 
+    CameraMatrices camera_matrices{};
+    Ubo camera_matrices_ubo{};
+    
+    UboBindingManager ubo_manager{};
+    ubo_manager.BindUboLocation(0, camera_matrices_ubo);
+    ubo_manager.BindUniformLocation(0, cube_program, "camera_matrices");
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
@@ -490,6 +516,11 @@ int main() {
 
         ProcessInput(window);
         camera.UpdatePosition(window, delta_time);
+
+        camera_matrices.projection = camera.GetProjectionMatrix();
+        camera_matrices.view = camera.GetViewMatrix();
+
+        camera_matrices_ubo.Upload(Std140(camera_matrices));
 
         auto RotateAround = [](glm::vec3 pos, float radians) {
             glm::mat4 m = glm::mat4(1);
