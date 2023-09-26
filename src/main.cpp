@@ -132,6 +132,33 @@ Vao MakeScreenVao() {
     return vao;
 }
 
+Vao MakeGsVao() {
+    float points[] = {
+    //  Pos           Color
+        -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
+        -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
+    };  
+
+    Vao vao{};
+    vao.Use();
+
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(0);
+    
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    return vao;
+}
+
 std::unique_ptr<ScreenFramebuffer> main_screen_buffer{};
 
 void OnWindowResize(GLFWwindow*, int width, int height) {
@@ -173,6 +200,19 @@ Program LoadProgram(std::string_view vs_path, std::string_view fs_path) {
         Shader fs(ShaderType::Fragment, fs_path);
 
         return Program({ vs, fs });
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << "\n";
+        throw;
+    }
+}
+
+Program LoadProgram(std::string_view vs_path, std::string_view fs_path, std::string_view gs_path) {
+    try {
+        Shader vs(ShaderType::Vertex, vs_path);
+        Shader fs(ShaderType::Fragment, fs_path);
+        Shader gs(ShaderType::Geometry, gs_path);
+
+        return Program({ vs, fs, gs });
     } catch (const std::exception& e) {
         std::cerr << e.what() << "\n";
         throw;
@@ -495,6 +535,9 @@ int main() {
     ubo_manager.BindUboLocation(0, camera_matrices_ubo);
     ubo_manager.BindUniformLocation(0, cube_program, "camera_matrices");
 
+    Vao gs_points_vao = MakeGsVao();
+    Program gs_program = LoadProgram("shaders/gs_pass.vert", "shaders/gs_color.frag", "shaders/gs_lines.geom");
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
@@ -522,117 +565,122 @@ int main() {
 
         camera_matrices_ubo.Upload(Std140(camera_matrices));
 
-        auto RotateAround = [](glm::vec3 pos, float radians) {
-            glm::mat4 m = glm::mat4(1);
-            m = glm::translate(m, pos);
-            m = glm::rotate(m, radians, glm::vec3(0, 1, 0));
-            m = glm::translate(m, pos);
+        gs_program.Use();
+        gs_points_vao.Use();
 
-            return m;
-        };
+        glDrawArrays(GL_POINTS, 0, 4);
 
-        float rot = glfwGetTime() * 1.5f;
+        // auto RotateAround = [](glm::vec3 pos, float radians) {
+        //     glm::mat4 m = glm::mat4(1);
+        //     m = glm::translate(m, pos);
+        //     m = glm::rotate(m, radians, glm::vec3(0, 1, 0));
+        //     m = glm::translate(m, pos);
 
-        red_light_cube.position = red_light.position = RotateAround(
-            cubes[0].position, rot
-        ) * glm::vec4(original_light_pos, 1);
+        //     return m;
+        // };
 
-        green_light_cube.position = green_light.position = RotateAround(
-            cubes[0].position, rot + std::numbers::pi / 2
-        ) * glm::vec4(original_light_pos, 1);
+        // float rot = glfwGetTime() * 1.5f;
 
-        blue_light_cube.position = blue_light.position = RotateAround(
-            cubes[0].position, rot + std::numbers::pi
-        ) * glm::vec4(original_light_pos, 1);
+        // red_light_cube.position = red_light.position = RotateAround(
+        //     cubes[0].position, rot
+        // ) * glm::vec4(original_light_pos, 1);
 
-        yellow_light_cube.position = yellow_light.position = RotateAround(
-            cubes[0].position, rot + 3 * std::numbers::pi / 2
-        ) * glm::vec4(original_light_pos, 1);
+        // green_light_cube.position = green_light.position = RotateAround(
+        //     cubes[0].position, rot + std::numbers::pi / 2
+        // ) * glm::vec4(original_light_pos, 1);
 
-        spotlight.position = camera.GetPosition();
-        spotlight.direction = camera.GetDirection();
+        // blue_light_cube.position = blue_light.position = RotateAround(
+        //     cubes[0].position, rot + std::numbers::pi
+        // ) * glm::vec4(original_light_pos, 1);
 
-        Uniform::Set(cube_program, "point_lights[0]", red_light);
-        Uniform::Set(cube_program, "point_lights[1]", green_light);
-        Uniform::Set(cube_program, "point_lights[2]", blue_light);
-        Uniform::Set(cube_program, "point_lights[3]", yellow_light);
+        // yellow_light_cube.position = yellow_light.position = RotateAround(
+        //     cubes[0].position, rot + 3 * std::numbers::pi / 2
+        // ) * glm::vec4(original_light_pos, 1);
 
-        spotlight.color = flashlight_on ? flashlight_color : LightColor{};
-        Uniform::Set(cube_program, "spotlight", spotlight);
+        // spotlight.position = camera.GetPosition();
+        // spotlight.direction = camera.GetDirection();
 
-        Uniform::Set(cube_program, "view_pos", camera.GetPosition());
+        // Uniform::Set(cube_program, "point_lights[0]", red_light);
+        // Uniform::Set(cube_program, "point_lights[1]", green_light);
+        // Uniform::Set(cube_program, "point_lights[2]", blue_light);
+        // Uniform::Set(cube_program, "point_lights[3]", yellow_light);
 
-        green_light_cube.Render(camera);
-        red_light_cube.Render(camera);
-        yellow_light_cube.Render(camera);
-        blue_light_cube.Render(camera);
+        // spotlight.color = flashlight_on ? flashlight_color : LightColor{};
+        // Uniform::Set(cube_program, "spotlight", spotlight);
 
-        sun.color.ambient = glm::vec3(mix_value) * 0.1f;
-        sun.color.diffuse = glm::vec3(mix_value);
-        sun.color.specular = glm::vec3(mix_value);
+        // Uniform::Set(cube_program, "view_pos", camera.GetPosition());
 
-        Uniform::Set(cube_program, "dir_light", sun);
+        // green_light_cube.Render(camera);
+        // red_light_cube.Render(camera);
+        // yellow_light_cube.Render(camera);
+        // blue_light_cube.Render(camera);
 
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); 
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
+        // sun.color.ambient = glm::vec3(mix_value) * 0.1f;
+        // sun.color.diffuse = glm::vec3(mix_value);
+        // sun.color.specular = glm::vec3(mix_value);
 
-        Uniform::Set(cube_program, "material", mat);
+        // Uniform::Set(cube_program, "dir_light", sun);
 
-        for (const auto& cube : cubes) {
-            cube.Render(camera);
-        }
+        // glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); 
+        // glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        // glStencilMask(0xFF);
 
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); 
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
+        // Uniform::Set(cube_program, "material", mat);
 
-        for (auto cube : cubes) {
-            cube.program = outline_program;
-            cube.scale *= 1.1f;
-            cube.Render(camera);
-        }
+        // for (const auto& cube : cubes) {
+        //     cube.Render(camera);
+        // }
+
+        // glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); 
+        // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        // glStencilMask(0x00);
+
+        // for (auto cube : cubes) {
+        //     cube.program = outline_program;
+        //     cube.scale *= 1.1f;
+        //     cube.Render(camera);
+        // }
         
-        glStencilMask(0xFF);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);   
-        glEnable(GL_DEPTH_TEST);  
-        glDepthFunc(GL_LEQUAL);
-        // Uniform::Set(floor_program, "material", floor_material);
-        // Uniform::Set(floor_program, "point_lights[0]", red_light);
-        // Uniform::Set(floor_program, "point_lights[1]", green_light);
-        // Uniform::Set(floor_program, "point_lights[2]", blue_light);
-        // Uniform::Set(floor_program, "point_lights[3]", yellow_light);
-        // Uniform::Set(floor_program, "dir_light", sun);
-        // Uniform::Set(floor_program, "spotlight", spotlight);
-        // Uniform::Set(floor_program, "view_pos", camera.GetPosition());
-        // floor.Render(camera);
+        // glStencilMask(0xFF);
+        // glStencilFunc(GL_ALWAYS, 1, 0xFF);   
+        // glEnable(GL_DEPTH_TEST);  
+        // glDepthFunc(GL_LEQUAL);
+        // // Uniform::Set(floor_program, "material", floor_material);
+        // // Uniform::Set(floor_program, "point_lights[0]", red_light);
+        // // Uniform::Set(floor_program, "point_lights[1]", green_light);
+        // // Uniform::Set(floor_program, "point_lights[2]", blue_light);
+        // // Uniform::Set(floor_program, "point_lights[3]", yellow_light);
+        // // Uniform::Set(floor_program, "dir_light", sun);
+        // // Uniform::Set(floor_program, "spotlight", spotlight);
+        // // Uniform::Set(floor_program, "view_pos", camera.GetPosition());
+        // // floor.Render(camera);
 
-        Uniform::Set(mirror_program, "view_pos", camera.GetPosition());
-        skybox_cubemap.Use();
-        mirror.Render(camera);
+        // Uniform::Set(mirror_program, "view_pos", camera.GetPosition());
+        // skybox_cubemap.Use();
+        // mirror.Render(camera);
         
-        glDisable(GL_CULL_FACE);
-        // glDepthMask(GL_FALSE);
-        skybox.Render(camera);
-        // glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
+        // glDisable(GL_CULL_FACE);
+        // // glDepthMask(GL_FALSE);
+        // skybox.Render(camera);
+        // // glDepthMask(GL_TRUE);
+        // glEnable(GL_CULL_FACE);
 
 
-        Uniform::Set(grass_program, "material", grass_mat);
-        grass.Render(camera);
-        // Uniform::Set(rubiks_program, "point_lights[0]", red_light);
-        // Uniform::Set(rubiks_program, "point_lights[1]", green_light);
-        // Uniform::Set(rubiks_program, "point_lights[2]", blue_light);
-        // Uniform::Set(rubiks_program, "point_lights[3]", yellow_light);
-        // Uniform::Set(rubiks_program, "spotlight", spotlight);
-        // Uniform::Set(rubiks_program, "dir_light", sun);
+        // Uniform::Set(grass_program, "material", grass_mat);
+        // grass.Render(camera);
+        // // Uniform::Set(rubiks_program, "point_lights[0]", red_light);
+        // // Uniform::Set(rubiks_program, "point_lights[1]", green_light);
+        // // Uniform::Set(rubiks_program, "point_lights[2]", blue_light);
+        // // Uniform::Set(rubiks_program, "point_lights[3]", yellow_light);
+        // // Uniform::Set(rubiks_program, "spotlight", spotlight);
+        // // Uniform::Set(rubiks_program, "dir_light", sun);
 
-        // rubiks.rotation.z += delta_time;
+        // // rubiks.rotation.z += delta_time;
 
-        // rubiks.Render(camera);
+        // // rubiks.Render(camera);
 
-        Uniform::Set(window_program, "material", window_mat);
-        window_cube.Render(camera);
+        // Uniform::Set(window_program, "material", window_mat);
+        // window_cube.Render(camera);
         
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

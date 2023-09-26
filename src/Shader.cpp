@@ -24,7 +24,9 @@ static std::string LoadFileToString(std::string_view path) {
 }
 
 Shader::Shader(ShaderType type, std::string_view source) {
-    auto gl_type = type == ShaderType::Vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
+    auto gl_type = type == ShaderType::Vertex   ? GL_VERTEX_SHADER :
+                   type == ShaderType::Fragment ? GL_FRAGMENT_SHADER :
+                                                  GL_GEOMETRY_SHADER;
 
     std::string file_contents = LoadFileToString(source);
     const char* file_contents_arr[] = { file_contents.c_str() };

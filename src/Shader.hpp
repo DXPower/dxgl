@@ -7,7 +7,8 @@
 
 enum class ShaderType {
     Vertex,
-    Fragment
+    Fragment,
+    Geometry
 };
 
 class Shader : public Handle<Shader, Usable::No> {
