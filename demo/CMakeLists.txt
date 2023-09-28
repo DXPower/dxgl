@@ -1,4 +1,4 @@
-add_executable(demo)
+add_executable(demo EXCLUDE_FROM_ALL)
 
 target_link_libraries(demo PRIVATE dxgl glad glfw)
 target_sources(demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)

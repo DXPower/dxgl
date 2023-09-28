@@ -16,3 +16,4 @@ endif()
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/dxgl)
 add_subdirectory(${CMAKE_SOURCE_DIR}/demo)
+add_subdirectory(${CMAKE_SOURCE_DIR}/minecraft)
