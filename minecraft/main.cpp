@@ -80,11 +80,18 @@ Vao MakeScreenVao() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vert_data), vert_data, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    VaoAttribBuilder()
+        .Group(AttribGroup()
+            .Attrib(Attribute()
+                .Type(AttribType::Float)
+                .Components(2)
+            )
+            .Attrib(Attribute()
+                .Type(AttribType::Float)
+                .Components(2)
+            )
+        )
+        .Apply(vao);
 
     return vao;
 }
@@ -114,57 +121,33 @@ void OnInput(GLFWwindow* window [[maybe_unused]], int key, int scancode [[maybe_
     }
 }
 
-Program LoadProgram(std::string_view vs_path, std::string_view fs_path) {
-    try {
-        Shader vs(ShaderType::Vertex, vs_path);
-        Shader fs(ShaderType::Fragment, fs_path);
+Vao MakeTri() {
+    std::vector<float> vertices = {
+        0, 0.75, 0.5,
+        -0.5, 0, 0.5,
+        0.5, 0, 0.5
+    };
 
-        return Program({ vs, fs });
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << "\n";
-        throw;
-    }
+    Vao vao{};
+    vao.Use();
+
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    VaoAttribBuilder()
+        .Group(AttribGroup()
+            .Attrib(Attribute()
+                .Type(AttribType::Float)
+                .Components(3)
+            )
+        )
+        .Apply(vao);
+
+    return vao;
 }
-
-// Program LoadProgram(std::string_view vs_path, std::string_view fs_path, std::string_view gs_path) {
-//     try {
-//         Shader vs(ShaderType::Vertex, vs_path);
-//         Shader fs(ShaderType::Fragment, fs_path);
-//         Shader gs(ShaderType::Geometry, gs_path);
-
-//         return Program({ vs, fs, gs });
-//     } catch (const std::exception& e) {
-//         std::cerr << e.what() << "\n";
-//         throw;
-//     }
-// }
-
-// Vao MakeTris(std::vector<float> vertices) {
-//     Vao Vao{};
-//     Vao.Use();
-
-//     unsigned int vbo;
-//     glGenBuffers(1, &vbo);
-
-//     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-//     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
-//     glEnableVertexAttribArray(0);
-
-//     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
-//     glEnableVertexAttribArray(1);
-
-//     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
-//     glEnableVertexAttribArray(2);
-
-//     // unsigned int ebo;
-//     // glGenBuffers(1, &ebo);
-//     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-//     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
-
-//     return Vao;
-// }
 
 void Clear() {
     glClearColor(0.1, 0.2, 0.4, 1.0f);
@@ -206,13 +189,21 @@ int main() {
     Camera& camera = Camera::Get();
     camera.UpdateWindowSize(800, 600);
 
-    auto cube_program = LoadProgram("shaders/perspective.vert", "shaders/phong_tex_multi.frag");
-    
+    auto basic_program = ProgramBuilder()
+        .Vert("shaders/basic.vert")
+        .Frag("shaders/basic.frag")
+        .Link();
+
+    auto tri_vao = MakeTri();
+
     float last_time = 0.0f;
 
     main_screen_buffer = MakeScreenFramebuffer(800, 600);
     auto screen_vao = MakeScreenVao();
-    auto screen_program = LoadProgram("shaders/framebuffer.vert", "shaders/framebuffer.frag");
+    auto screen_program = ProgramBuilder()
+        .Vert("shaders/framebuffer.vert")
+        .Frag("shaders/framebuffer.frag")
+        .Link();
 
     while (!glfwWindowShouldClose(window)) {
         main_screen_buffer->framebuffer.Use();
@@ -227,6 +218,11 @@ int main() {
         ProcessInput(window);
         camera.UpdatePosition(window, delta_time);
 
+        basic_program.Use();
+        tri_vao.Use();
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(0.5, 0.5, 0.5, 1);
@@ -238,6 +234,7 @@ int main() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         main_screen_buffer->color_buffer.Use(0);
         Uniform::Set(screen_program, "texture", 0);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
         glfwSwapBuffers(window);

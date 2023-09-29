@@ -1,6 +1,12 @@
 #include <dxgl/Vao.hpp>
 
+#include <numeric>
+#include <algorithm>
+#include <format>
+#include <ranges>
+#include <stdexcept>
 #include <glad/glad.h>
+#include <xutility>
 
 using namespace dxgl;
 
@@ -14,4 +20,95 @@ void Vao::UseImpl() const {
 
 void Vao::DestroyImpl() const {
     glDeleteVertexArrays(1, &handle);
+}
+
+AttribGroup& AttribGroup::Attrib(const Attribute& a) {
+    attributes.push_back(a);
+    return *this;
+}
+
+VaoAttribBuilder& VaoAttribBuilder::Group(AttribGroup g) {
+    groups.push_back(std::move(g));
+    return *this;
+}
+
+static std::size_t GetAttribTypeSize(AttribType type) {
+    using enum AttribType;
+
+    switch (type) {
+        case Byte:
+        case Ubyte:
+            return 1;
+        case Short:
+        case Ushort:
+            return 2;
+        case Float:
+        case Int:
+        case Uint:
+        case Fixed:
+            return 4;
+        case Double:
+            return 8;
+    }
+}
+
+static int GetAttribTypeGlEnum(AttribType type) {
+    using enum AttribType;
+
+    switch (type) {
+        case Byte: return GL_BYTE;
+        case Ubyte: return GL_UNSIGNED_BYTE;
+        case Short: return GL_SHORT;
+        case Ushort: return GL_UNSIGNED_SHORT;
+        case Float: return GL_FLOAT;
+        case Int: return GL_INT;
+        case Uint: return GL_UNSIGNED_INT;
+        case Fixed: return GL_FIXED;
+        case Double: return GL_DOUBLE;
+    }
+}
+
+void VaoAttribBuilder::Apply(VaoRef vao) {
+    vao->Use();
+
+    std::ranges::sort(groups, {}, &AttribGroup::offset);
+
+    if (auto it = std::ranges::adjacent_find(groups, {}, &AttribGroup::offset); it != groups.end()) {
+        throw std::runtime_error(
+            std::format(
+                "Multiple attribute groups with same offset ({}) detected", it->offset
+            )
+        );
+    }
+
+    namespace vws = std::views;
+
+    GLuint cur_loc = 0;
+    
+    for (const auto& group : groups) {
+        auto attrib_sizes = vws::transform(group.attributes, [](const Attribute& a) {
+            return a.components * GetAttribTypeSize(a.type) + a.padding;
+        });
+
+        auto stride = std::accumulate(attrib_sizes.begin(), attrib_sizes.end(), std::size_t{});
+        std::size_t cur_offset = group.offset;
+        auto attrib_size_it = attrib_sizes.begin();
+
+        for (const auto& attrib : group.attributes) {
+            glVertexAttribPointer(
+                cur_loc,
+                attrib.components,
+                GetAttribTypeGlEnum(attrib.type),
+                GL_FALSE,
+                stride,
+                (void*) cur_offset
+            );
+
+            glEnableVertexAttribArray(cur_loc);
+
+            cur_loc++;
+            cur_offset += *attrib_size_it;
+            attrib_size_it++;
+        }
+    }
 }

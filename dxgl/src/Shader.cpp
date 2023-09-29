@@ -54,7 +54,7 @@ void Shader::DestroyImpl() const {
     glDeleteShader(handle);
 }
 
-Program::Program(std::initializer_list<std::reference_wrapper<Shader>> shaders) {
+Program::Program(std::initializer_list<std::reference_wrapper<const Shader>> shaders) {
     handle = glCreateProgram();
 
     for (const auto& shader : shaders) {
@@ -82,4 +82,34 @@ void Program::UseImpl() const {
 
 void Program::DestroyImpl() const{
     glDeleteProgram(handle);
+}
+
+ProgramBuilder& ProgramBuilder::Frag(std::string_view file) {
+    frag.emplace(ShaderType::Fragment, file);
+    return *this;
+}
+
+ProgramBuilder& ProgramBuilder::Vert(std::string_view file) {
+    vert.emplace(ShaderType::Vertex, file);
+    return *this;
+}
+
+ProgramBuilder& ProgramBuilder::Geom(std::string_view file) {
+    geom.emplace(ShaderType::Geometry, file);
+    return *this;
+}
+
+Program ProgramBuilder::Link() const {
+    if (!frag.has_value())
+        throw std::runtime_error("Missing fragment shader");
+
+    if (!vert.has_value())
+        throw std::runtime_error("Missing vertex shader");
+
+    if (!geom.has_value()) {
+        return Program({*frag, *vert});
+    } else {
+        return Program({*frag, *vert, *geom});
+    }
+
 }
