@@ -28,6 +28,12 @@ AttribGroup& AttribGroup::Attrib(const Attribute& a) {
     return *this;
 }
 
+AttribGroup& AttribGroup::Vbo(VboView vbo) {
+    this->vbo = vbo;
+    return *this;
+}
+
+
 VaoAttribBuilder& VaoAttribBuilder::Group(AttribGroup g) {
     groups.push_back(std::move(g));
     return *this;
