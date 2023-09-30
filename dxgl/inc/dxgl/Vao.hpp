@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Handle.hpp"
+#include "Vbo.hpp"
 
+#include <optional>
 #include <vector>
 
 namespace dxgl {
@@ -35,9 +36,11 @@ namespace dxgl {
     struct AttribGroup {
         std::size_t offset{};
         std::vector<Attribute> attributes{};
+        VboView vbo{};
 
         AttribGroup& Offset(std::size_t o) { offset = o; return *this; }
         AttribGroup& Attrib(const Attribute& a);
+        AttribGroup& Vbo(VboView vbo);
     };
 
     class VaoAttribBuilder {
@@ -46,6 +49,8 @@ namespace dxgl {
     public:
         VaoAttribBuilder& Group(AttribGroup g);
 
-        void Apply(VaoRef vao);
+        // vbo_for_all is the buffer used for all AttribGroups
+        // that were not provided their own vbo
+        void Apply(VaoRef vao, VboView vbo_for_all = {});
     };
 }

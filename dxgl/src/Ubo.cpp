@@ -11,8 +11,11 @@ Ubo::Ubo() {
 }
 
 void Ubo::Upload(const BinObj& obj) {
+    Use();
+    
     if (buffer_size != obj.size) {
         glBufferData(GL_UNIFORM_BUFFER, obj.size, obj.data.get(), GL_STATIC_DRAW);
+        buffer_size = obj.size;
     } else {
         glBufferSubData(GL_UNIFORM_BUFFER, 0, obj.size, obj.data.get());
     }

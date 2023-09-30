@@ -1,5 +1,6 @@
 #include <dxgl/Vao.hpp>
 
+#include <cassert>
 #include <numeric>
 #include <algorithm>
 #include <format>
@@ -68,7 +69,7 @@ static int GetAttribTypeGlEnum(AttribType type) {
     }
 }
 
-void VaoAttribBuilder::Apply(VaoRef vao) {
+void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
     vao->Use();
 
     std::ranges::sort(groups, {}, &AttribGroup::offset);
@@ -86,6 +87,13 @@ void VaoAttribBuilder::Apply(VaoRef vao) {
     GLuint cur_loc = 0;
     
     for (const auto& group : groups) {
+        if (group.vbo.HasValue()) { 
+            group.vbo->Use();
+        } else {
+            assert(vbo_for_all.HasValue());
+            vbo_for_all->Use();
+        }
+
         auto attrib_sizes = vws::transform(group.attributes, [](const Attribute& a) {
             return a.components * GetAttribTypeSize(a.type) + a.padding;
         });

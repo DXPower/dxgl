@@ -74,5 +74,14 @@ namespace dxgl {
         T* operator->() requires (Mutable) {
             return handle;
         }
+
+        operator bool() const {
+            return handle != nullptr;
+        }
+
+        bool HasValue() const {
+            return handle != nullptr;
+        }
+
     };
 }

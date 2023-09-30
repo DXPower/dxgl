@@ -27,6 +27,7 @@
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Ubo.hpp>
 #include <dxgl/Vao.hpp>
+#include <dxgl/Vbo.hpp>
 
 using namespace dxgl;
 
@@ -63,7 +64,7 @@ std::unique_ptr<ScreenFramebuffer> MakeScreenFramebuffer(int w, int h) {
     return screen;
 }
 
-Vao MakeScreenVao() {
+std::pair<Vao, Vbo> MakeScreenVao() {
     float vert_data[] = {
         -1, 1, 0, 1,  // Top left
         -1, -1, 0, 0, // Bottom left
@@ -74,11 +75,8 @@ Vao MakeScreenVao() {
     Vao vao{};
     vao.Use();
 
-    unsigned int vbo;
-    glGenBuffers(1, &vbo);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vert_data), vert_data, GL_STATIC_DRAW);
+    Vbo vbo{};
+    vbo.Upload(vert_data);
 
     VaoAttribBuilder()
         .Group(AttribGroup()
@@ -91,9 +89,9 @@ Vao MakeScreenVao() {
                 .Components(2)
             )
         )
-        .Apply(vao);
+        .Apply(vao, vbo);
 
-    return vao;
+    return { std::move(vao), std::move(vbo) };
 }
 
 std::unique_ptr<ScreenFramebuffer> main_screen_buffer{};
@@ -121,7 +119,7 @@ void OnInput(GLFWwindow* window [[maybe_unused]], int key, int scancode [[maybe_
     }
 }
 
-Vao MakeTri() {
+std::pair<Vao, Vbo> MakeTri() {
     std::vector<float> vertices = {
         0, 0.75, 0.5,
         -0.5, 0, 0.5,
@@ -131,11 +129,8 @@ Vao MakeTri() {
     Vao vao{};
     vao.Use();
 
-    unsigned int vbo;
-    glGenBuffers(1, &vbo);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    Vbo vbo{};
+    vbo.Upload(vertices);
 
     VaoAttribBuilder()
         .Group(AttribGroup()
@@ -144,9 +139,9 @@ Vao MakeTri() {
                 .Components(3)
             )
         )
-        .Apply(vao);
+        .Apply(vao, vbo);
 
-    return vao;
+    return { std::move(vao), std::move(vbo) };
 }
 
 void Clear() {
@@ -194,12 +189,12 @@ int main() {
         .Frag("shaders/basic.frag")
         .Link();
 
-    auto tri_vao = MakeTri();
+    auto [tri_vao, tri_vbo] = MakeTri();
 
     float last_time = 0.0f;
 
     main_screen_buffer = MakeScreenFramebuffer(800, 600);
-    auto screen_vao = MakeScreenVao();
+    auto [screen_vao, screen_vbo] = MakeScreenVao();
     auto screen_program = ProgramBuilder()
         .Vert("shaders/framebuffer.vert")
         .Frag("shaders/framebuffer.frag")

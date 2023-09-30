@@ -38,4 +38,5 @@ target_sources(dxgl PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Ubo.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Uniform.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Vao.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Vbo.cpp
 )
