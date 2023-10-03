@@ -26,9 +26,9 @@ namespace dxgl {
     };
 
     struct TexColor {
-        TextureRef diffuse{};
-        TextureRef specular{};
-        TextureRef emission{};
+        TextureView diffuse{};
+        TextureView specular{};
+        TextureView emission{};
     };
 
     struct MeshMaterial {

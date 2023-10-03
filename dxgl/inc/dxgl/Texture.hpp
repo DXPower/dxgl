@@ -61,7 +61,8 @@ namespace dxgl {
         friend class Handle;
     };
 
-    using TextureRef = HandleRef<Texture>;
+    using TextureView = HandleRef<Texture, false>;
+    using TextureRef = HandleRef<Texture, true>;
 
     Texture LoadTextureFromFile(dxtl::cstring_view file);
 }

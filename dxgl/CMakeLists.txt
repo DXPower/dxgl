@@ -23,14 +23,17 @@ target_link_libraries(dxgl
 )
 
 target_sources(dxgl PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cube.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cubemap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderbuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Screenbuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Skybox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture.cpp

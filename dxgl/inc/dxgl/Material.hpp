@@ -13,9 +13,9 @@ namespace dxgl {
     };
 
     struct TexMaterial {
-        TextureRef diffuse_map{};
-        TextureRef specular_map{};
-        TextureRef emission_map{};
+        TextureView diffuse_map{};
+        TextureView specular_map{};
+        TextureView emission_map{};
         float shininess{};
     };
 

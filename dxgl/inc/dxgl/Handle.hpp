@@ -57,6 +57,9 @@ namespace dxgl {
     public:
         HandleRef() noexcept = default;
         HandleRef(std::conditional_t<Mutable, T&, const T&> handle) : handle(&handle) { }
+        
+        HandleRef(HandleRef<T, true> other) requires (not Mutable) : handle(other.GetHandle()) { }
+
         HandleRef(T&& handle) = delete;
 
         T& operator*() requires (Mutable) {
@@ -83,5 +86,8 @@ namespace dxgl {
             return handle != nullptr;
         }
 
+        auto GetHandle() const {
+            return handle;
+        }
     };
 }
