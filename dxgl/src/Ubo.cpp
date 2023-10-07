@@ -47,6 +47,10 @@ void UboBindingManager::BindUniformLocation(std::size_t i, ProgramRef program, d
     glUniformBlockBinding(program->GetHandle(), uniform_idx, i);
 }
 
+UboView UboBindingManager::GetUbo(std::size_t i) const {
+    return bindings.at(i);
+}
+
 void UboBindingManager::UnbindLocation(std::size_t i) {
-    bindings.at(i) = std::nullopt;
+    bindings.at(i) = {};
 }

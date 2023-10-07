@@ -1,3 +1,9 @@
+#include "Camera.hpp"
+#include "Light.hpp"
+#include "Mesh.hpp"
+#include "Shader.hpp"
+
+
 #include <exception>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/geometric.hpp>
@@ -13,14 +19,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <xutility>
 
-#include <dxgl/Camera.hpp>
 #include <dxgl/Cube.hpp>
 #include <dxgl/Cubemap.hpp>
 #include <dxgl/Framebuffer.hpp>
-#include <dxgl/Light.hpp>
 #include <dxgl/Material.hpp>
-#include <dxgl/Mesh.hpp>
-#include <dxgl/Shader.hpp>
 #include <dxgl/Skybox.hpp>
 #include <dxgl/Texture.hpp>
 #include <dxgl/Renderbuffer.hpp>

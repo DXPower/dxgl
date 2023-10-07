@@ -217,15 +217,17 @@ namespace dxgl {
     };
 
     using UboRef = HandleRef<Ubo, true>;
+    using UboView = HandleRef<Ubo, false>;
 
     class UboBindingManager {
-        std::vector<std::optional<UboRef>> bindings;
+        std::vector<UboRef> bindings;
 
     public:
         UboBindingManager();
 
         void BindUboLocation(std::size_t i, UboRef ubo);
         void BindUniformLocation(std::size_t i, ProgramRef program, dxtl::cstring_view uniform_name) const;
+        UboView GetUbo(std::size_t i) const;
 
         void UnbindLocation(std::size_t i);
     };

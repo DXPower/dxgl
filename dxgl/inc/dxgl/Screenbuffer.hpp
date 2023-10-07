@@ -1,3 +1,5 @@
+#pragma once
+
 #include <dxgl/Framebuffer.hpp>
 #include <dxgl/Renderbuffer.hpp>
 #include <dxgl/Shader.hpp>

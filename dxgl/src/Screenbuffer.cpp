@@ -16,7 +16,7 @@ Screenbuffer::Screenbuffer() {
     };
 
     screen_vao.Use();
-    screen_vbo.Upload(vert_data);
+    screen_vbo.Upload(vert_data, BufferUsage::Static);
 
     VaoAttribBuilder()
         .Group(AttribGroup()

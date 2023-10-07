@@ -27,10 +27,13 @@ namespace dxgl {
         AttribType type{};
         int8_t components{};
         std::size_t padding{};
+        unsigned int divisor{};
 
         Attribute& Type(AttribType t) { type = t; return *this; }
         Attribute& Components(int8_t c) { components = c; return *this; }
         Attribute& Padding(std::size_t p) { padding = p; return *this; }
+        Attribute& InstanceDivisor(unsigned int d) { divisor = d; return *this; }
+        Attribute& PerInstance() { return InstanceDivisor(1); }
     };
 
     struct AttribGroup {

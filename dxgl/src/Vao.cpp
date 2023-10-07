@@ -76,6 +76,9 @@ static int GetAttribTypeGlEnum(AttribType type) {
 }
 
 void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
+    namespace vws = std::views;
+    using enum AttribType;
+
     vao->Use();
 
     std::ranges::sort(groups, {}, &AttribGroup::offset);
@@ -88,7 +91,6 @@ void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
         );
     }
 
-    namespace vws = std::views;
 
     GLuint cur_loc = 0;
     
@@ -109,15 +111,30 @@ void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
         auto attrib_size_it = attrib_sizes.begin();
 
         for (const auto& attrib : group.attributes) {
-            glVertexAttribPointer(
-                cur_loc,
-                attrib.components,
-                GetAttribTypeGlEnum(attrib.type),
-                GL_FALSE,
-                stride,
-                (void*) cur_offset
-            );
-
+            switch (attrib.type) {
+                case Float:
+                case Double:
+                case Fixed:
+                    glVertexAttribPointer(
+                        cur_loc,
+                        attrib.components,
+                        GetAttribTypeGlEnum(attrib.type),
+                        GL_FALSE,
+                        stride,
+                        (void*) cur_offset
+                    );
+                    break;
+                default: // All integer types need to go through the AttribI version
+                    glVertexAttribIPointer(
+                        cur_loc,
+                        attrib.components,
+                        GetAttribTypeGlEnum(attrib.type),
+                        stride,
+                        (void*) cur_offset
+                    );
+            }
+            
+            glVertexAttribDivisor(cur_loc, attrib.divisor);
             glEnableVertexAttribArray(cur_loc);
 
             cur_loc++;
