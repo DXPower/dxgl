@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 
 enum class BlockType {
+    AIR,
     GRASS_TOP,
     STONE,
     DIRT,
@@ -24,6 +25,7 @@ struct Block {
 };
 
 struct Chunk {
+    static constexpr glm::vec2 block_size = {100, 100};
     static constexpr std::size_t chunk_width = 3;
     static constexpr std::size_t chunk_height = 2;
     static constexpr std::size_t blocks_per_chunk = chunk_width * chunk_height;

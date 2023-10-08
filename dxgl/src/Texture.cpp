@@ -13,7 +13,7 @@ TextureSource::TextureSource(dxtl::cstring_view file) {
     int num_channels;
     
     stbi_set_flip_vertically_on_load(true);  
-    m_data.reset(stbi_load(file.c_str(), &size.w, &size.h, &num_channels, 0));
+    m_data.reset(stbi_load(file.c_str(), &size.x, &size.y, &num_channels, 0));
 
     if (!m_data) {
         throw std::runtime_error(std::format("Failed to load image {}", file.c_str()));
@@ -37,7 +37,7 @@ Texture::Texture(const TextureSource& source) : Texture() {
 void Texture::Load(const TextureSource& source) {
     glBindTexture(GL_TEXTURE_2D, handle);
 
-    auto [w, h] = source.GetDims();
+    auto [w, h] = size = source.GetDims();
 
     int gl_format;
     switch (source.GetFormat()) {

@@ -1,15 +1,13 @@
 #pragma once
 
 #include "Handle.hpp"
+
 #include <dxtl/cstring_view.hpp>
+#include <glm/ext/vector_int2.hpp>
+#include <glm/vec2.hpp>
 #include <memory>
 
 namespace dxgl {
-    struct TexSize {
-        int w{};
-        int h{};
-    };
-
     enum class TextureFormat {
         R = 1,
         RG,
@@ -23,7 +21,7 @@ namespace dxgl {
         };
 
         std::unique_ptr<unsigned char, Deleter> m_data{};
-        TexSize size{};
+        glm::ivec2 size{};
         TextureFormat format{};
 
     public:
@@ -38,7 +36,7 @@ namespace dxgl {
             return m_data.get();
         }
 
-        const TexSize& GetDims() const {
+        const glm::ivec2& GetDims() const {
             return size;
         }
 
@@ -48,11 +46,14 @@ namespace dxgl {
     };
 
     class Texture : public Handle<Texture, Usable::Yes, int> {
+        glm::ivec2 size{};
+
     public:
         Texture();
         explicit Texture(const TextureSource& source);
 
         void Load(const TextureSource& source);
+        const glm::ivec2& GetSize() const { return size; }
         
     protected:
         void UseImpl(int texture_unit) const;
