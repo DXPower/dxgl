@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dxgl/Common.hpp>
 #include <dxgl/Handle.hpp>
 
 #include <span>
@@ -8,11 +9,6 @@
 #include <xutility>
 
 namespace dxgl {
-    enum class BufferUsage {
-        Static,
-        Dynamic
-    };
-
     namespace rgs = std::ranges;
 
     class Vbo : public Handle<Vbo, Usable::Yes> {
@@ -60,7 +56,7 @@ namespace dxgl {
 
             return Update(
                 std::span<const std::byte, std::dynamic_extent>(
-                    static_cast<std::byte*>(&obj), sizeof(obj)
+                    reinterpret_cast<const std::byte*>(&obj), sizeof(obj)
                 ),
                 offset
             );

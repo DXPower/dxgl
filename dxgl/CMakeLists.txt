@@ -25,6 +25,7 @@ target_link_libraries(dxgl
 target_sources(dxgl PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cubemap.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Ebo.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material.cpp

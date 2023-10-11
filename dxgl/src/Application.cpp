@@ -64,15 +64,22 @@ void Application::Destroy() {
     glfwTerminate();
 }
 
-double Application::GetTime() {
-    return glfwGetTime();
-}
-
-glm::vec<2, int> Application::GetWindowSize() {
-    glm::vec<2, int> size;
+glm::ivec2 Application::GetWindowSize() {
+    glm::ivec2 size;
     glfwGetWindowSize(window, &size.x, &size.y);
 
     return size;
+}
+
+glm::dvec2 Application::GetMousePos() {
+    double x, y;
+    glfwGetCursorPos(Application::GetWindow(), &x, &y);
+
+    return {x, y};
+}
+
+double Application::GetTime() {
+    return glfwGetTime();
 }
 
 

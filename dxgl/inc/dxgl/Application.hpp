@@ -22,8 +22,10 @@ namespace dxgl {
 
         void OnWindowResize(std::function<OnWindowResizeFunc> func);
 
+        glm::ivec2 GetWindowSize();
+        glm::dvec2 GetMousePos();
+        
         double GetTime();
-        glm::vec<2, int> GetWindowSize();
         bool ShouldQuit();
 
         GLFWwindow* GetWindow();

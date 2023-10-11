@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 
+#include <dxgl/Application.hpp>
 #include <boost/describe/class.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -7,9 +8,10 @@
 namespace {
     struct CameraUbo {
         glm::mat4 camera_matrix;
+        glm::mat4 projection_matrix;
     };
 
-    BOOST_DESCRIBE_STRUCT(CameraUbo, (), (camera_matrix));
+    BOOST_DESCRIBE_STRUCT(CameraUbo, (), (camera_matrix, projection_matrix));
 };
 
 Camera::Camera(GlobalState& global_state) {
@@ -22,14 +24,18 @@ Camera::Camera(GlobalState& global_state) {
 }
 
 void Camera::MoveBy(glm::vec2 shift) {
-    cur_pos -= shift;
-    UpdateView();
+    SetPosition(cur_pos - shift);
+}
+
+void Camera::LookAt(glm::vec2 pos) {
+    SetPosition(pos - ((glm::vec2) dxgl::Application::GetWindowSize() / 2.f));
 }
 
 void Camera::SetPosition(glm::vec2 pos) {
     cur_pos = -pos;
     UpdateView();
 }
+
 
 void Camera::UpdateViewportSize(int w, int h) {
     projection = glm::ortho(0.f, (float) w, (float) h, 0.f, -1.f, 1.f);
@@ -45,7 +51,8 @@ void Camera::UpdateView() {
 
 void Camera::UpdateUbo() {
     auto data = dxgl::Std140(CameraUbo{
-        .camera_matrix = projection * view
+        .camera_matrix = projection * view,
+        .projection_matrix = projection
     });
 
     ubo.Upload(data);

@@ -17,6 +17,7 @@ uniform vec2 block_sprite_size;
 
 layout (std140) uniform camera {
     mat4 camera_matrix;
+    mat4 projection_matrix;
 };
 
 void main() {

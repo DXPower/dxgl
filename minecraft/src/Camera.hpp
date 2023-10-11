@@ -15,6 +15,7 @@ public:
     Camera(GlobalState& global_state);
 
     void MoveBy(glm::vec2 shift);
+    void LookAt(glm::vec2 pos);
     void SetPosition(glm::vec2 pos);
 
     glm::vec2 GetPosition() const { return cur_pos; }

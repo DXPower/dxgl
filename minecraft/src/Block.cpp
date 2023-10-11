@@ -141,18 +141,18 @@ void Chunk::InitDraw(const GlobalState& global_state) {
     dxgl::Uniform::Set(program, "block_sprite_size", sprite_size);
     dxgl::Uniform::Set(program, "spritesheet", 0);
 
+    global_state.ubo_manager.BindUniformLocation(
+        static_cast<std::size_t>(UboLocs::Camera), 
+        program, 
+        "camera"
+    );
+
     chunk_draw = ChunkDrawInfo{
         std::move(program),
         std::move(vao),
         std::move(vbo),
         std::move(spritesheet)
     };
-
-    global_state.ubo_manager.BindUniformLocation(
-        static_cast<std::size_t>(UboLocs::Camera), 
-        program, 
-        "camera"
-    );
 }
 
 void Chunk::Render() const {

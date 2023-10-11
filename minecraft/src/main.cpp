@@ -27,11 +27,12 @@
 #include "Block.hpp"
 #include "Camera.hpp"
 #include "GlobalState.hpp"
+#include "Player.hpp"
 
 using namespace dxgl;
 
 struct InputResults {
-    glm::vec2 camera_movement{};
+    glm::vec2 player_movement{};
 };
 
 InputResults ProcessInput(GLFWwindow* window) {
@@ -45,16 +46,16 @@ InputResults ProcessInput(GLFWwindow* window) {
         glfwSetWindowShouldClose(window, true);
     
     if (IsKeyPressed(GLFW_KEY_W))
-        result.camera_movement.y -= 1;
+        result.player_movement.y -= 1;
     if (IsKeyPressed(GLFW_KEY_S))
-        result.camera_movement.y += 1;
+        result.player_movement.y += 1;
     if (IsKeyPressed(GLFW_KEY_A))
-        result.camera_movement.x -= 1;
+        result.player_movement.x -= 1;
     if (IsKeyPressed(GLFW_KEY_D))
-        result.camera_movement.x += 1;
+        result.player_movement.x += 1;
 
-    if (result.camera_movement != glm::vec2(0, 0))
-        result.camera_movement = glm::normalize(result.camera_movement);
+    if (result.player_movement != glm::vec2(0, 0))
+        result.player_movement = glm::normalize(result.player_movement);
 
     return result;
 }
@@ -94,6 +95,21 @@ int main() {
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.ResizeToScreen();
 
+        GlobalState global_state{};
+        global_state.debug_draws.Init(global_state);
+
+        Camera camera(global_state);
+        camera.UpdateViewportSize(initial_screen_size.x, initial_screen_size.y);
+
+
+        Application::OnWindowResize([&main_screen_buffer, &camera](int x, int y) {
+            main_screen_buffer.ResizeToScreen();
+            camera.UpdateViewportSize(x, y);
+        });
+
+        Chunk::InitDraw(global_state);
+        Player::InitDraw(global_state);
+
         Chunk chunk{
             .blocks = {
                 Block{BlockType::GRASS_TOP},
@@ -105,21 +121,10 @@ int main() {
             }
         };
 
-        GlobalState global_state{};
+        Player player{};
+        player.SetPosition({500, 400});
+        const float player_speed = 300.f;
 
-        Camera camera(global_state);
-        camera.UpdateViewportSize(initial_screen_size.x, initial_screen_size.y);
-
-        const float camera_speed = 300.f;
-
-        Chunk::InitDraw(global_state);
-
-        Application::OnWindowResize([&main_screen_buffer, &camera](int x, int y) {
-            main_screen_buffer.ResizeToScreen();
-            camera.UpdateViewportSize(x, y);
-        });
-
-        
         float last_time = 0.0f;
         float delta_time = 0.0f;
         
@@ -133,11 +138,29 @@ int main() {
             last_time = current_time;
 
             auto input = ProcessInput(Application::GetWindow());
-            camera.MoveBy(input.camera_movement * delta_time * camera_speed);
+
+            player.SetVelocity(input.player_movement * player_speed);
+            player.Update(delta_time);
+
+            camera.LookAt(player.GetPosition());
+            // camera.MoveBy(input.camera_movement * delta_time * camera_speed);
             // std::cout << camera.GetPosition().x << "\t" << camera.GetPosition().y << '\n';
         
             chunk.Render();
+            player.Render();
 
+            auto mouse_pos = Application::GetMousePos();
+            global_state.debug_draws.Draw(DebugSquare{
+                .position = mouse_pos,
+                .size = {75.f, 75.f}
+            }, {1, 0, 0, 1});
+            global_state.debug_draws.Draw(DebugArrow{
+                .from = Application::GetWindowSize() / 2,
+                .to = mouse_pos
+            }, {1, 0, 0, 1});
+
+
+            global_state.debug_draws.Render();
             main_screen_buffer.Render();
 
             Application::SwapBuffers();
