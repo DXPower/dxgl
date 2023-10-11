@@ -7,7 +7,7 @@ target_sources(minecraft PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Debug.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Player.cpp
-    # ${CMAKE_CURRENT_SOURCE_DIR}/src/Physics.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Physics.cpp
 )
 
 add_custom_target(copy-shaders-mc ALL

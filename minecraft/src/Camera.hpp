@@ -19,7 +19,9 @@ public:
     void SetPosition(glm::vec2 pos);
 
     glm::vec2 GetPosition() const { return cur_pos; }
-
+    const glm::mat4& GetProjectionMatrix() const { return projection; }
+    const glm::mat4& GetViewMatrix() const { return view; }
+    
     void UpdateViewportSize(int w, int h);
 
 private:

@@ -22,13 +22,14 @@ namespace Physics {
         Aabb Fattened(glm::vec2 pad) const;
     };
 
+    std::optional<std::array<Collision, 2>> TestAabbCollision(const Aabb& a, const Aabb& b);
     
-    void GetCollisions(
-        Chunk& chunk,
-        const Aabb& test,
-        std::back_insert_iterator<std::vector<Block>> out);
+    // void GetCollisions(
+    //     Chunk& chunk,
+    //     const Aabb& test,
+    //     std::back_insert_iterator<std::vector<Block>> out);
 
-    // Returns the final position of a collision
-    glm::vec2 Resolve(const Aabb& test, glm::vec2 velocity, std::span<Chunk*> chunks);
+    // // Returns the final position of a collision
+    // glm::vec2 Resolve(const Aabb& test, glm::vec2 velocity, std::span<Chunk*> chunks);
 
 }

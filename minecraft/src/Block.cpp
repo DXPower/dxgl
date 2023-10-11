@@ -171,7 +171,7 @@ void Chunk::Render() const {
     chunk_draw->program.Use();
     chunk_draw->spritesheet.Use(0);
 
-    dxgl::Uniform::Set(chunk_draw->program, "chunk_origin", glm::vec2(0, 0));
+    dxgl::Uniform::Set(chunk_draw->program, "chunk_origin", glm::vec2(0, 0) - (block_size / 2.f));
 
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, blocks_per_chunk);
 }

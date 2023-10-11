@@ -144,6 +144,7 @@ void DebugDraws::Render() const {
 
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(0xFFFF);
+    glLineWidth(2);
     glDrawElements(GL_LINE_STRIP, pimpl->indices.size(), GL_UNSIGNED_SHORT, 0);
     glDisable(GL_PRIMITIVE_RESTART);
 

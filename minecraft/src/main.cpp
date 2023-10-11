@@ -28,6 +28,7 @@
 #include "Camera.hpp"
 #include "GlobalState.hpp"
 #include "Player.hpp"
+#include "Physics.hpp"
 
 using namespace dxgl;
 
@@ -145,20 +146,41 @@ int main() {
             camera.LookAt(player.GetPosition());
             // camera.MoveBy(input.camera_movement * delta_time * camera_speed);
             // std::cout << camera.GetPosition().x << "\t" << camera.GetPosition().y << '\n';
-        
+
             chunk.Render();
             player.Render();
 
             auto mouse_pos = Application::GetMousePos();
+
+            using Physics::Aabb;
+            auto collisions = Physics::TestAabbCollision(
+                Aabb{.position = mouse_pos, .size = glm::vec2(75.f, 75.f)},
+                Aabb{
+                    .position = camera.GetViewMatrix() * glm::vec4(chunk.blocks[0].position, 1, 1),
+                    .size = Chunk::block_size
+                }
+            );
+
+            if (collisions.has_value()) {
+                global_state.debug_draws.Draw(DebugSquare{
+                    .position = glm::vec2(mouse_pos) - (*collisions)[0].penetration,
+                    .size = glm::vec2(75.f, 75.f)
+                }, glm::vec4(0, 0, 1, 1));
+
+                global_state.debug_draws.Draw(DebugSquare{
+                    .position = glm::vec2(mouse_pos) - (*collisions)[1].penetration,
+                    .size = glm::vec2(75.f, 75.f)
+                }, glm::vec4(0, 0, 1, 1));
+            }
+
             global_state.debug_draws.Draw(DebugSquare{
                 .position = mouse_pos,
                 .size = {75.f, 75.f}
             }, {1, 0, 0, 1});
-            global_state.debug_draws.Draw(DebugArrow{
-                .from = Application::GetWindowSize() / 2,
-                .to = mouse_pos
-            }, {1, 0, 0, 1});
-
+            // global_state.debug_draws.Draw(DebugArrow{
+            //     .from = Application::GetWindowSize() / 2,
+            //     .to = camera.GetViewMatrix() * glm::vec4(chunk.blocks[0].position, 1, 1)
+            // }, glm::vec4(1, 0, 0, 1));
 
             global_state.debug_draws.Render();
             main_screen_buffer.Render();
