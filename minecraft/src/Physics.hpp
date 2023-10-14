@@ -7,12 +7,24 @@
 #include <glm/vec2.hpp>
 
 namespace Physics {
+    struct NearFar {
+        glm::vec2 near_x{}, near_y{};
+        glm::vec2 near_times{};
+
+        glm::vec2 far_x{}, far_y{};
+        glm::vec2 far_times{};
+    };
+
+    struct Line {
+        glm::vec2 from{};
+        glm::vec2 to{};
+    };
+
     struct Collision {
         Block* block{};
         glm::vec2 penetration{};
         glm::vec2 surface_normal{};
         glm::vec2 hit_position{};
-        float surface_area{};
     };
 
     struct Aabb {
@@ -22,8 +34,12 @@ namespace Physics {
         Aabb Fattened(glm::vec2 pad) const;
     };
 
-    std::optional<std::array<Collision, 2>> TestAabbCollision(const Aabb& a, const Aabb& b);
+    NearFar GetNearFarPoints(const Aabb& box, const Line& line);
+    std::optional<Collision> TestAabbLineCollision(const Aabb& box, const Line& line);
     
+    std::optional<std::array<Collision, 2>> TestAabbCollision(const Aabb& a, const Aabb& b);
+    std::optional<Collision> SweepAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed);
+
     // void GetCollisions(
     //     Chunk& chunk,
     //     const Aabb& test,

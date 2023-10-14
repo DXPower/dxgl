@@ -14,6 +14,11 @@ struct DebugSquare {
     glm::vec2 size{};
 };
 
+struct DebugHash {
+    glm::vec2 position{};
+    float radius{};
+};
+
 struct DebugLine {
     glm::vec2 from{};
     glm::vec2 to{};
@@ -41,6 +46,7 @@ public:
     void Init(const GlobalState& global_state);
 
     void Draw(const DebugSquare& square, const glm::vec4& color);
+    void Draw(const DebugHash& hash, const glm::vec4& color);
     void Draw(const DebugLine& line, const glm::vec4& color);
     void Draw(const DebugArrow& arrow, const glm::vec4& color);
     void Draw(const DebugPolygon& polygon, const glm::vec4& color);

@@ -94,6 +94,22 @@ void DebugDraws::Draw(const DebugSquare& square, const glm::vec4& color) {
     pimpl->FinishPrim();
 }
 
+void DebugDraws::Draw(const DebugHash& hash, const glm::vec4& color) {
+    const uint16_t base_idx = pimpl->vertices.size();
+    
+    pimpl->vertices.push_back({hash.position + glm::vec2{hash.radius, 0}, color});
+    pimpl->vertices.push_back({hash.position + glm::vec2{-hash.radius, 0}, color});
+    pimpl->vertices.push_back({hash.position + glm::vec2{0, hash.radius}, color});
+    pimpl->vertices.push_back({hash.position + glm::vec2{0, -hash.radius}, color});
+
+    pimpl->indices.push_back(base_idx);
+    pimpl->indices.push_back(base_idx + 1);
+    pimpl->FinishPrim();
+    pimpl->indices.push_back(base_idx + 2);
+    pimpl->indices.push_back(base_idx + 3);
+    pimpl->FinishPrim();
+}
+
 void DebugDraws::Draw(const DebugLine& line, const glm::vec4& color) {
     const uint16_t base_idx = pimpl->vertices.size();
     

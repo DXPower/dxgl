@@ -150,15 +150,61 @@ int main() {
             chunk.Render();
             player.Render();
 
-            auto mouse_pos = Application::GetMousePos();
-
             using Physics::Aabb;
-            auto collisions = Physics::TestAabbCollision(
-                Aabb{.position = mouse_pos, .size = glm::vec2(75.f, 75.f)},
-                Aabb{
+            using Physics::Line;
+
+            auto screen_center = Application::GetWindowSize() / 2;
+            auto mouse_pos = Application::GetMousePos();
+            auto block_aabb = Aabb{
                     .position = camera.GetViewMatrix() * glm::vec4(chunk.blocks[0].position, 1, 1),
                     .size = Chunk::block_size
-                }
+            };
+
+            auto near_far = Physics::GetNearFarPoints(block_aabb, Line{
+                .from = screen_center,
+                .to = mouse_pos
+            });
+
+            auto line_collision = Physics::TestAabbLineCollision(block_aabb, Line{
+                .from = screen_center,
+                .to = mouse_pos
+            });
+
+            global_state.debug_draws.Draw(DebugArrow{
+                .from = screen_center,
+                .to = mouse_pos
+            }, glm::vec4{1, 0, 0, 1});
+
+            global_state.debug_draws.Draw(DebugHash{
+                .position = near_far.near_x,
+                .radius = 5
+            }, glm::vec4{1, 1, 0, 1});
+
+            global_state.debug_draws.Draw(DebugHash{
+                .position = near_far.far_x,
+                .radius = 5
+            }, glm::vec4{1, 0.5, 0, 1});
+
+            global_state.debug_draws.Draw(DebugHash{
+                .position = near_far.near_y,
+                .radius = 5
+            }, glm::vec4{1, 1, 0, 1});
+
+            global_state.debug_draws.Draw(DebugHash{
+                .position = near_far.far_y,
+                .radius = 5
+            }, glm::vec4{1, 0.5, 0, 1});
+
+            if (line_collision.has_value()) {
+                global_state.debug_draws.Draw(DebugHash{
+                    .position = line_collision->hit_position,
+                    .radius = 10
+                }, glm::vec4(1, 1, 1, 1));
+            }
+
+            auto collisions = Physics::TestAabbCollision(
+                Aabb{.position = mouse_pos, .size = glm::vec2(75.f, 75.f)},
+                block_aabb
             );
 
             if (collisions.has_value()) {
