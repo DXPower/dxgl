@@ -175,25 +175,25 @@ int main() {
                 .to = mouse_pos
             }, glm::vec4{1, 0, 0, 1});
 
-            global_state.debug_draws.Draw(DebugHash{
-                .position = near_far.near_x,
-                .radius = 5
-            }, glm::vec4{1, 1, 0, 1});
+            // global_state.debug_draws.Draw(DebugHash{
+            //     .position = near_far.near_x,
+            //     .radius = 5
+            // }, glm::vec4{1, 1, 0, 1});
 
-            global_state.debug_draws.Draw(DebugHash{
-                .position = near_far.far_x,
-                .radius = 5
-            }, glm::vec4{1, 0.5, 0, 1});
+            // global_state.debug_draws.Draw(DebugHash{
+            //     .position = near_far.far_x,
+            //     .radius = 5
+            // }, glm::vec4{1, 0.5, 0, 1});
 
-            global_state.debug_draws.Draw(DebugHash{
-                .position = near_far.near_y,
-                .radius = 5
-            }, glm::vec4{1, 1, 0, 1});
+            // global_state.debug_draws.Draw(DebugHash{
+            //     .position = near_far.near_y,
+            //     .radius = 5
+            // }, glm::vec4{1, 1, 0, 1});
 
-            global_state.debug_draws.Draw(DebugHash{
-                .position = near_far.far_y,
-                .radius = 5
-            }, glm::vec4{1, 0.5, 0, 1});
+            // global_state.debug_draws.Draw(DebugHash{
+            //     .position = near_far.far_y,
+            //     .radius = 5
+            // }, glm::vec4{1, 0.5, 0, 1});
 
             if (line_collision.has_value()) {
                 global_state.debug_draws.Draw(DebugHash{
@@ -227,6 +227,30 @@ int main() {
             //     .from = Application::GetWindowSize() / 2,
             //     .to = camera.GetViewMatrix() * glm::vec4(chunk.blocks[0].position, 1, 1)
             // }, glm::vec4(1, 0, 0, 1));
+
+            auto moved = Aabb{
+                .position = (glm::vec2) mouse_pos,
+                .size = {75.f, 75.f}
+            };
+
+            global_state.debug_draws.Draw(DebugSquare{
+                .position = moved.position + glm::vec2(-200, 100),
+                .size = moved.size
+            }, glm::vec4(1, 1, 0, 1));
+
+            auto sweep = Physics::SweepAabbCollision(moved, glm::vec2(-200, 100), block_aabb);
+
+            if (sweep.has_value()) {
+                global_state.debug_draws.Draw(DebugSquare{
+                    .position = sweep->final_position,
+                    .size = {75.f, 75.f}
+                }, glm::vec4(0, 1, 0, 1));
+
+                global_state.debug_draws.Draw(DebugArrow{
+                    .from = sweep->hit_position,
+                    .to = sweep->hit_position + sweep->surface_normal * 25.f
+                }, glm::vec4(0, 1, 0, 1));
+            }
 
             global_state.debug_draws.Render();
             main_screen_buffer.Render();

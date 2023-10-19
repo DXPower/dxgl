@@ -20,13 +20,6 @@ namespace Physics {
         glm::vec2 to{};
     };
 
-    struct Collision {
-        Block* block{};
-        glm::vec2 penetration{};
-        glm::vec2 surface_normal{};
-        glm::vec2 hit_position{};
-    };
-
     struct Aabb {
         glm::vec2 position{};
         glm::vec2 size{};
@@ -34,11 +27,31 @@ namespace Physics {
         Aabb Fattened(glm::vec2 pad) const;
     };
 
+    struct AabbLineResult {
+        glm::vec2 hit_position{};
+        glm::vec2 penetration{};
+        glm::vec2 surface_normal{};
+        float time{};
+    };
+
+    struct AabbResult {
+        glm::vec2 hit_position{};
+        glm::vec2 penetration{};
+        glm::vec2 surface_normal{};
+    };
+
+    struct SweptAabbResult {
+        glm::vec2 hit_position{};
+        glm::vec2 final_position{};
+        glm::vec2 surface_normal{};
+        float time{};
+    };
+
     NearFar GetNearFarPoints(const Aabb& box, const Line& line);
-    std::optional<Collision> TestAabbLineCollision(const Aabb& box, const Line& line);
+    std::optional<AabbLineResult> TestAabbLineCollision(const Aabb& box, const Line& line);
     
-    std::optional<std::array<Collision, 2>> TestAabbCollision(const Aabb& a, const Aabb& b);
-    std::optional<Collision> SweepAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed);
+    std::optional<std::array<AabbResult, 2>> TestAabbCollision(const Aabb& a, const Aabb& b);
+    std::optional<SweptAabbResult> SweepAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed);
 
     // void GetCollisions(
     //     Chunk& chunk,

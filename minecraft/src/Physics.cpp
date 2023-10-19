@@ -1,6 +1,8 @@
 #include "Physics.hpp"
 
 #include <cmath>
+#include <glm/common.hpp>
+#include <glm/ext/quaternion_geometric.hpp>
 #include <iterator>
 #include <optional>
 #include <iostream>
@@ -25,7 +27,7 @@ NearFar Physics::GetNearFarPoints(const Aabb& box, const Line& line) {
     };
 }
 
-std::optional<Collision> Physics::TestAabbLineCollision(const Aabb& box, const Line& line) {
+std::optional<AabbLineResult> Physics::TestAabbLineCollision(const Aabb& box, const Line& line) {
     const auto near_far = GetNearFarPoints(box, line);
 
     if (near_far.near_times.x > near_far.far_times.y ||
@@ -45,7 +47,7 @@ std::optional<Collision> Physics::TestAabbLineCollision(const Aabb& box, const L
     const auto line_delta = line.to - line.from;
     const auto sign = glm::sign(line_delta);
 
-    Collision collision{};
+    AabbLineResult collision{};
     collision.hit_position = line.from + line_delta * hit_time;
     collision.penetration = -line_delta * (1.f - hit_time);
     collision.surface_normal = near_far.near_times.x > near_far.near_times.y ?
@@ -56,7 +58,7 @@ std::optional<Collision> Physics::TestAabbLineCollision(const Aabb& box, const L
 }
 
 // Returns two possible collision resolutions
-std::optional<std::array<Collision, 2>> Physics::TestAabbCollision(const Aabb& a, const Aabb& b) {
+std::optional<std::array<AabbResult, 2>> Physics::TestAabbCollision(const Aabb& a, const Aabb& b) {
     const auto delta = b.position - a.position;
     const auto penetration = (a.size + b.size) / 2.f - glm::abs(delta);   
 
@@ -64,7 +66,7 @@ std::optional<std::array<Collision, 2>> Physics::TestAabbCollision(const Aabb& a
         return std::nullopt;
     }
 
-    std::array<Collision, 2> resolutions{};
+    std::array<AabbResult, 2> resolutions{};
     const auto sign = glm::sign(delta);
 
     resolutions[0].penetration.x = penetration.x * sign.x;
@@ -78,18 +80,42 @@ std::optional<std::array<Collision, 2>> Physics::TestAabbCollision(const Aabb& a
     return resolutions;
 }
 
-// std::optional<Collision> TestSweptAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed) {
-//     if (vel == glm::vec2{0, 0}) {
-//         auto res = TestAabbCollision(moving, fixed);
-//         if (res.has_value()) {
-//             return res->at(0);
-//         } else {
-//             return std::nullopt;
-//         }
-//     }
+std::optional<SweptAabbResult> Physics::SweepAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed) {
+    if (vel == glm::vec2{0, 0}) {
+        auto res = TestAabbCollision(moving, fixed);
+        if (res.has_value()) {
+            auto aabb_res = res->at(0);
+            return SweptAabbResult{
+                .hit_position = aabb_res.hit_position,
+                .final_position = moving.position - aabb_res.penetration,
+                .surface_normal = aabb_res.surface_normal
+            };
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    Aabb fattened_fixed = fixed.Fattened(moving.size);
+    auto line_collision = TestAabbLineCollision(fattened_fixed, Line{
+        .from = moving.position,
+        .to = moving.position + vel
+    });
+
+    if (!line_collision.has_value()) {
+        return std::nullopt;
+    }
+
+    SweptAabbResult collision{};
+    collision.final_position = line_collision->hit_position;
+    collision.surface_normal = line_collision->surface_normal;
+    collision.time = line_collision->time;
+    
+    const auto half_size = moving.size / 2.f;
+    collision.hit_position = collision.final_position - (collision.surface_normal * half_size);
 
 
-// }
+    return collision;
+}
 
     // void ResolveCollision(Player& player, const Collision& collision);
 
