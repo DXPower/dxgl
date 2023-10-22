@@ -6,6 +6,7 @@
 #include <iterator>
 #include <optional>
 #include <iostream>
+#include <algorithm>
 
 using namespace Physics;
 
@@ -48,6 +49,7 @@ std::optional<AabbLineResult> Physics::TestAabbLineCollision(const Aabb& box, co
     const auto sign = glm::sign(line_delta);
 
     AabbLineResult collision{};
+    collision.time = hit_time;
     collision.hit_position = line.from + line_delta * hit_time;
     collision.penetration = -line_delta * (1.f - hit_time);
     collision.surface_normal = near_far.near_times.x > near_far.near_times.y ?
@@ -109,10 +111,9 @@ std::optional<SweptAabbResult> Physics::SweepAabbCollision(const Aabb& moving, c
     collision.final_position = line_collision->hit_position;
     collision.surface_normal = line_collision->surface_normal;
     collision.time = line_collision->time;
-    
+
     const auto half_size = moving.size / 2.f;
     collision.hit_position = collision.final_position - (collision.surface_normal * half_size);
-
 
     return collision;
 }
@@ -124,6 +125,30 @@ Aabb Physics::Aabb::Fattened(glm::vec2 pad) const {
     copy.size += pad;
     return copy;
 }
+
+std::vector<SweptAabbResult> Physics::SweepChunk(const Aabb& moving, const glm::vec2& vel, const Chunk& chunk) {
+    std::vector<SweptAabbResult> collisions{};
+    collisions.reserve(chunk.blocks.size());
+
+    for (const auto& block : chunk.blocks) {
+        Aabb block_aabb = {
+            .position = chunk.GetCoordPos(block.rel_coord),
+            .size = chunk.block_size
+        };
+
+        if (auto coll = SweepAabbCollision(moving, vel, block_aabb)) {
+            collisions.push_back(std::move(*coll));
+        }
+    }
+    
+    if (collisions.empty())
+        return collisions;
+
+    std::ranges::sort(collisions, {}, &SweptAabbResult::time);
+
+    return collisions;
+}
+
 
 // void Physics::GetCollisions(
 //     Chunk& chunk,

@@ -53,12 +53,6 @@ namespace Physics {
     std::optional<std::array<AabbResult, 2>> TestAabbCollision(const Aabb& a, const Aabb& b);
     std::optional<SweptAabbResult> SweepAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed);
 
-    // void GetCollisions(
-    //     Chunk& chunk,
-    //     const Aabb& test,
-    //     std::back_insert_iterator<std::vector<Block>> out);
-
-    // // Returns the final position of a collision
-    // glm::vec2 Resolve(const Aabb& test, glm::vec2 velocity, std::span<Chunk*> chunks);
+    std::vector<SweptAabbResult> SweepChunk(const Aabb& moving, const glm::vec2& vel, const Chunk& chunk);
 
 }

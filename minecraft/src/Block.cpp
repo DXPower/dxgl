@@ -83,6 +83,14 @@ namespace {
     std::optional<ChunkDrawInfo> chunk_draw{};
 }
 
+Chunk::Chunk() {
+    auto coords = GetBlockCoords();
+
+    for (std::size_t i = 0; i < blocks.size(); i++) {
+        blocks[i].rel_coord = coords[i];
+    }
+}
+
 void Chunk::InitDraw(const GlobalState& global_state) {
     using namespace dxgl;
 
@@ -171,7 +179,22 @@ void Chunk::Render() const {
     chunk_draw->program.Use();
     chunk_draw->spritesheet.Use(0);
 
-    dxgl::Uniform::Set(chunk_draw->program, "chunk_origin", glm::vec2(0, 0) - (block_size / 2.f));
+    dxgl::Uniform::Set(chunk_draw->program, "chunk_origin", origin - (block_size / 2.f));
 
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, blocks_per_chunk);
+}
+
+glm::vec2 Chunk::GetCoordPos(glm::ivec2 rel_coord) const {
+    return origin + block_size * (glm::vec2) rel_coord;
+}
+
+auto Chunk::GetBlockCoords() -> std::array<glm::ivec2, blocks_per_chunk> {
+    std::array<glm::ivec2, blocks_per_chunk> coords{};
+
+    for (int i = 0; i < (int) coords.size(); i++) {
+        coords[i].x = i % chunk_width;
+        coords[i].y = i / chunk_width;
+    }
+
+    return coords;
 }

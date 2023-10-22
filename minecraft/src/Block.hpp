@@ -21,7 +21,7 @@ enum class BlockType {
 
 struct Block {
     BlockType type{};
-    glm::vec<2, int64_t> position{};
+    glm::ivec2 rel_coord{};
 };
 
 struct Chunk {
@@ -29,10 +29,15 @@ struct Chunk {
     static constexpr std::size_t chunk_width = 3;
     static constexpr std::size_t chunk_height = 2;
     static constexpr std::size_t blocks_per_chunk = chunk_width * chunk_height;
-    std::array<Block, blocks_per_chunk> blocks{};
 
+    std::array<Block, blocks_per_chunk> blocks{};
+    glm::vec2 origin{};
+    
+    Chunk();
     void Render() const;
 
+    glm::vec2 GetCoordPos(glm::ivec2 rel_coord) const;
+
     static void InitDraw(const GlobalState& global_state);
-    static std::array<glm::vec<2, int>, blocks_per_chunk> GetBlockCoords();
+    static std::array<glm::ivec2, blocks_per_chunk> GetBlockCoords();
 };
