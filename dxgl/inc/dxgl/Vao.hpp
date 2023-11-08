@@ -17,7 +17,8 @@ namespace dxgl {
         friend class Handle;
     };
 
-    using VaoRef = HandleRef<Vao>;
+    using VaoRef = HandleRef<Vao, true>;
+    using VaoView = HandleRef<Vao, false>;
 
     enum class AttribType {
         Float, Byte, Ubyte, Short, Ushort, Int, Uint, Double, Fixed
@@ -28,12 +29,15 @@ namespace dxgl {
         int8_t components{};
         std::size_t padding{};
         unsigned int divisor{};
+        int multiply{1};
 
         Attribute& Type(AttribType t) { type = t; return *this; }
         Attribute& Components(int8_t c) { components = c; return *this; }
         Attribute& Padding(std::size_t p) { padding = p; return *this; }
         Attribute& InstanceDivisor(unsigned int d) { divisor = d; return *this; }
         Attribute& PerInstance() { return InstanceDivisor(1); }
+        Attribute& Multiply(int n) { multiply = n; return *this; };
+        Attribute& Matrix(int rows, int cols) { return Components(rows).Multiply(cols); };
     };
 
     struct AttribGroup {

@@ -24,7 +24,10 @@ void Vao::DestroyImpl() const {
 }
 
 AttribGroup& AttribGroup::Attrib(const Attribute& a) {
-    attributes.push_back(a);
+    for (int i = 0; i < a.multiply; i++) {
+        attributes.push_back(a);
+    }
+
     return *this;
 }
 
@@ -83,13 +86,13 @@ void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
 
     std::ranges::sort(groups, {}, &AttribGroup::offset);
 
-    if (auto it = std::ranges::adjacent_find(groups, {}, &AttribGroup::offset); it != groups.end()) {
-        throw std::runtime_error(
-            std::format(
-                "Multiple attribute groups with same offset ({}) detected", it->offset
-            )
-        );
-    }
+    // if (auto it = std::ranges::adjacent_find(groups, {}, &AttribGroup::offset); it != groups.end()) {
+    //     throw std::runtime_error(
+    //         std::format(
+    //             "Multiple attribute groups with same offset ({}) detected", it->offset
+    //         )
+    //     );
+    // }
 
 
     GLuint cur_loc = 0;

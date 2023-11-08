@@ -261,6 +261,17 @@ int main() {
                     first = false;
             }
 
+            auto chunk_col = Physics::ResolveAgainstChunk(moved, glm::vec2(-200, 100), chunk);
+
+            if (chunk_col.has_value()) {
+                global_state.debug_draws.Draw(DebugSquare{
+                    .position = camera.GetViewMatrix() * glm::vec4(chunk_col->final_position, 1, 1),
+                    .size = {75.f, 75.f}
+                }, glm::vec4(1, .3, 0.2, 1));
+            }
+
+
+
             // auto sweep = Physics::SweepAabbCollision(moved, glm::vec2(-200, 100), block_aabb);
 
             // if (sweep.has_value()) {

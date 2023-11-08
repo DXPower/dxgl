@@ -47,6 +47,11 @@ namespace Physics {
         float time{};
     };
 
+    struct ResolvedCollision {
+        glm::vec2 final_position{};
+        glm::vec2 hit_position{};
+    };
+
     NearFar GetNearFarPoints(const Aabb& box, const Line& line);
     std::optional<AabbLineResult> TestAabbLineCollision(const Aabb& box, const Line& line);
     
@@ -54,5 +59,5 @@ namespace Physics {
     std::optional<SweptAabbResult> SweepAabbCollision(const Aabb& moving, const glm::vec2& vel, const Aabb& fixed);
 
     std::vector<SweptAabbResult> SweepChunk(const Aabb& moving, const glm::vec2& vel, const Chunk& chunk);
-
+    std::optional<ResolvedCollision> ResolveAgainstChunk(const Aabb& moving, const glm::vec2& vel, const Chunk& chunk);
 }

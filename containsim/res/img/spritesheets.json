@@ -1,0 +1,17 @@
+{
+    "sheets": [
+        {
+            "name": "tiles",
+            "path": "tiles.png",
+            "sprites": [
+                {
+                    "name": "grass",
+                    "x": 0,
+                    "y": 112,
+                    "w": 28,
+                    "h": 28
+                }
+            ]
+        }
+    ]
+}

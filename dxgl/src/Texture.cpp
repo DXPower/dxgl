@@ -52,6 +52,20 @@ void Texture::Load(const TextureSource& source) {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
+void Texture::SetWrapMode(WrapMode mode) {
+    glBindTexture(GL_TEXTURE_2D, handle);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<int>(mode));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<int>(mode));
+}
+
+void Texture::SetFilterMode(FilterMode mode) {
+    glBindTexture(GL_TEXTURE_2D, handle);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<int>(mode));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<int>(mode));
+}
+
 void Texture::UseImpl(int texture_unit) const {
     glActiveTexture(GL_TEXTURE0 + texture_unit);
     glBindTexture(GL_TEXTURE_2D, handle);

@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <glm/common.hpp>
+#include <glm/gtx/projection.hpp>
 #include <glm/ext/quaternion_geometric.hpp>
 #include <iterator>
 #include <optional>
@@ -147,6 +148,25 @@ std::vector<SweptAabbResult> Physics::SweepChunk(const Aabb& moving, const glm::
     std::ranges::sort(collisions, {}, &SweptAabbResult::time);
 
     return collisions;
+}
+
+std::optional<ResolvedCollision> Physics::ResolveAgainstChunk(const Aabb& moving, const glm::vec2& vel, const Chunk& chunk) {
+    auto colls = SweepChunk(moving, vel, chunk);
+
+    if (colls.empty())
+        return std::nullopt;
+
+    const auto& main_col = colls.front();
+
+    const glm::vec2 actual_vel = main_col.final_position - moving.position;
+    const glm::vec2 overshoot_vel = vel - actual_vel;
+    const glm::vec2 perp = { main_col.surface_normal.y, -main_col.surface_normal.x };
+    const glm::vec2 slide = glm::proj(overshoot_vel, perp);
+
+    return ResolvedCollision{
+        .final_position = main_col.final_position + slide,
+        .hit_position = main_col.hit_position
+    };
 }
 
 

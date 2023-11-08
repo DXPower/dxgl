@@ -45,6 +45,18 @@ namespace dxgl {
         }
     };
 
+    enum class WrapMode {
+        Repeat = 0x2901,
+        MirroredRepeat = 0x8370,
+        ClampToEdge = 0x812F,
+        ClampToBorder = 0x812D
+    };
+
+    enum class FilterMode {
+        Nearest = 0x2600,
+        Linear
+    };
+
     class Texture : public Handle<Texture, Usable::Yes, int> {
         glm::ivec2 size{};
 
@@ -55,6 +67,8 @@ namespace dxgl {
         void Load(const TextureSource& source);
         const glm::ivec2& GetSize() const { return size; }
         
+        void SetWrapMode(WrapMode mode);
+        void SetFilterMode(FilterMode mode);
     protected:
         void UseImpl(int texture_unit) const;
         void DestroyImpl() const;
