@@ -3,11 +3,19 @@
 #include <common/Rendering.hpp>
 #include <dxgl/Draw.hpp>
 
-#include <vector>
+#include <queue>
 #include <map>
 
-struct DrawQueues {
-    std::map<RenderLayer, std::vector<dxgl::Draw>> m_draw_queues{};
+#include <magic_enum_containers.hpp>
 
-    void RenderQueues() const;
+class DrawQueues {
+    magic_enum::containers::array<RenderLayer, std::vector<dxgl::Draw>> m_owned_draws{};
+    magic_enum::containers::array<RenderLayer, std::vector<const dxgl::Draw*>> m_viewed_draws{};
+
+public:
+    void QueueOwnedDraw(RenderLayer layer, dxgl::Draw&& draw);
+    void QueueViewedDraw(RenderLayer layer, const dxgl::Draw& draw);
+
+    void RenderQueuedDraws() const;
+    void ClearQueuedDraws();
 };

@@ -10,7 +10,7 @@ namespace dxgl {
     struct Draw;
 }
 
-struct DrawQueues;
+class DrawQueues;
 
 namespace systems {
     class SpriteRenderer {

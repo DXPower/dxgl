@@ -30,7 +30,7 @@ void main() {
     // vs_out.test = world_vert_pos;
 
     // vs_out.tex_pos = world_vert_pos.xy;
-    gl_Position = projection_matrix * vec4(world_vert_pos, 1);
+    gl_Position = camera_matrix * vec4(world_vert_pos, 1);
 
     vec2 sheet_pos = (cutout_mat * vec3(tex_pos, 1)).xy;
     vs_out.tex_pos = sheet_pos;

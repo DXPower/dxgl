@@ -2,8 +2,16 @@ add_executable(containsim)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/flecs)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nlohmann_json)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/magic_enum)
 
-target_link_libraries(containsim PRIVATE dxgl glad glfw flecs::flecs_static nlohmann_json::nlohmann_json)
+target_link_libraries(containsim PRIVATE 
+    dxgl
+    glad
+    glfw
+    flecs::flecs_static
+    nlohmann_json::nlohmann_json
+    magic_enum::magic_enum
+)
 
 target_include_directories(containsim PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -12,7 +20,9 @@ target_include_directories(containsim PUBLIC
 target_sources(containsim PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/DrawQueues.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/systems/SpriteRenderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/modules/TileGrid.cpp
 )
 
 add_custom_target(copy-shaders-cs ALL

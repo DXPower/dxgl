@@ -97,8 +97,6 @@ void SpriteRenderer::PreStore(
     tex_mat = glm::translate(tex_mat, pos_mod / tex_size);
     tex_mat = glm::scale(tex_mat, sprite.cutout.size / tex_size);
 
-    // auto tex_proj = glm::ortho(0.f, (float) tex_size.x, (float) tex_size.y, 0.f, -1.f, 1.f);
-
     auto& instance_data = m_pimpl->layer_instances[rdata.layer];
     
     instance_data.instance_data_buffer.push_back({
@@ -115,6 +113,7 @@ void SpriteRenderer::OnStore() {
     for (const auto& [layer, instance_data] : m_pimpl->layer_instances) {
         auto draw = MakeDrawTemplate();
 
+        draw.vao_storage.emplace();
         draw.vbo_storage.emplace_back().Upload(instance_data.instance_data_buffer, BufferUsage::Static);
         draw.num_instances = instance_data.instance_data_buffer.size();
         // TODO: sort sprites by texture
@@ -143,9 +142,9 @@ void SpriteRenderer::OnStore() {
                 )
                 // .Offset(sizeof(quad_vbo_data))
             )
-            .Apply(draw.vao);
+            .Apply(*draw.vao_storage);
 
-        m_queues_out->m_draw_queues[layer].push_back(std::move(draw));
+        m_queues_out->QueueOwnedDraw(layer, std::move(draw));
     }
 
     m_pimpl->layer_instances.clear();

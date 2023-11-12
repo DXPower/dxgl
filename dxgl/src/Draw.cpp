@@ -1,5 +1,6 @@
 #include <dxgl/Draw.hpp>
 
+#include <cassert>
 #include <glad/glad.h>
 
 void dxgl::Draw::Render() const {
@@ -8,7 +9,12 @@ void dxgl::Draw::Render() const {
     }
 
     program->Use();
-    vao.Use();
+
+    assert(vao_storage.has_value() ^ vao_view.HasValue());
+    if (vao_storage.has_value())
+        vao_storage->Use();
+    else
+        vao_view->Use();
 
     if (uniform_applicator)
         uniform_applicator(program);

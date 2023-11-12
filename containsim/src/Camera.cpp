@@ -32,7 +32,7 @@ void Camera::LookAt(glm::vec2 pos) {
 }
 
 void Camera::SetPosition(glm::vec2 pos) {
-    cur_pos = -pos;
+    cur_pos = pos;
     UpdateView();
 }
 

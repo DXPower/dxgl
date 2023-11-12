@@ -24,7 +24,9 @@ namespace dxgl {
 
     struct Draw {
         ProgramRef program{};
-        Vao vao{};
+
+        VaoView vao_view{};
+        std::optional<Vao> vao_storage{};
 
         boost::container::small_vector<TextureView, 2> textures{};
         boost::container::small_vector<Vbo, 2> vbo_storage{};
