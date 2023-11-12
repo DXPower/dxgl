@@ -13,6 +13,10 @@ target_link_libraries(containsim PRIVATE
     magic_enum::magic_enum
 )
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/common)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/modules)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/systems)
+
 target_include_directories(containsim PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -20,9 +24,6 @@ target_include_directories(containsim PUBLIC
 target_sources(containsim PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/common/DrawQueues.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/systems/SpriteRenderer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/modules/TileGrid.cpp
 )
 
 add_custom_target(copy-shaders-cs ALL
