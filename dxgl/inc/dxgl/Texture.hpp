@@ -12,21 +12,30 @@ namespace dxgl {
         R = 1,
         RG,
         RGB,
-        RGBA
+        RGBA,
+        BGR,
+        BGRA
     };
 
     class TextureSource {
+        enum class SourceType {
+            Stbi,
+            Unowned
+        };
+
         struct Deleter {
+            SourceType type{};
+
             void operator()(unsigned char* ptr) const;
         };
 
-        std::unique_ptr<unsigned char, Deleter> m_data{};
+        std::unique_ptr<unsigned char, Deleter> m_data;
         glm::ivec2 size{};
         TextureFormat format{};
 
     public:
-        TextureSource() = default;
-        explicit TextureSource(dxtl::cstring_view file);
+        explicit TextureSource(dxtl::cstring_view file, bool swap_rb = false);
+        explicit TextureSource(unsigned char* data, TextureFormat format, const glm::ivec2& size);
 
         unsigned char* GetData() {
             return m_data.get();

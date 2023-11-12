@@ -59,6 +59,7 @@ static std::size_t GetAttribTypeSize(AttribType type) {
             return 4;
         case Double:
             return 8;
+        // default: std::unreachable();
     }
 }
 
@@ -75,6 +76,7 @@ static int GetAttribTypeGlEnum(AttribType type) {
         case Uint: return GL_UNSIGNED_INT;
         case Fixed: return GL_FIXED;
         case Double: return GL_DOUBLE;
+        // default: std::unreachable();
     }
 }
 

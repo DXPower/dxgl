@@ -48,7 +48,7 @@ void UboBindingManager::BindUniformLocation(std::size_t i, ProgramRef program, d
 }
 
 UboView UboBindingManager::GetUbo(std::size_t i) const {
-    return bindings.at(i);
+    return bindings.at(i).View();
 }
 
 void UboBindingManager::UnbindLocation(std::size_t i) {

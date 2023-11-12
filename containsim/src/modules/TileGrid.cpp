@@ -182,13 +182,17 @@ public:
     }
 };
 
+void Module::PimplDeleter::operator()(Pimpl* p) const {
+    delete p;
+}
+
 Module::Module(flecs::world& world) {
     // world.module<Module>("TileGrid");
     const auto& global_data = *world.get<GlobalData>();
     const auto& config = *global_data.config;
     const auto& global_state = *global_data.state;
 
-    m_pimpl = std::make_unique<Pimpl>(global_state);
+    m_pimpl.reset(new Pimpl(global_state));
     
     m_pimpl->tile_world_size = config.tile_size;
 

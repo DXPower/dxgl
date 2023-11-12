@@ -37,7 +37,7 @@ namespace dxgl {
         Attribute& InstanceDivisor(unsigned int d) { divisor = d; return *this; }
         Attribute& PerInstance() { return InstanceDivisor(1); }
         Attribute& Multiply(int n) { multiply = n; return *this; };
-        Attribute& Matrix(int rows, int cols) { return Components(rows).Multiply(cols); };
+        Attribute& Matrix(int8_t rows, int8_t cols) { return Components(rows).Multiply(cols); };
     };
 
     struct AttribGroup {

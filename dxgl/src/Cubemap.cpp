@@ -29,6 +29,9 @@ void Cubemap::Load(std::span<const TextureSource, 6> faces) {
             case RG: gl_format = GL_RG; break;
             case RGB: gl_format = GL_RGB; break;
             case RGBA: gl_format = GL_RGBA; break;
+            case BGR: gl_format = GL_BGR; break;
+            case BGRA: gl_format = GL_BGRA; break;
+            // default: std::unreachable();
         }
 
         glTexImage2D(

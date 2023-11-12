@@ -52,13 +52,19 @@ namespace dxgl {
 
     template<typename T, bool Mutable = false>
     class HandleRef {
-        std::conditional_t<Mutable, T*, const T*> handle{};
+        using Handle_t = std::conditional_t<Mutable, T*, const T*>;
+        Handle_t handle{};
 
     public:
         HandleRef() noexcept = default;
         HandleRef(std::conditional_t<Mutable, T&, const T&> handle) : handle(&handle) { }
+        // HandleRef(const HandleRef<T, false>& other) requires (Mutable) : handle(other.GetHandle()) { }
         
-        HandleRef(HandleRef<T, true> other) requires (not Mutable) : handle(other.GetHandle()) { }
+        HandleRef(const HandleRef& copy) = default;
+
+        operator HandleRef<T, false>() const requires Mutable {
+            return HandleRef<T, false>(*handle);
+        }
 
         HandleRef(T&& handle) = delete;
 
@@ -86,8 +92,13 @@ namespace dxgl {
             return handle != nullptr;
         }
 
-        auto GetHandle() const {
-            return handle;
+        auto& GetOwner() const {
+            return *handle;
         }
+
+        HandleRef<T, false> View() const requires Mutable {
+            return HandleRef<T, false>(*handle);
+        }
+
     };
 }

@@ -1,3 +1,5 @@
+#include <Ultralight/Bitmap.h>
+#include <Ultralight/RefPtr.h>
 #include <common/GlobalConfig.hpp>
 #include <dxgl/Texture.hpp>
 #include <exception>
@@ -25,6 +27,8 @@
 #include <common/GlobalData.hpp>
 #include "Camera.hpp"
 
+#include <Ultralight/Ultralight.h>
+#include <AppCore/Platform.h>
 
 using namespace dxgl;
 
@@ -70,12 +74,13 @@ void OnInput(GLFWwindow* window [[maybe_unused]], int key, int scancode [[maybe_
 }
 
 void Clear() {
-    glClearColor(0.1, 0.2, 0.4, 1.0f);
+    glClearColor(0.1f, 0.2f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 int main() {
-    constexpr glm::vec2 initial_screen_size = { 1000, 800 };
+    constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
+    std::cout << "Hello, world" << std::endl;
     try {
         Application::Init("Containment Simulator", initial_screen_size.x, initial_screen_size.y);
 
@@ -107,48 +112,24 @@ int main() {
 
         using namespace components;
         DrawQueues draw_queues{};
-        // systems::SpriteRenderer sprite_renderer(global_state, draw_queues);
+        systems::SpriteRenderer sprite_renderer(global_state, draw_queues);
 
-        // std::function<void(
-        //     const components::SpriteRenderer&,
-        //     const components::Transform&,
-        //     const components::RenderData&,
-        //     const components::Sprite&
-        // )> pre_store = std::bind_front(&systems::SpriteRenderer::PreStore, &sprite_renderer);
+        std::function<void(
+            const components::SpriteRenderer&,
+            const components::Transform&,
+            const components::RenderData&,
+            const components::Sprite&
+        )> pre_store = std::bind_front(&systems::SpriteRenderer::PreStore, &sprite_renderer);
 
-        // world.system<
-        //     components::SpriteRenderer,
-        //     components::Transform,
-        //     components::RenderData,
-        //     components::Sprite>(
-        //     "SpriteRenderer"
-        // )
-        //     .kind(flecs::PreStore)
-        //     .each(pre_store);
-
-        // auto grass = world.entity("Square");
-
-        // grass.set(components::Transform{
-        //     .position = {700, 400},
-        //     .size = {300, 300}
-        // });
-
-        // grass.set(components::RenderData{
-        //     .layer = RenderLayer::Floors
-        // });
-
-        // grass.set(components::Sprite{
-        //     .spritesheet = spritesheet,
-        //     .cutout = {
-        //         .position = {0, 140},
-        //         .size = {28, 28}
-        //     }
-        // });
-
-        // grass.add<components::SpriteRenderer>();
-        
-        // float last_time = 0.0f;
-        // float delta_time [[maybe_unused]] = 0.0f;
+        world.system<
+            components::SpriteRenderer,
+            components::Transform,
+            components::RenderData,
+            components::Sprite>(
+            "SpriteRenderer"
+        )
+            .kind(flecs::PreStore)
+            .each(pre_store);
         
         GlobalConfig global_config{
             .map_size = { 20, 10 },
@@ -178,6 +159,30 @@ int main() {
 
         SetTiles();
 
+        using namespace ultralight;
+        ultralight::Config config{};
+        config.user_stylesheet = "body { background: 0x000000; color: red; }";
+
+        auto& platform = ultralight::Platform::instance();
+        platform.set_config(config);
+        platform.set_file_system(ultralight::GetPlatformFileSystem("."));
+        platform.set_logger(ultralight::GetDefaultLogger("ultralight.log"));
+        platform.set_font_loader(ultralight::GetPlatformFontLoader());
+
+        ultralight::RefPtr<Renderer> renderer = Renderer::Create();
+        ultralight::ViewConfig view_config;
+        view_config.is_accelerated = false;
+        view_config.is_transparent = true;
+
+        auto view = renderer->CreateView(initial_screen_size.x, initial_screen_size.y, view_config, nullptr);
+        view->LoadHTML("<body><h1>Hello World!</h1></body>");
+        
+        Surface* surface = view->surface();
+        BitmapSurface* bitmap_surface = dynamic_cast<BitmapSurface*>(surface);
+        auto bitmap = bitmap_surface->bitmap();
+
+        dxgl::Screenbuffer ui_buffer{};
+
         float last_time{};
         constexpr float camera_speed = 350.f;
 
@@ -188,7 +193,7 @@ int main() {
             draw_queues = {};
 
             auto input [[maybe_unused]] = ProcessInput(Application::GetWindow());
-            float current_time = Application::GetTime();
+            float current_time = (float) Application::GetTime();
             float delta_time = current_time - last_time;
             last_time = current_time;
 
@@ -208,6 +213,20 @@ int main() {
 
             main_screen_buffer.Render();
 
+
+            // Update UI
+            renderer->Update();
+            renderer->Render();
+
+            void* ui_pixels = bitmap->LockPixels();
+            glm::ivec2 ui_size = { bitmap->width(), bitmap->height() };
+            dxgl::TextureSource source((unsigned char*) ui_pixels, dxgl::TextureFormat::BGRA, ui_size);
+
+            *ui_buffer.GetTexture() = dxgl::Texture(source);
+            ui_buffer.Render();
+
+            bitmap->UnlockPixels();
+
             Application::SwapBuffers();
             Application::PollEvents();
         }
@@ -217,3 +236,15 @@ int main() {
         std::cerr << e.what() << std::endl;
     }
 }
+
+// #include <Ultralight/Ultralight.h>
+// #include <Ultralight/platform/Config.h>
+
+// void test() {
+//     ultralight::Config config{};
+
+// }
+
+// int main() {
+//     test();
+// }

@@ -9,7 +9,8 @@
 
 using namespace dxgl;
 
-TextureSource::TextureSource(dxtl::cstring_view file) {
+TextureSource::TextureSource(dxtl::cstring_view file, bool swap_rb)
+    : m_data(nullptr, Deleter{SourceType::Stbi}) {
     int num_channels;
     
     stbi_set_flip_vertically_on_load(true);  
@@ -20,10 +21,26 @@ TextureSource::TextureSource(dxtl::cstring_view file) {
     }
 
     format = static_cast<TextureFormat>(num_channels);
+
+    if (swap_rb) {
+        if (num_channels < 3) {
+            throw std::runtime_error("Attempt to switch Red/Blue channels on image that did not have blue channel");
+        }
+
+        format = static_cast<TextureFormat>(num_channels + 2);
+    }
 }
 
+TextureSource::TextureSource(unsigned char* data, TextureFormat format, const glm::ivec2& size)
+    : m_data(data, Deleter{SourceType::Unowned}) {
+    this->size = size;
+    this->format = format;
+}
+
+
 void TextureSource::Deleter::operator()(unsigned char* ptr) const {
-    stbi_image_free(ptr);
+    if (type == SourceType::Stbi)
+        stbi_image_free(ptr);
 }
 
 Texture::Texture() {
@@ -46,6 +63,9 @@ void Texture::Load(const TextureSource& source) {
         case RG: gl_format = GL_RG; break;
         case RGB: gl_format = GL_RGB; break;
         case RGBA: gl_format = GL_RGBA; break;
+        case BGR: gl_format = GL_BGR; break;
+        case BGRA: gl_format = GL_BGRA; break;
+        // default: std::unreachable();
     }
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, gl_format, GL_UNSIGNED_BYTE, source.GetData());

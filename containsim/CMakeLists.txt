@@ -3,6 +3,8 @@ add_executable(containsim)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/flecs)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nlohmann_json)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/magic_enum)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/ultralight)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/ultralight_dbg)
 
 target_link_libraries(containsim PRIVATE 
     dxgl
@@ -11,6 +13,10 @@ target_link_libraries(containsim PRIVATE
     flecs::flecs_static
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum
+    Ultralight
+    UltralightCore
+    WebCore
+    AppCore
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/common)

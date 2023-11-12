@@ -12,7 +12,11 @@ class DrawQueues;
 namespace TileGrid {
     class Module {
         class Pimpl;
-        std::unique_ptr<Pimpl> m_pimpl{};
+        struct PimplDeleter {
+            void operator()(Pimpl* p) const;
+        };
+
+        std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
     public:
         Module(flecs::world& world);

@@ -144,7 +144,7 @@ namespace dxgl {
                 memcpy(&out[cur_loc->offset], &obj, sizeof(obj));
                 cur_loc++;
             } else if constexpr (is_gl_mat<T>::value) {
-                for (std::size_t i = 0; i < T::length(); i++) {
+                for (std::size_t i = 0; i < (std::size_t) T::length(); i++) {
                     WriteObjFields(obj[i], cur_loc, out);
                 }
             } else if constexpr (std::is_array_v<T>) {

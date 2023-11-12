@@ -25,12 +25,38 @@
             "CXX_OPTS": "-O0 -fdiagnostics-color=always"
 
         }
+      },
+      {
+        "name": "msvc",
+        "displayName": "Default Debug Config",
+        "description": "Default build using Ninja generator",
+        "generator": "Ninja",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "CMAKE_CXX_COMPILER": "cl",
+            "CMAKE_C_COMPILER": "cl",
+            "CMAKE_CXX_STANDARD": "23",
+            "CMAKE_CXX_EXTENSIONS": "OFF",
+            "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
+            "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82"
+        },
+        "environment": {
+            "CXX_WARNINGS": "/W4 /wd4458",
+            "CXX_OPTS": "/EHsc"
+        }
       }
+      
     ],
     "buildPresets": [
       {
         "name": "default",
         "configurePreset": "default"
+      },
+      
+      {
+        "name": "msvc",
+        "configurePreset": "msvc"
       }
     ]
 }

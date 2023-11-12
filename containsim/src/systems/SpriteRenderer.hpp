@@ -15,7 +15,11 @@ class DrawQueues;
 namespace systems {
     class SpriteRenderer {
         class Pimpl;
-        std::unique_ptr<Pimpl> m_pimpl{};
+        struct PimplDeleter {
+            void operator()(Pimpl* p) const;
+        };
+
+        std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
         DrawQueues* m_queues_out{};
     public:

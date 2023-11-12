@@ -18,7 +18,7 @@ static std::string LoadFileToString(std::string_view path) {
     std::string contents;
 
     file.seekg(0, std::ios::end);
-    contents.resize(file.tellg());
+    contents.resize((std::size_t) file.tellg());
     file.seekg(0, std::ios::beg);
     file.read(&contents[0], contents.size());
 

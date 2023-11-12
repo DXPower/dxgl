@@ -54,9 +54,13 @@ public:
     dxgl::Vbo quad_vbo{};
 };
 
+void SpriteRenderer::PimplDeleter::operator()(Pimpl* p) const {
+    delete p;
+}
+
 SpriteRenderer::SpriteRenderer(const GlobalState& global_state, DrawQueues& queues) 
-    : m_queues_out(&queues) {
-    m_pimpl = std::make_unique<Pimpl>();
+    : m_pimpl(new Pimpl())
+    , m_queues_out(&queues) {
 
     m_pimpl->program = dxgl::ProgramBuilder()
         .Vert("shaders/sprite.vert")
