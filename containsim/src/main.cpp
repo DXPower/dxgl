@@ -24,6 +24,8 @@
 
 #include <modules/TileGrid.hpp>
 
+#include <services/UiRenderer.hpp>
+
 #include <common/GlobalData.hpp>
 #include "Camera.hpp"
 
@@ -62,12 +64,16 @@ InputResults ProcessInput(GLFWwindow* window) {
 }
 
 bool cycle_tiles = false;
+bool update_html = false;
 
 void OnInput(GLFWwindow* window [[maybe_unused]], int key, int scancode [[maybe_unused]], int action, int mods [[maybe_unused]]) {
     if (action == GLFW_PRESS) {
         switch (key) {
             case GLFW_KEY_E:
                 cycle_tiles = true;
+                break;
+            case GLFW_KEY_H:
+                update_html = true;
                 break;
         }
     }
@@ -103,10 +109,6 @@ int main() {
             main_screen_buffer.ResizeToScreen();
             camera.UpdateViewportSize(x, y);
         });
-
-        dxgl::Texture spritesheet = dxgl::LoadTextureFromFile("res/img/tiles.png");
-        spritesheet.SetFilterMode(dxgl::FilterMode::Nearest);
-
 
         flecs::world world{};
 
@@ -159,29 +161,8 @@ int main() {
 
         SetTiles();
 
-        using namespace ultralight;
-        ultralight::Config config{};
-        config.user_stylesheet = "body { background: 0x000000; color: red; }";
-
-        auto& platform = ultralight::Platform::instance();
-        platform.set_config(config);
-        platform.set_file_system(ultralight::GetPlatformFileSystem("."));
-        platform.set_logger(ultralight::GetDefaultLogger("ultralight.log"));
-        platform.set_font_loader(ultralight::GetPlatformFontLoader());
-
-        ultralight::RefPtr<Renderer> renderer = Renderer::Create();
-        ultralight::ViewConfig view_config;
-        view_config.is_accelerated = false;
-        view_config.is_transparent = true;
-
-        auto view = renderer->CreateView(initial_screen_size.x, initial_screen_size.y, view_config, nullptr);
-        view->LoadHTML("<body><h1>Hello World!</h1></body>");
-        
-        Surface* surface = view->surface();
-        BitmapSurface* bitmap_surface = dynamic_cast<BitmapSurface*>(surface);
-        auto bitmap = bitmap_surface->bitmap();
-
-        dxgl::Screenbuffer ui_buffer{};
+        services::UiRenderer ui_renderer{};
+        ui_renderer.LoadUrl("file:///ingame.html");
 
         float last_time{};
         constexpr float camera_speed = 350.f;
@@ -213,19 +194,18 @@ int main() {
 
             main_screen_buffer.Render();
 
+            // Update and render UI
+            if (update_html) {
+                ui_renderer.LoadHtml("res/ui/ingame.html");
+                update_html = false;
+            }
 
-            // Update UI
-            renderer->Update();
-            renderer->Render();
+            dxgl::Screenbuffer::Unuse();
+            ui_renderer.Update();
+            ui_renderer.Render(draw_queues);
 
-            void* ui_pixels = bitmap->LockPixels();
-            glm::ivec2 ui_size = { bitmap->width(), bitmap->height() };
-            dxgl::TextureSource source((unsigned char*) ui_pixels, dxgl::TextureFormat::BGRA, ui_size);
-
-            *ui_buffer.GetTexture() = dxgl::Texture(source);
-            ui_buffer.Render();
-
-            bitmap->UnlockPixels();
+            draw_queues.RenderQueuedDraws();
+            draw_queues.ClearQueuedDraws();
 
             Application::SwapBuffers();
             Application::PollEvents();

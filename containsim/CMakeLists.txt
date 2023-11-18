@@ -21,6 +21,7 @@ target_link_libraries(containsim PRIVATE
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/common)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/modules)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/services)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/systems)
 
 target_include_directories(containsim PUBLIC

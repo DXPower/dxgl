@@ -5,5 +5,6 @@ enum class RenderLayer {
     Floors,
     Walls,
     Entities,
-    Particles
+    Particles,
+    Ui
 };
