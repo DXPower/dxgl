@@ -34,10 +34,11 @@ namespace {
         RefPtr<View> view{};
         RefPtr<Bitmap> bitmap{};
         BitmapSurface* bitmap_surface{};
+        std::optional<glm::ivec2> requested_resize{};
                 
-        void Resize(glm::ivec2 size) {
-            view->Resize(size.x, size.y);
-            bitmap_surface->Resize(size.x, size.y);
+        void ResizeToRequested() {
+            view->Resize(requested_resize->x, requested_resize->y);
+            bitmap_surface->Resize(requested_resize->x, requested_resize->y);
             bitmap = bitmap_surface->bitmap();
         }
     };
@@ -175,9 +176,12 @@ void UiRenderer::Update() {
 }
 
 void UiRenderer::Render(DrawQueues& draw_queues) const {
-    m_pimpl->renderer->Render();
-
     auto& view_info = m_pimpl->main_view;
+
+    if (view_info.requested_resize.has_value())
+        view_info.ResizeToRequested();
+    
+    m_pimpl->renderer->Render();
     
     void* ui_pixels = view_info.bitmap->LockPixels();
     
@@ -195,6 +199,9 @@ void UiRenderer::Render(DrawQueues& draw_queues) const {
 
 void UiRenderer::RenderDebug(DrawQueues& draw_queues) const {
     auto& view_info = m_pimpl->inspector_view;
+
+    if (view_info.requested_resize.has_value())
+        view_info.ResizeToRequested();
 
     void* ui_pixels = view_info.bitmap->LockPixels();
 
@@ -227,9 +234,9 @@ void UiRenderer::LoadUrl(dxtl::cstring_view path) {
 }
 
 void UiRenderer::Resize(glm::ivec2 size) {
-    m_pimpl->main_view.Resize(size);
+    m_pimpl->main_view.requested_resize = size;
 }
 
 void UiRenderer::ResizeInspector(glm::ivec2 size) {
-    m_pimpl->inspector_view.Resize(size);
+    m_pimpl->inspector_view.requested_resize = size;
 }
