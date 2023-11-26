@@ -58,6 +58,6 @@ namespace dxgl {
 
         // vbo_for_all is the buffer used for all AttribGroups
         // that were not provided their own vbo
-        void Apply(VaoRef vao, VboView vbo_for_all = {});
+        VaoAttribBuilder& Apply(VaoRef vao, VboView vbo_for_all = {});
     };
 }

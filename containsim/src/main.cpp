@@ -88,9 +88,23 @@ int main() {
     constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
     std::cout << "Hello, world" << std::endl;
     try {
-        Application::Init("Containment Simulator", initial_screen_size.x, initial_screen_size.y);
+        Application::Init();
+        Window main_window("Containment Simulator", initial_screen_size);
+        main_window.MakeCurrent();
+        
+        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+            throw std::runtime_error("Failed to initialize GLAD");
+        }
 
-        glfwSetKeyCallback(Application::GetWindow(), OnInput);
+        glViewport(0, 0, initial_screen_size.x, initial_screen_size.y);
+
+        Window debug_window("Containment Simulator Debug", {500, 500}, &main_window);
+        debug_window.MakeCurrent();
+        glViewport(0, 0, 500, 500);
+
+        main_window.MakeCurrent();
+
+        glfwSetKeyCallback(main_window.GetGlfwWindow(), OnInput);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -98,17 +112,12 @@ int main() {
         glEnable(GL_DEPTH_TEST);
 
         Screenbuffer main_screen_buffer{};
-        main_screen_buffer.ResizeToScreen();
+        main_screen_buffer.Resize(initial_screen_size);
 
         GlobalState global_state{};
 
         Camera camera(global_state);
-        camera.UpdateViewportSize(initial_screen_size.x, initial_screen_size.y);
-
-        Application::OnWindowResize([&main_screen_buffer, &camera](int x, int y) {
-            main_screen_buffer.ResizeToScreen();
-            camera.UpdateViewportSize(x, y);
-        });
+        camera.UpdateViewportSize(initial_screen_size);
 
         flecs::world world{};
 
@@ -161,19 +170,29 @@ int main() {
 
         SetTiles();
 
-        services::UiRenderer ui_renderer{};
+        services::UiRenderer ui_renderer(main_window, debug_window);
         ui_renderer.LoadUrl("file:///ingame.html");
+
+        main_window.OnResize([&](glm::ivec2 size) {
+            main_screen_buffer.Resize(size);
+            camera.UpdateViewportSize(size);
+            ui_renderer.Resize(size);
+        });
+
+        debug_window.OnResize([&](glm::ivec2 size) {
+            ui_renderer.ResizeInspector(size);
+        });
 
         float last_time{};
         constexpr float camera_speed = 350.f;
 
-        while (!Application::ShouldQuit()) {
+        while (!main_window.ShouldClose() && !debug_window.ShouldClose()) {
             main_screen_buffer.Use();
             Clear();
             glDisable(GL_DEPTH_TEST);
             draw_queues = {};
 
-            auto input [[maybe_unused]] = ProcessInput(Application::GetWindow());
+            auto input [[maybe_unused]] = ProcessInput(main_window.GetGlfwWindow());
             float current_time = (float) Application::GetTime();
             float delta_time = current_time - last_time;
             last_time = current_time;
@@ -187,7 +206,7 @@ int main() {
                 cycle_tiles = false;
             }
 
-            tile_grid.Render(draw_queues);
+            // tile_grid.Render(draw_queues);
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
@@ -207,24 +226,25 @@ int main() {
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
 
-            Application::SwapBuffers();
-            Application::PollEvents();
+            main_window.SwapBuffers();
+            main_window.PollEvents();
+
+            debug_window.MakeCurrent();
+            Clear();
+            ui_renderer.RenderDebug(draw_queues);
+            // tile_grid.Render(draw_queues);
+
+            draw_queues.RenderQueuedDraws();
+            draw_queues.ClearQueuedDraws();
+
+            debug_window.SwapBuffers();
+            debug_window.PollEvents();
+
+            main_window.MakeCurrent();
         }
 
-        Application::Destroy();
+        Application::Terminate();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
 }
-
-// #include <Ultralight/Ultralight.h>
-// #include <Ultralight/platform/Config.h>
-
-// void test() {
-//     ultralight::Config config{};
-
-// }
-
-// int main() {
-//     test();
-// }

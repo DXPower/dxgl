@@ -2,13 +2,14 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <algorithm>
 #include <stdexcept>
 
 using namespace dxgl;
 
 namespace {
-    GLFWwindow* window{};
-    std::function<OnWindowResizeFunc> on_window_resize{};
+    std::unordered_map<GLFWwindow*, std::function<OnWindowResizeFunc>> window_resize_funcs{};
 
     void InitGlfw() {
         glfwInit();
@@ -22,71 +23,101 @@ namespace {
             throw std::runtime_error("Failed to initialize GLAD");
         }
     }
-
-    void OnWindowResizeImpl(GLFWwindow*, int width, int height) {
-        glViewport(0, 0, width, height);
-        
-        if (on_window_resize)
-            on_window_resize(width, height);
-    }
 }
 
-void Application::Init(dxtl::cstring_view title, int screenW, int screenH) {
-    InitGlfw();
+Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share) {
+    glfw_window.reset(
+        glfwCreateWindow(
+            window_size.x,
+            window_size.y,
+            title.c_str(),
+            nullptr,
+            share ? share->GetGlfwWindow() : nullptr
+        )
+    );
 
-    window = glfwCreateWindow(screenW, screenH, title.c_str(), nullptr, nullptr);
-
-    if (window == nullptr) {
-        glfwTerminate();
+    if (glfw_window == nullptr) {
         throw std::runtime_error("Failed to create GLFW window");
     }
 
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, OnWindowResizeImpl);
-
-    InitGlad();
-    glViewport(0, 0, screenW, screenH);
+    glfwSetFramebufferSizeCallback(GetGlfwWindow(), OnWindowResizeImpl);
 }
 
-void Application::OnWindowResize(std::function<OnWindowResizeFunc> func) {
-    on_window_resize = std::move(func);
+Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
+    throw std::runtime_error("Unimplemented");
+}
+    
+Window::~Window() {
+    window_resize_funcs.erase(GetGlfwWindow());
 }
 
-void Application::SwapBuffers() {
-    glfwSwapBuffers(window);
+void Window::GlfwWindowDeleter::operator()(GLFWwindow* ptr) const {
+    glfwDestroyWindow(ptr);
 }
 
-void Application::PollEvents() {
+void Window::OnResize(std::function<OnWindowResizeFunc> func) {
+    window_resize_funcs.insert_or_assign(GetGlfwWindow(), std::move(func));
+}
+
+void Window::MakeCurrent() const {
+    glfwMakeContextCurrent(GetGlfwWindow());
+}
+
+void Window::SwapBuffers() {
+    glfwSwapBuffers(GetGlfwWindow());
+}
+
+void Window::PollEvents() {
     glfwPollEvents();
 }
 
-void Application::Destroy() {
-    glfwTerminate();
-}
-
-glm::ivec2 Application::GetWindowSize() {
+glm::ivec2 Window::GetSize() const {
     glm::ivec2 size;
-    glfwGetWindowSize(window, &size.x, &size.y);
+    glfwGetWindowSize(GetGlfwWindow(), &size.x, &size.y);
 
     return size;
 }
 
-glm::dvec2 Application::GetMousePos() {
+glm::dvec2 Window::GetMousePos() const {
     double x, y;
-    glfwGetCursorPos(Application::GetWindow(), &x, &y);
+    glfwGetCursorPos(GetGlfwWindow(), &x, &y);
 
     return {x, y};
 }
 
+glm::vec2 Window::GetScale() const {
+    glm::vec2 scale{};
+    glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &scale.x, &scale.y);
+    return scale;
+}
+
+bool Window::ShouldClose() const {
+    return glfwWindowShouldClose(GetGlfwWindow());
+}
+
+void Window::OnWindowResizeImpl(GLFWwindow* glfw_window, int width, int height) {
+    glfwMakeContextCurrent(glfw_window);
+    glViewport(0, 0, width, height);
+    
+    auto it = window_resize_funcs.find(glfw_window);
+
+    if (it == window_resize_funcs.end())
+        assert("Window unexpectedly missing from global list");
+
+    if (it->second)
+        it->second({width, height});
+}
+
+void Application::Init() {
+    InitGlfw();
+    // InitGlad();
+}
+
+void Application::Terminate() {
+    window_resize_funcs.clear();
+    glfwTerminate();
+}
+
 double Application::GetTime() {
     return glfwGetTime();
-}
-
-
-bool Application::ShouldQuit() {
-    return glfwWindowShouldClose(window);
-}
-
-GLFWwindow* Application::GetWindow() {
-    return window;
 }

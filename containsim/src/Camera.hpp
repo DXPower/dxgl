@@ -8,6 +8,7 @@ class Camera {
 
     dxgl::Ubo ubo{};
 
+    glm::ivec2 viewport_size{};
     glm::mat4 projection{};
     glm::mat4 view{};
 
@@ -22,7 +23,7 @@ public:
     const glm::mat4& GetProjectionMatrix() const { return projection; }
     const glm::mat4& GetViewMatrix() const { return view; }
     
-    void UpdateViewportSize(int w, int h);
+    void UpdateViewportSize(glm::ivec2 size);
 
 private:
     void UpdateView();

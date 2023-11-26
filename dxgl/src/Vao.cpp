@@ -80,22 +80,13 @@ static int GetAttribTypeGlEnum(AttribType type) {
     }
 }
 
-void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
+VaoAttribBuilder& VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
     namespace vws = std::views;
     using enum AttribType;
 
     vao->Use();
 
     std::ranges::sort(groups, {}, &AttribGroup::offset);
-
-    // if (auto it = std::ranges::adjacent_find(groups, {}, &AttribGroup::offset); it != groups.end()) {
-    //     throw std::runtime_error(
-    //         std::format(
-    //             "Multiple attribute groups with same offset ({}) detected", it->offset
-    //         )
-    //     );
-    // }
-
 
     GLuint cur_loc = 0;
     
@@ -147,4 +138,6 @@ void VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
             attrib_size_it++;
         }
     }
+
+    return *this;
 }

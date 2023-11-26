@@ -39,11 +39,9 @@ Screenbuffer::Screenbuffer() {
     Uniform::Set(screen_program, "texture", 0);
 }
 
-void Screenbuffer::ResizeToScreen() {
+void Screenbuffer::Resize(glm::ivec2 size) {
     framebuffer.Use();
     color_buffer.Use(0);
-
-    auto size = Application::GetWindowSize();
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

@@ -19,7 +19,7 @@ namespace dxgl {
     public:
         Screenbuffer();
 
-        void ResizeToScreen();
+        void Resize(glm::ivec2 size);
         void Use() const;
 
         void Render() const;

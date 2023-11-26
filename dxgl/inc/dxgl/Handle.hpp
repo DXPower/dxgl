@@ -61,12 +61,14 @@ namespace dxgl {
         // HandleRef(const HandleRef<T, false>& other) requires (Mutable) : handle(other.GetHandle()) { }
         
         HandleRef(const HandleRef& copy) = default;
+        HandleRef(T&& handle) = delete;
+
+        HandleRef& operator=(const HandleRef& copy) = default;
 
         operator HandleRef<T, false>() const requires Mutable {
             return HandleRef<T, false>(*handle);
         }
 
-        HandleRef(T&& handle) = delete;
 
         T& operator*() requires (Mutable) {
             return *handle;

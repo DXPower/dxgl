@@ -28,7 +28,7 @@ void Camera::MoveBy(glm::vec2 shift) {
 }
 
 void Camera::LookAt(glm::vec2 pos) {
-    SetPosition(pos - ((glm::vec2) dxgl::Application::GetWindowSize() / 2.f));
+    SetPosition(pos - ((glm::vec2) viewport_size / 2.f));
 }
 
 void Camera::SetPosition(glm::vec2 pos) {
@@ -37,8 +37,9 @@ void Camera::SetPosition(glm::vec2 pos) {
 }
 
 
-void Camera::UpdateViewportSize(int w, int h) {
-    projection = glm::ortho(0.f, (float) w, (float) h, 0.f, -1.f, 1.f);
+void Camera::UpdateViewportSize(glm::ivec2 size) {
+    viewport_size = size;
+    projection = glm::ortho(0.f, (float) size.x, (float) size.y, 0.f, -1.f, 1.f);
     UpdateUbo();
 }
 

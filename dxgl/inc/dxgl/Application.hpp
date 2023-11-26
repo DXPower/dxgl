@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <functional>
 
 #include <dxtl/cstring_view.hpp>
@@ -8,26 +9,44 @@
 struct GLFWwindow;
 
 namespace dxgl {
-    using OnWindowResizeFunc = void(int w, int h);
+    using OnWindowResizeFunc = void(glm::ivec2);
 
-    namespace Application {
+    class Window {
+        struct GlfwWindowDeleter {
+            void operator()(GLFWwindow* ptr) const;
+        };
+        std::unique_ptr<GLFWwindow, GlfwWindowDeleter> glfw_window;
+
+    public:
         struct Fullscreen { };
 
-        void Init(dxtl::cstring_view title, int screenW, int screenH);
-        void Init(dxtl::cstring_view title, Fullscreen);
+        Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share = nullptr);
+        Window(dxtl::cstring_view title, Fullscreen, const Window* share = nullptr);
+        ~Window();
 
+        void MakeCurrent() const;
         void SwapBuffers();
         void PollEvents();
-        void Destroy();
 
-        void OnWindowResize(std::function<OnWindowResizeFunc> func);
-
-        glm::ivec2 GetWindowSize();
-        glm::dvec2 GetMousePos();
+        void OnResize(std::function<OnWindowResizeFunc> func);
         
-        double GetTime();
-        bool ShouldQuit();
+        glm::ivec2 GetSize() const;
+        glm::dvec2 GetMousePos() const;
+        glm::vec2 GetScale() const;
+        bool ShouldClose() const;
 
-        GLFWwindow* GetWindow();
+        GLFWwindow* GetGlfwWindow() const { return glfw_window.get(); }
+
+    private:
+        static void OnWindowResizeImpl(GLFWwindow* window, int w, int h);
+
+        friend void OnWindowResizeImpl(GLFWwindow*, int, int);
+    };
+
+    namespace Application {
+        void Init();
+        void Terminate();
+
+        double GetTime();
     };
 }
