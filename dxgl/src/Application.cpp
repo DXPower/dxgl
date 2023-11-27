@@ -9,19 +9,13 @@
 using namespace dxgl;
 
 namespace {
-    std::unordered_map<GLFWwindow*, std::function<OnWindowResizeFunc>> window_resize_funcs{};
+    // std::unordered_map<GLFWwindow*, std::function<OnWindowResizeFunc>> window_resize_funcs{};
 
     void InitGlfw() {
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    }
-
-    void InitGlad() {
-        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-            throw std::runtime_error("Failed to initialize GLAD");
-        }
     }
 }
 
@@ -41,22 +35,20 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* s
     }
 
     glfwSetFramebufferSizeCallback(GetGlfwWindow(), OnWindowResizeImpl);
+    glfwSetWindowUserPointer(GetGlfwWindow(), this);
 }
 
 Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
     throw std::runtime_error("Unimplemented");
 }
     
-Window::~Window() {
-    window_resize_funcs.erase(GetGlfwWindow());
-}
-
 void Window::GlfwWindowDeleter::operator()(GLFWwindow* ptr) const {
     glfwDestroyWindow(ptr);
 }
 
 void Window::OnResize(std::function<OnWindowResizeFunc> func) {
-    window_resize_funcs.insert_or_assign(GetGlfwWindow(), std::move(func));
+    // window_resize_funcs.insert_or_assign(GetGlfwWindow(), std::move(func));
+    resize_func = std::move(func);
 }
 
 void Window::MakeCurrent() const {
@@ -99,13 +91,8 @@ void Window::OnWindowResizeImpl(GLFWwindow* glfw_window, int width, int height) 
     glfwMakeContextCurrent(glfw_window);
     glViewport(0, 0, width, height);
     
-    auto it = window_resize_funcs.find(glfw_window);
-
-    if (it == window_resize_funcs.end())
-        assert("Window unexpectedly missing from global list");
-
-    if (it->second)
-        it->second({width, height});
+    Window& window = *reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfw_window));
+    window.resize_func({width, height});
 }
 
 void Application::Init() {
@@ -114,7 +101,6 @@ void Application::Init() {
 }
 
 void Application::Terminate() {
-    window_resize_funcs.clear();
     glfwTerminate();
 }
 

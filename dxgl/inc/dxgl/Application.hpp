@@ -17,12 +17,12 @@ namespace dxgl {
         };
         std::unique_ptr<GLFWwindow, GlfwWindowDeleter> glfw_window;
 
+        std::function<OnWindowResizeFunc> resize_func{};
     public:
         struct Fullscreen { };
 
         Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share = nullptr);
         Window(dxtl::cstring_view title, Fullscreen, const Window* share = nullptr);
-        ~Window();
 
         void MakeCurrent() const;
         void SwapBuffers();
@@ -39,8 +39,6 @@ namespace dxgl {
 
     private:
         static void OnWindowResizeImpl(GLFWwindow* window, int w, int h);
-
-        friend void OnWindowResizeImpl(GLFWwindow*, int, int);
     };
 
     namespace Application {
