@@ -41,6 +41,26 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* s
 Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
     throw std::runtime_error("Unimplemented");
 }
+
+Window::Window(Window&& move) 
+    : glfw_window(std::move(move.glfw_window))
+    , resize_func(std::move(move.resize_func)) 
+{
+    glfwSetWindowUserPointer(GetGlfwWindow(), this);
+}
+
+Window& Window::operator=(Window&& move) {
+    if (&move == this)
+        return *this;
+
+    std::swap(glfw_window, move.glfw_window);
+    std::swap(resize_func, move.resize_func);
+
+    glfwSetWindowUserPointer(GetGlfwWindow(), this);
+    glfwSetWindowUserPointer(move.GetGlfwWindow(), &move);
+    
+    return *this;
+}
     
 void Window::GlfwWindowDeleter::operator()(GLFWwindow* ptr) const {
     glfwDestroyWindow(ptr);
@@ -87,12 +107,15 @@ bool Window::ShouldClose() const {
     return glfwWindowShouldClose(GetGlfwWindow());
 }
 
+Window& Window::GetWindowFromGlfw(GLFWwindow* glfw_window) {
+    return *reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfw_window));
+}
+
 void Window::OnWindowResizeImpl(GLFWwindow* glfw_window, int width, int height) {
     glfwMakeContextCurrent(glfw_window);
     glViewport(0, 0, width, height);
     
-    Window& window = *reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfw_window));
-    window.resize_func({width, height});
+    GetWindowFromGlfw(glfw_window).resize_func({width, height});
 }
 
 void Application::Init() {

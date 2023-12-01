@@ -23,6 +23,10 @@ namespace dxgl {
 
         Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share = nullptr);
         Window(dxtl::cstring_view title, Fullscreen, const Window* share = nullptr);
+        Window(const Window& copy) = delete;
+        Window(Window&& move);
+
+        Window& operator=(Window&& move);
 
         void MakeCurrent() const;
         void SwapBuffers();
@@ -36,7 +40,7 @@ namespace dxgl {
         bool ShouldClose() const;
 
         GLFWwindow* GetGlfwWindow() const { return glfw_window.get(); }
-
+        static Window& GetWindowFromGlfw(GLFWwindow* glfw_window);
     private:
         static void OnWindowResizeImpl(GLFWwindow* window, int w, int h);
     };
