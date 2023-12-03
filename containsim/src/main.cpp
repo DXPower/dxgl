@@ -188,30 +188,8 @@ int main() {
         constexpr float camera_speed = 350.f;
 
         services::InputHandler debug_input(debug_window);
-        debug_input.OnAction([](Action&& action) {
-            std::visit([](auto&& a) {
-                using T = std::decay_t<decltype(a)>;
-
-                if constexpr (std::is_same_v<T, KeyPress>) {
-                    std::cout << "Key press:" 
-                        << "\nDir: " << static_cast<int>(a.dir)
-                        << "\nButton: " << a.key
-                        << "\nMods: " << a.mods
-                        << '\n';
-                } else if constexpr (std::is_same_v<T, MouseMove>) {
-                    std::cout << "Mouse move:"
-                        << "\nFrom: " << a.from.x << ", " << a.from.y
-                        << "\nTo: " << a.to.x << ", " << a.to.y
-                        << '\n';
-                } else if constexpr (std::is_same_v<T, MouseClick>) {
-                    std::cout << "Mouse click:" 
-                        << "\nDir: " << static_cast<int>(a.dir)
-                        << "\nButton: " << a.button
-                        << "\nMods: " << a.mods
-                        << "\nPos: " << a.pos.x << ", " << a.pos.y
-                        << '\n';
-                }
-            }, action.data);
+        debug_input.OnAction([&](Action&& action) {
+            ui_renderer.InputActionDebug(action);
         });
 
 

@@ -14,7 +14,12 @@ enum class ButtonDir : uint8_t {
 struct KeyPress {
     ButtonDir dir{};
     int key{};
+    int scancode{};
     int mods{};
+};
+
+struct TextInput {
+    unsigned int codepoint{};
 };
 
 struct MouseMove {
@@ -29,6 +34,10 @@ struct MouseClick {
     int mods{};
 };
 
+struct ScrollInput {
+    glm::dvec2 amount{};
+};
+
 struct Action {
-    std::variant<KeyPress, MouseMove, MouseClick> data{};
+    std::variant<KeyPress, TextInput, MouseMove, MouseClick, ScrollInput> data{};
 };

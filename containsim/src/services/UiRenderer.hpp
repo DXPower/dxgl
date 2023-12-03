@@ -1,5 +1,7 @@
 #pragma once
 
+#include <common/Action.hpp>
+
 #include <dxgl/Application.hpp>
 #include <dxtl/cstring_view.hpp>
 
@@ -20,6 +22,9 @@ namespace services {
         void Update();
         void Render(DrawQueues& draw_queues) const;
         void RenderDebug(DrawQueues& draw_queues) const;
+
+        void InputAction(const Action& action);
+        void InputActionDebug(const Action& action);
 
         void LoadHtml(std::string_view path);
         void LoadCss(std::string_view path); 

@@ -4,8 +4,6 @@
 
 #include <functional>
 #include <memory>
-#include <optional>
-#include <variant>
 
 #include <dxgl/Application.hpp>
 

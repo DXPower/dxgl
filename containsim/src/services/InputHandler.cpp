@@ -24,16 +24,18 @@ public:
 
         last_mouse_pos = window.GetMousePos();
 
-        glfwSetMouseButtonCallback(glfw_window, &CursorClickCallback);
         glfwSetKeyCallback(glfw_window, &KeyCallback);
+        glfwSetCharCallback(glfw_window, &TextCallback);
+        glfwSetMouseButtonCallback(glfw_window, &CursorClickCallback);
         glfwSetCursorPosCallback(glfw_window, &CursorMoveCallback);
+        glfwSetScrollCallback(glfw_window, &ScrollCallback);
     }
 
     ~Pimpl() {
         window_mappings.erase(glfw_window);
     }
 
-    static void KeyCallback(GLFWwindow* window, int key, int scancode [[maybe_unused]], int action, int mods) {
+    static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         auto pit = window_mappings.find(window);
 
         if (pit == window_mappings.end() || !pit->second->on_action)
@@ -43,7 +45,21 @@ public:
             .data = KeyPress{
                 .dir = static_cast<ButtonDir>(action),
                 .key = key,
+                .scancode = scancode,
                 .mods = mods
+            }
+        });
+    }
+
+    static void TextCallback(GLFWwindow* window, unsigned int codepoint) {
+        auto pit = window_mappings.find(window);
+
+        if (pit == window_mappings.end() || !pit->second->on_action)
+            return;
+
+        pit->second->on_action(Action{
+            .data = TextInput{
+                .codepoint = codepoint
             }
         });
     }
@@ -84,6 +100,19 @@ public:
                 .pos = window.GetMousePos(),
                 .button = button,
                 .mods = mods
+            }
+        });
+    }
+
+    static void ScrollCallback(GLFWwindow* glfw_window, double x, double y) {
+        auto pit = window_mappings.find(glfw_window);
+
+        if (pit == window_mappings.end() || !pit->second->on_action)
+            return;
+
+        pit->second->on_action(Action{
+            .data = ScrollInput{
+                .amount = {x, y}
             }
         });
     }
