@@ -10,27 +10,32 @@
 
 class DrawQueues;
 
+namespace ultralight {
+    template<typename T>
+    class RefPtr;
+
+    class View;
+}
+
 namespace services {
-    class UiRenderer {
+    class UiView {
         class Pimpl;
         std::unique_ptr<Pimpl> m_pimpl{};
 
     public:
-        UiRenderer(const dxgl::Window& main_window, const dxgl::Window& inspector_window);
-        ~UiRenderer();
+        UiView(const dxgl::Window& window, const ultralight::RefPtr<ultralight::View>& view);
+        ~UiView();
 
         void Update();
         void Render(DrawQueues& draw_queues) const;
-        void RenderDebug(DrawQueues& draw_queues) const;
 
         void InputAction(const Action& action);
-        void InputActionDebug(const Action& action);
 
         void LoadHtml(std::string_view path);
-        void LoadCss(std::string_view path); 
         void LoadUrl(dxtl::cstring_view path);
 
         void Resize(glm::ivec2 size);
-        void ResizeInspector(glm::ivec2 size);
+
+        ultralight::RefPtr<ultralight::View> GetView();
     };
 }

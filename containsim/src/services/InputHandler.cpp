@@ -31,6 +31,11 @@ public:
         glfwSetScrollCallback(glfw_window, &ScrollCallback);
     }
 
+    Pimpl(const Pimpl&) = delete;
+    Pimpl(Pimpl&&) = delete;
+    Pimpl& operator=(const Pimpl&) = delete;
+    Pimpl& operator=(Pimpl&&) = delete;
+
     ~Pimpl() {
         window_mappings.erase(glfw_window);
     }

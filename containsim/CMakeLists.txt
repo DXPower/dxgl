@@ -38,7 +38,7 @@ add_custom_target(copy-shaders-cs ALL
 	DEPENDS containsim
 )
 
-add_custom_target(copy-res-cs ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_BINARY_DIR}/res
-	DEPENDS containsim
-)
+# add_custom_target(copy-res-cs ALL
+#     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_BINARY_DIR}/res
+# 	DEPENDS containsim
+# )

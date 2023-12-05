@@ -4,10 +4,6 @@
 #include <dxgl/Texture.hpp>
 #include <exception>
 #include <iostream>
-#include <format>
-#include <concepts>
-#include <numbers>
-#include <ranges>
 
 #include <flecs.h>
 #include <glad/glad.h>
@@ -24,7 +20,7 @@
 
 #include <modules/TileGrid.hpp>
 
-#include <services/UiRenderer.hpp>
+#include <services/UiContainer.hpp>
 #include <services/InputHandler.hpp>
 
 #include <common/GlobalData.hpp>
@@ -47,7 +43,7 @@ InputResults ProcessInput(GLFWwindow* window) {
     };
 
     if (IsKeyPressed(GLFW_KEY_ESCAPE))
-        glfwSetWindowShouldClose(window, true);
+        glfwSetWindowShouldClose(window, 1);
     
     if (IsKeyPressed(GLFW_KEY_W))
         result.camera_movement.y -= 1;
@@ -75,6 +71,8 @@ void OnInput(GLFWwindow* window [[maybe_unused]], int key, int scancode [[maybe_
                 break;
             case GLFW_KEY_H:
                 update_html = true;
+                break;
+            default:
                 break;
         }
     }
@@ -171,17 +169,17 @@ int main() {
 
         SetTiles();
 
-        services::UiRenderer ui_renderer(main_window, debug_window);
-        ui_renderer.LoadUrl("file:///ingame.html");
+        services::UiContainer ui_container(main_window, debug_window);
+        ui_container.GetMainView().LoadUrl("file:///ingame.html");
 
         main_window.OnResize([&](glm::ivec2 size) {
             main_screen_buffer.Resize(size);
             camera.UpdateViewportSize(size);
-            ui_renderer.Resize(size);
+            ui_container.GetMainView().Resize(size);
         });
 
         debug_window.OnResize([&](glm::ivec2 size) {
-            ui_renderer.ResizeInspector(size);
+            ui_container.GetInspectorView().Resize(size);
         });
 
         float last_time{};
@@ -189,7 +187,8 @@ int main() {
 
         services::InputHandler debug_input(debug_window);
         debug_input.OnAction([&](Action&& action) {
-            ui_renderer.InputActionDebug(action);
+            // ui_renderer.InputActionDebug(action);
+            ui_container.GetInspectorView().InputAction(action);
         });
 
 
@@ -213,7 +212,7 @@ int main() {
                 cycle_tiles = false;
             }
 
-            // tile_grid.Render(draw_queues);
+            tile_grid.Render(draw_queues);
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
@@ -222,13 +221,16 @@ int main() {
 
             // Update and render UI
             if (update_html) {
-                ui_renderer.LoadHtml("res/ui/ingame.html");
+                ui_container.GetMainView().LoadHtml("res/ui/ingame.html");
                 update_html = false;
             }
 
+            ui_container.Update();
+            ui_container.Render();
+
             dxgl::Screenbuffer::Unuse();
-            ui_renderer.Update();
-            ui_renderer.Render(draw_queues);
+
+            ui_container.GetMainView().Render(draw_queues);
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
@@ -238,8 +240,8 @@ int main() {
 
             debug_window.MakeCurrent();
             Clear();
-            ui_renderer.RenderDebug(draw_queues);
-            // tile_grid.Render(draw_queues);
+
+            ui_container.GetInspectorView().Render(draw_queues);
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
