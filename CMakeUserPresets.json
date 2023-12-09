@@ -8,9 +8,10 @@
     "configurePresets": [
       {
         "name": "default",
-        "displayName": "Default Debug Config",
+        "displayName": "Default Debug Config Clang+Ninja",
         "description": "Default build using Ninja generator",
         "generator": "Ninja",
+        "binaryDir": "build",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
             "CMAKE_CXX_COMPILER": "clang++",
@@ -28,8 +29,8 @@
       },
       {
         "name": "msvc",
-        "displayName": "Default Debug Config",
-        "description": "Default build using Ninja generator",
+        "displayName": "Default Debug Config MSVC",
+        "description": "Default build using MSVC",
         "generator": "Ninja",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
