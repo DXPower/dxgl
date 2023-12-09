@@ -1,6 +1,8 @@
 #pragma once
 
 #include <common/Action.hpp>
+#include <services/interfaces/IMouseTester.hpp>
+#include <services/interfaces/IActionReceiver.hpp>
 
 #include <dxgl/Application.hpp>
 #include <dxtl/cstring_view.hpp>
@@ -18,7 +20,7 @@ namespace ultralight {
 }
 
 namespace services {
-    class UiView {
+    class UiView : public IMouseTester, IActionReceiver {
         class Pimpl;
         std::unique_ptr<Pimpl> m_pimpl{};
 
@@ -29,7 +31,8 @@ namespace services {
         void Update();
         void Render(DrawQueues& draw_queues) const;
 
-        void InputAction(const Action& action);
+        void PushAction(Action&& action) override;
+        InputLayer TestMouse(glm::dvec2 pos) const override;
 
         void LoadHtml(std::string_view path);
         void LoadUrl(dxtl::cstring_view path);

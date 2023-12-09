@@ -22,6 +22,7 @@
 
 #include <services/UiContainer.hpp>
 #include <services/InputHandler.hpp>
+#include <services/ActionRouter.hpp>
 
 #include <common/GlobalData.hpp>
 #include "Camera.hpp"
@@ -188,9 +189,25 @@ int main() {
         services::InputHandler debug_input(debug_window);
         debug_input.OnAction([&](Action&& action) {
             // ui_renderer.InputActionDebug(action);
-            ui_container.GetInspectorView().InputAction(action);
+            ui_container.GetInspectorView().PushAction(std::move(action));
         });
 
+        struct GameInput : services::IActionReceiver {
+            std::string name;
+
+            void PushAction(Action&&) override {
+                std::cout << "Got " << name << " input!\n";
+            }
+        } game_receiver, ui_receiver;
+
+        game_receiver.name = "Game";
+        ui_receiver.name = "UI";
+
+        services::ActionRouter input_router(ui_container.GetMainView(), game_receiver, ui_receiver);
+        services::InputHandler game_input(main_window);
+        game_input.OnAction([&](Action&& action) {
+            input_router.PushAction(std::move(action));
+        });
 
         while (!main_window.ShouldClose() && !debug_window.ShouldClose()) {
             main_screen_buffer.Use();

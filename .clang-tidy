@@ -19,6 +19,8 @@ Checks: '
     -cppcoreguidelines-special-member-functions,
     -cppcoreguidelines-prefer-member-initializer,
     -cppcoreguidelines-owning-memory,
+    -cppcoreguidelines-rvalue-reference-parameter-not-moved,
+    -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   misc-*,
     -misc-non-private-member-variables-in-classes,
   modernize-*,
@@ -26,12 +28,18 @@ Checks: '
     -modernize-use-nodiscard,
   performance-*,
     -performance-avoid-endl,
+    -performance-move-const-arg,
   portability-*,
   readability-*,
     -readability-identifier-length,
-    -readability-named-parameter
+    -readability-named-parameter,
+    -readability-else-after-return
 '
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines
     value: 2
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: "m_"
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: "m_"
 FormatStyle: 'file'

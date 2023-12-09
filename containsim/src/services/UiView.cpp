@@ -152,7 +152,7 @@ void UiView::Render(DrawQueues& draw_queues) const {
     draw_queues.QueueViewedDraw(RenderLayer::Ui, m_pimpl->ui_draw);
 }
 
-void UiView::InputAction(const Action& action) {
+void UiView::PushAction(Action&& action) {
     std::visit(dxtl::overloaded{
         [this](const KeyPress& a) {
             ultralight::KeyEvent evt{};
@@ -246,6 +246,23 @@ void UiView::InputAction(const Action& action) {
     }, action.data);
 }
 
+InputLayer UiView::TestMouse(glm::dvec2 pos) const {
+    auto& bitmap = *m_pimpl->bitmap;
+
+    const uint8_t* pixels = static_cast<uint8_t*>(bitmap.LockPixels());
+    
+    const auto pixel_offset = (bitmap.row_bytes() * (uint32_t) pos.y) + (bitmap.bpp() * (uint32_t) pos.x);
+    const uint8_t* pixel = pixels + pixel_offset;
+    uint8_t alpha = pixel[3];
+
+    m_pimpl->bitmap->UnlockPixels();
+
+    if (alpha == 0) {
+        return InputLayer::Game;
+    } else {
+        return InputLayer::Ui;
+    }
+}
 
 void UiView::LoadHtml(std::string_view path) {
     std::string html = LoadFileToString(path);
