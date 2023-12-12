@@ -35,6 +35,7 @@ struct MouseClick {
 };
 
 struct ScrollInput {
+    glm::dvec2 pos{};
     glm::dvec2 amount{};
 };
 

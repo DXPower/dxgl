@@ -4,7 +4,7 @@
 
 namespace services {
     enum class InputLayer {
-        Game, Ui
+        Offscreen, Game, Ui
     };
 
     struct IMouseTester {

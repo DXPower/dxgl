@@ -171,7 +171,7 @@ int main() {
         SetTiles();
 
         services::UiContainer ui_container(main_window, debug_window);
-        ui_container.GetMainView().LoadUrl("file:///ingame.html");
+        ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
 
         main_window.OnResize([&](glm::ivec2 size) {
             main_screen_buffer.Resize(size);
@@ -196,14 +196,20 @@ int main() {
             std::string name;
 
             void PushAction(Action&&) override {
-                std::cout << "Got " << name << " input!\n";
+                // std::cout << "Got " << name << " input!\n";
             }
-        } game_receiver, ui_receiver;
+        } game_receiver, offscreen_receiver;
 
-        game_receiver.name = "Game";
-        ui_receiver.name = "UI";
+        // game_receiver.name = "Game";
+        // ui_receiver.name = "UI";
 
-        services::ActionRouter input_router(ui_container.GetMainView(), game_receiver, ui_receiver);
+        services::ActionRouter input_router(
+            ui_container.GetMainView(), 
+            game_receiver, 
+            ui_container.GetMainView(),
+            offscreen_receiver
+        );
+        
         services::InputHandler game_input(main_window);
         game_input.OnAction([&](Action&& action) {
             input_router.PushAction(std::move(action));
@@ -238,7 +244,7 @@ int main() {
 
             // Update and render UI
             if (update_html) {
-                ui_container.GetMainView().LoadHtml("res/ui/ingame.html");
+                ui_container.GetMainView().LoadHtml("file:///game/ingame.html");
                 update_html = false;
             }
 

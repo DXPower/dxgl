@@ -20,7 +20,7 @@ namespace ultralight {
 }
 
 namespace services {
-    class UiView : public IMouseTester, IActionReceiver {
+    class UiView : public IMouseTester, public IActionReceiver {
         class Pimpl;
         std::unique_ptr<Pimpl> m_pimpl{};
 

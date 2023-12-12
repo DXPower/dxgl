@@ -33,12 +33,17 @@ target_sources(containsim PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp
 )
 
-add_custom_target(copy-shaders-cs ALL
+add_custom_target(copy-shaders-cs
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/shaders
 	DEPENDS containsim
 )
 
-# add_custom_target(copy-res-cs ALL
-#     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_BINARY_DIR}/res
-# 	DEPENDS containsim
-# )
+add_custom_target(copy-res-cs
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_BINARY_DIR}/res
+	DEPENDS containsim
+)
+
+add_custom_target(copy-game-ui-cs
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res/ui/game ${CMAKE_CURRENT_BINARY_DIR}/res/ui/game
+	DEPENDS containsim
+)

@@ -115,8 +115,12 @@ public:
         if (pit == window_mappings.end() || !pit->second->on_action)
             return;
 
+        glm::dvec2 mouse_pos{};
+        glfwGetCursorPos(glfw_window, &mouse_pos.x, &mouse_pos.y);
+
         pit->second->on_action(Action{
             .data = ScrollInput{
+                .pos = mouse_pos,
                 .amount = {x, y}
             }
         });

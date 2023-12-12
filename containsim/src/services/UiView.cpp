@@ -249,6 +249,9 @@ void UiView::PushAction(Action&& action) {
 InputLayer UiView::TestMouse(glm::dvec2 pos) const {
     auto& bitmap = *m_pimpl->bitmap;
 
+    if (pos.x < 0 || pos.x >= bitmap.width() || pos.y < 0 || pos.y >= bitmap.height())
+        return InputLayer::Offscreen;
+
     const uint8_t* pixels = static_cast<uint8_t*>(bitmap.LockPixels());
     
     const auto pixel_offset = (bitmap.row_bytes() * (uint32_t) pos.y) + (bitmap.bpp() * (uint32_t) pos.x);
