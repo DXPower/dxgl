@@ -125,6 +125,16 @@ public:
                 .amount = {x, y}
             }
         });
+
+        // Send a MouseMove event just to keep listeners updated where the mouse is
+        // when scrolling happens, as scrolling frequently moves elements underneath
+        // the mouse
+        pit->second->on_action(Action{
+            .data = MouseMove{
+                .from = mouse_pos,
+                .to = mouse_pos
+            }
+        });
     }
 };
 
