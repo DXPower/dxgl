@@ -6,7 +6,6 @@
 #include <span>
 #include <ranges>
 #include <type_traits>
-#include <xutility>
 
 namespace dxgl {
     namespace rgs = std::ranges;

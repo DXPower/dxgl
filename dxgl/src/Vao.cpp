@@ -7,7 +7,6 @@
 #include <ranges>
 #include <stdexcept>
 #include <glad/glad.h>
-#include <xutility>
 
 using namespace dxgl;
 

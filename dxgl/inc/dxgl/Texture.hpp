@@ -34,6 +34,7 @@ namespace dxgl {
         TextureFormat format{};
 
     public:
+        TextureSource();
         explicit TextureSource(dxtl::cstring_view file, bool swap_rb = false);
         explicit TextureSource(unsigned char* data, TextureFormat format, const glm::ivec2& size);
 

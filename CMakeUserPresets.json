@@ -15,11 +15,12 @@
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
             "CMAKE_CXX_COMPILER": "clang++",
+            "CMAKE_C_COMPILER": "clang",
             "CMAKE_CXX_STANDARD": "20",
             "CMAKE_CXX_EXTENSIONS": "OFF",
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
-            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82"
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84"
         },
         "environment": {
             "CXX_WARNINGS": "-Wall -Wextra -Werror -Wno-error=unused-variable -Wno-error=unused-function",
@@ -31,7 +32,7 @@
         "name": "msvc",
         "displayName": "Default Debug Config MSVC",
         "description": "Default build using MSVC",
-        "generator": "Ninja",
+        "architecture": "x64",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
             "CMAKE_CXX_COMPILER": "cl",
@@ -39,8 +40,9 @@
             "CMAKE_CXX_STANDARD": "23",
             "CMAKE_CXX_EXTENSIONS": "OFF",
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
+            "CMAKE_GENERATOR_PLATFORM": "x64",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
-            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82"
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84"
         },
         "environment": {
             "CXX_WARNINGS": "/W4 /wd4458",

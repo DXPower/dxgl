@@ -129,8 +129,12 @@ public:
     }
 };
 
+void UiView::PimplDeleter::operator()(Pimpl* ptr) const {
+    delete ptr;
+}
+
 UiView::UiView(const dxgl::Window& window, const RefPtr<View>& view) {
-    m_pimpl = std::make_unique<Pimpl>(window, view);
+    m_pimpl.reset(new Pimpl(window, view));
 }
 
 UiView::~UiView() = default;

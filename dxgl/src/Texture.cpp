@@ -9,6 +9,8 @@
 
 using namespace dxgl;
 
+TextureSource::TextureSource() : m_data(nullptr, Deleter{SourceType::Unowned}) { }
+
 TextureSource::TextureSource(dxtl::cstring_view file, bool swap_rb)
     : m_data(nullptr, Deleter{SourceType::Stbi}) {
     int num_channels;

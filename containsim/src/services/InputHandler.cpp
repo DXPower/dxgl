@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <unordered_map>
+#include <utility>
 
 #include <glfw/glfw3.h>
 
@@ -127,9 +128,11 @@ public:
     }
 };
 
-InputHandler::InputHandler(const dxgl::Window& window) {
-    m_pimpl = std::make_unique<Pimpl>(window);
+void InputHandler::PimplDeleter::operator()(Pimpl* ptr) const {
+    delete ptr;
 }
+
+InputHandler::InputHandler(const dxgl::Window& window) : m_pimpl(new Pimpl(window)) { }
 
 InputHandler::~InputHandler() = default;
 

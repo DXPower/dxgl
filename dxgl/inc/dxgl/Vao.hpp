@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <vector>
+#include <cstdint>
 
 namespace dxgl {
     class Vao : public Handle<Vao, Usable::Yes> {

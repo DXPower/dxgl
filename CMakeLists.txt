@@ -14,6 +14,8 @@ if(NOT Boost_FOUND)
   message(FATAL_ERROR "Boost not found")
 endif()
 
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install/$<0:>)
+
 add_subdirectory(${CMAKE_SOURCE_DIR}/dxgl)
 # add_subdirectory(${CMAKE_SOURCE_DIR}/demo)
 add_subdirectory(${CMAKE_SOURCE_DIR}/containsim)

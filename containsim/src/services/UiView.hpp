@@ -22,7 +22,10 @@ namespace ultralight {
 namespace services {
     class UiView : public IMouseTester, public IActionReceiver {
         class Pimpl;
-        std::unique_ptr<Pimpl> m_pimpl{};
+        struct PimplDeleter {
+            void operator()(Pimpl* ptr) const;
+        };
+        std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
     public:
         UiView(const dxgl::Window& window, const ultralight::RefPtr<ultralight::View>& view);

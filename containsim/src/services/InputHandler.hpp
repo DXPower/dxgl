@@ -11,9 +11,9 @@ namespace services {
     class InputHandler {
         class Pimpl;
         struct PimplDeleter {
-            void operator()(Pimpl* ptr);
+            void operator()(Pimpl* ptr) const;
         };
-        std::unique_ptr<Pimpl> m_pimpl{};
+        std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
     public:
         InputHandler(const dxgl::Window& window);

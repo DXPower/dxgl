@@ -4,3 +4,4 @@ dep/
 .vscode/
 
 inspector
+*.code-workspace

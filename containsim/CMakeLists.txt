@@ -34,16 +34,30 @@ target_sources(containsim PRIVATE
 )
 
 add_custom_target(copy-shaders-cs
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/shaders
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders
 	DEPENDS containsim
 )
 
 add_custom_target(copy-res-cs
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_BINARY_DIR}/res
-	DEPENDS containsim
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/res
 )
 
 add_custom_target(copy-game-ui-cs
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res/ui/game ${CMAKE_CURRENT_BINARY_DIR}/res/ui/game
-	DEPENDS containsim
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/res/ui/game ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/res/ui/game
 )
+
+get_target_property(ULTRALIGHT_INSPECTOR_PATH Ultralight INSPECTOR_PATH)
+add_custom_target(copy-inspector-ui-cs
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${ULTRALIGHT_INSPECTOR_PATH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/res/ui/inspector
+)
+
+add_custom_command(TARGET containsim POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:Ultralight> $<TARGET_FILE:UltralightCore> $<TARGET_FILE:WebCore> $<TARGET_FILE:AppCore> 
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
+
+
+add_custom_target(debug-generators
+  COMMAND ${CMAKE_COMMAND} -E echo 
+  "target dir = $<TARGET_FILE_DIR:containsim>; bin dir = ${CMAKE_CURRENT_BINARY_DIR} ")
