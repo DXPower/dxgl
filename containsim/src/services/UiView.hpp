@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/Action.hpp>
+#include <services/UiCallback.hpp>
 #include <services/interfaces/IMouseTester.hpp>
 #include <services/interfaces/IActionReceiver.hpp>
 
@@ -41,6 +42,9 @@ namespace services {
         void LoadUrl(dxtl::cstring_view path);
 
         void Resize(glm::ivec2 size);
+
+        void RegisterCallback(std::string_view js_name, UiCallback&& callback);
+        void UnregisterCallback(std::string_view js_name);
 
         ultralight::RefPtr<ultralight::View> GetView();
     };
