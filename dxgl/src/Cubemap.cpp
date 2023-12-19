@@ -22,7 +22,7 @@ void Cubemap::Load(std::span<const TextureSource, 6> faces) {
 
         auto [w, h] = source.GetDims();
 
-        int gl_format;
+        int gl_format{};
         switch (source.GetFormat()) {
             using enum TextureFormat;
             case R: gl_format = GL_RED; break;
@@ -35,7 +35,7 @@ void Cubemap::Load(std::span<const TextureSource, 6> faces) {
         }
 
         glTexImage2D(
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
+            (GLenum) (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i), 
             0, GL_RGB, w, h, 0,
             gl_format, GL_UNSIGNED_BYTE, source.GetData()
         );

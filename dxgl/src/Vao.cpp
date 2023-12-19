@@ -115,7 +115,7 @@ VaoAttribBuilder& VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
                         attrib.components,
                         GetAttribTypeGlEnum(attrib.type),
                         GL_FALSE,
-                        stride,
+                        (GLsizei) stride,
                         (void*) cur_offset
                     );
                     break;
@@ -124,7 +124,7 @@ VaoAttribBuilder& VaoAttribBuilder::Apply(VaoRef vao, VboView vbo_for_all) {
                         cur_loc,
                         attrib.components,
                         GetAttribTypeGlEnum(attrib.type),
-                        stride,
+                        (GLsizei) stride,
                         (void*) cur_offset
                     );
             }

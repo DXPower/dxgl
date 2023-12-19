@@ -6,10 +6,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/tiny_obj_loader)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dxtl)
 
 add_library(dxgl)
-target_include_directories(dxgl PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc
-	${Boost_INCLUDE_DIRS}
-)
+target_include_directories(dxgl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_include_directories(dxgl SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+
 
 target_link_libraries(dxgl 
     PUBLIC 

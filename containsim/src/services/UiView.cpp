@@ -174,14 +174,14 @@ void UiView::PushAction(Action&& action) {
             if (evt.type == ultralight::KeyEvent::kType_RawKeyDown &&
                 (a.key == GLFW_KEY_ENTER || a.key == GLFW_KEY_TAB)) {
                 // We have to synthesize the Char Event for these keys.
-                ultralight::KeyEvent evt;
-                evt.type = ultralight::KeyEvent::kType_Char;
-                evt.text = a.key == GLFW_KEY_ENTER 
+                ultralight::KeyEvent synth_evt;
+                synth_evt.type = ultralight::KeyEvent::kType_Char;
+                synth_evt.text = a.key == GLFW_KEY_ENTER 
                     ? ultralight::String("\r") 
                     : ultralight::String("\t");
-                evt.unmodified_text = evt.text;
+                synth_evt.unmodified_text = synth_evt.text;
 
-                m_pimpl->view->FireKeyEvent(evt);
+                m_pimpl->view->FireKeyEvent(synth_evt);
             }
         },
         [this](const TextInput& a) {

@@ -147,7 +147,7 @@ public:
         draw.program = program;
         draw.prim_type = dxgl::PrimType::TriangleFan;
         draw.num_indices = 4;
-        draw.num_instances = instances.size();
+        draw.num_instances = (uint32_t) instances.size();
         draw.vao_storage.emplace();
         draw.vbo_storage.emplace_back().Upload(instances, dxgl::BufferUsage::Static);
         draw.textures.push_back(spritesheet);
