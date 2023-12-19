@@ -21,8 +21,13 @@ namespace ultralight {
 }
 
 namespace services {
+    namespace detail {
+        class UiViewPimpl;
+    }
+
     class UiView : public IMouseTester, public IActionReceiver {
-        class Pimpl;
+        using Pimpl = detail::UiViewPimpl;
+
         struct PimplDeleter {
             void operator()(Pimpl* ptr) const;
         };
