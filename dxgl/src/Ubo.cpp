@@ -38,13 +38,13 @@ UboBindingManager::UboBindingManager() {
 
 void UboBindingManager::BindUboLocation(std::size_t i, UboRef ubo) {
     bindings.at(i) = ubo;
-    glBindBufferBase(GL_UNIFORM_BUFFER, i, ubo->GetHandle());
+    glBindBufferBase(GL_UNIFORM_BUFFER, (GLuint) i, ubo->GetHandle());
 }
 
 void UboBindingManager::BindUniformLocation(std::size_t i, ProgramRef program, dxtl::cstring_view uniform_name) const {
     assert(i < bindings.size());
     auto uniform_idx = glGetUniformBlockIndex(program->GetHandle(), uniform_name.c_str());
-    glUniformBlockBinding(program->GetHandle(), uniform_idx, i);
+    glUniformBlockBinding(program->GetHandle(), uniform_idx, (GLuint) i);
 }
 
 UboView UboBindingManager::GetUbo(std::size_t i) const {

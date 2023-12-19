@@ -30,9 +30,9 @@
       },
       {
         "name": "msvc",
-        "displayName": "Default Debug Config MSVC",
-        "description": "Default build using MSVC",
-        "architecture": "x64",
+        "displayName": "Default Debug Config MSVC+Ninja",
+        "description": "Default build using Ninja generator",
+        "generator": "Ninja",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
             "CMAKE_CXX_COMPILER": "cl",
@@ -40,7 +40,6 @@
             "CMAKE_CXX_STANDARD": "23",
             "CMAKE_CXX_EXTENSIONS": "OFF",
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
-            "CMAKE_GENERATOR_PLATFORM": "x64",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
             "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84"
         },

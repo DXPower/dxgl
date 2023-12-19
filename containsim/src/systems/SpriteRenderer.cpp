@@ -119,7 +119,7 @@ void SpriteRenderer::OnStore() {
 
         draw.vao_storage.emplace();
         draw.vbo_storage.emplace_back().Upload(instance_data.instance_data_buffer, BufferUsage::Static);
-        draw.num_instances = instance_data.instance_data_buffer.size();
+        draw.num_instances = (uint32_t) instance_data.instance_data_buffer.size();
         // TODO: sort sprites by texture
         draw.textures.push_back(instance_data.instance_data_misc.front().spritesheet);
 

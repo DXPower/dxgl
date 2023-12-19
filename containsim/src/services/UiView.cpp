@@ -8,14 +8,33 @@
 #include <dxtl/overloaded.hpp>
 
 #include <array>
+#include <bit>
+#include <functional>
 #include <iostream>
+#include <unordered_map>
+#include <ranges>
+#include <vector>
+
 #include <glfw/glfw3.h>
 #include <Ultralight/Ultralight.h>
 #include <Ultralight/Listener.h>
+#include <Ultralight/JavaScript.h>
 #include <AppCore/Platform.h>
+#include <AppCore/JSHelpers.h>
 
 using namespace services;
 using namespace ultralight;
+
+constexpr dxtl::cstring_view js_storage_property_name = "UIVIEW_JS_CTX_STORAGE_ADDRESS";
+
+extern "C" static JSValueRef OnUiCallback(
+    JSContextRef ctx,
+    JSObjectRef function,
+    JSObjectRef this_object,
+    std::size_t argument_count,
+    const JSValueRef arguments[],
+    JSValueRef* exception
+);
 
 namespace {
     int GLFWModsToUltralightMods(int mods);
@@ -27,9 +46,7 @@ namespace {
     };
 
     std::optional<DrawData> draw_data{};
-}
 
-namespace {
     struct VertexData {
         glm::vec2 local_pos{};
         glm::vec2 tex_pos{};
@@ -42,9 +59,78 @@ namespace {
         VertexData{{ 1,  1},  {1, 0}},
         VertexData{{-1,  1},  {0, 0}} 
     };
+
+    class JsContextStorage {
+        services::detail::UiViewPimpl* m_pimpl{};
+        JSContextRef m_context{};
+        std::unordered_map<std::string, UiCallback> m_ui_callbacks{};
+
+    public:
+        JsContextStorage(services::detail::UiViewPimpl& pimpl, JSContextRef context) : m_pimpl(&pimpl), m_context(context) {
+            // Store a pointer to the UiViewPimpl in the window as a property
+            JSObjectRef window = JSContextGetGlobalObject(context);
+            JSString property_name(js_storage_property_name.c_str());
+
+            // But only if it doesn't already have that property
+            if (not JSObjectHasProperty(context, window, property_name)) {
+                // We need to store it as a double in JS because JS doesn't have ints (facepalm)
+                // Transmute the bits from integral<->double
+                JSValueRef pimpl_addr = JSValueMakeNumber(context, std::bit_cast<double>(this));
+                JSObjectSetProperty(context, window, property_name, pimpl_addr, kJSPropertyAttributeReadOnly, nullptr);
+            }
+        }
+
+        JsContextStorage(const JsContextStorage& copy) = delete;
+
+        ~JsContextStorage() {
+            // Delete the registered functions associated with the ui_callbacks
+            for (const auto& func_name : m_ui_callbacks | std::views::elements<0>) {
+                DeleteFunction(func_name);
+            }
+        }
+
+        // Makes a free function that is stored in the context's global object (window)
+        JSObjectRef MakeFunction(dxtl::cstring_view js_name, UiCallback&& callback) {
+            m_ui_callbacks.emplace(js_name, std::move(callback));
+
+            JSString name(js_name.c_str());
+            JSObjectRef func = JSObjectMakeFunctionWithCallback(m_context, name, OnUiCallback);
+
+            JSObjectSetProperty(m_context, GetWindow(), name, func, 0, nullptr);
+
+            return func;
+        }
+
+        void InvokeCallback(std::string_view name, std::span<std::any> args) {
+            assert(m_ui_callbacks.contains(std::string(name)));
+
+            m_ui_callbacks[std::string(name)].callback(args);
+        }
+
+        void DeleteFunction(dxtl::cstring_view js_name) {
+            m_ui_callbacks.erase(js_name);
+
+            JSString name(js_name.c_str());
+            JSObjectDeleteProperty(m_context, GetWindow(), name, nullptr);
+        }
+
+        JSObjectRef GetWindow() {
+            return JSContextGetGlobalObject(m_context);
+        }
+
+        const services::detail::UiViewPimpl& GetUiViewPimpl() const {
+            return *m_pimpl;
+        }
+    };
+
+    struct JSContextHasher {
+        std::size_t operator()(JSContextRef obj) const {
+            return std::hash<JSContextRef>{}(obj);
+        }
+    };
 }
 
-class UiView::Pimpl : public ViewListener, LoadListener {
+class services::detail::UiViewPimpl : public ViewListener, LoadListener {
 public:
     const dxgl::Window* window{};
 
@@ -58,8 +144,10 @@ public:
     dxgl::Texture ui_texture{};
     dxgl::Vao ui_vao{};
     dxgl::Draw ui_draw{};
-    
-    Pimpl(const dxgl::Window& window, const RefPtr<View>& view) {
+
+    JsContextStorage js_context{};
+
+    UiViewPimpl(const dxgl::Window& window, const RefPtr<View>& view) {
         this->window = &window;
         this->view = view;
 
@@ -129,6 +217,32 @@ public:
     }
 };
 
+extern "C" static JSValueRef OnUiCallback(
+    JSContextRef context,
+    JSObjectRef function,
+    JSObjectRef this_object [[maybe_unused]],
+    std::size_t argument_count,
+    const JSValueRef arguments[],
+    JSValueRef* exception
+) {
+    std::cout << "Got this call from the UI!\n";
+
+    JSValueRef name_val = JSObjectGetProperty(context, function, JSString("name"), exception);
+    JSString name_str = JSValueToStringCopy(context, name_val, exception);
+
+
+    std::size_t buffer_size = JSStringGetMaximumUTF8CStringSize(name_str);
+    auto str_buffer = std::make_unique<char[]>(buffer_size);
+    JSStringGetUTF8CString(name_str, str_buffer.get(), buffer_size);
+
+    std::cout << "Function name: " << str_buffer.get();
+
+
+    js_context.InvokeCallback(str_buffer.get(), {});
+
+    return JSValueMakeNull(context);
+}
+
 void UiView::PimplDeleter::operator()(Pimpl* ptr) const {
     delete ptr;
 }
@@ -174,14 +288,14 @@ void UiView::PushAction(Action&& action) {
             if (evt.type == ultralight::KeyEvent::kType_RawKeyDown &&
                 (a.key == GLFW_KEY_ENTER || a.key == GLFW_KEY_TAB)) {
                 // We have to synthesize the Char Event for these keys.
-                ultralight::KeyEvent evt;
-                evt.type = ultralight::KeyEvent::kType_Char;
-                evt.text = a.key == GLFW_KEY_ENTER 
+                ultralight::KeyEvent synth_evt;
+                synth_evt.type = ultralight::KeyEvent::kType_Char;
+                synth_evt.text = a.key == GLFW_KEY_ENTER 
                     ? ultralight::String("\r") 
                     : ultralight::String("\t");
-                evt.unmodified_text = evt.text;
+                synth_evt.unmodified_text = synth_evt.text;
 
-                m_pimpl->view->FireKeyEvent(evt);
+                m_pimpl->view->FireKeyEvent(synth_evt);
             }
         },
         [this](const TextInput& a) {
@@ -282,6 +396,25 @@ void UiView::LoadUrl(dxtl::cstring_view path) {
 
 void UiView::Resize(glm::ivec2 size) {
     m_pimpl->requested_resize = size;
+}
+
+void UiView::RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback [[maybe_unused]]) {
+    auto scoped_context = m_pimpl->view->LockJSContext();
+
+    JSContextRef context = *scoped_context;
+    
+    auto& contexts = Pimpl::js_contexts;
+    auto cit = contexts.find(context);
+
+    if (cit == contexts.end()) {
+        cit = contexts.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(context),
+            std::forward_as_tuple(*m_pimpl, context)
+        ).first;
+    }
+
+    cit->second.MakeFunction(js_name, std::move(callback));
 }
 
 RefPtr<View> UiView::GetView() {
