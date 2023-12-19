@@ -43,7 +43,7 @@ namespace services {
 
         void Resize(glm::ivec2 size);
 
-        void RegisterCallback(std::string_view js_name, UiCallback&& callback);
+        void RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback);
         void UnregisterCallback(std::string_view js_name);
 
         ultralight::RefPtr<ultralight::View> GetView();

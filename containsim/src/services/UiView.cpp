@@ -8,11 +8,17 @@
 #include <dxtl/overloaded.hpp>
 
 #include <array>
+#include <functional>
 #include <iostream>
+#include <unordered_map>
+#include <vector>
+
 #include <glfw/glfw3.h>
 #include <Ultralight/Ultralight.h>
 #include <Ultralight/Listener.h>
+#include <Ultralight/JavaScript.h>
 #include <AppCore/Platform.h>
+#include <AppCore/JSHelpers.h>
 
 using namespace services;
 using namespace ultralight;
@@ -27,9 +33,7 @@ namespace {
     };
 
     std::optional<DrawData> draw_data{};
-}
 
-namespace {
     struct VertexData {
         glm::vec2 local_pos{};
         glm::vec2 tex_pos{};
@@ -59,6 +63,19 @@ public:
     dxgl::Vao ui_vao{};
     dxgl::Draw ui_draw{};
     
+    // struct CallbackStorage {
+    //     Pimpl* pimpl{};
+    //     UiCallback callback{};
+    // };
+
+    // struct JSObjectHasher {
+    //     std::size_t operator()(const JSObject& obj) const {
+    //         return std::hash<JSObjectRef>{}(obj);
+    //     }
+    // };
+
+    // inline static std::unordered_map<JSObject, CallbackStorage, JSObjectHasher> ui_callbacks{};
+
     Pimpl(const dxgl::Window& window, const RefPtr<View>& view) {
         this->window = &window;
         this->view = view;
@@ -69,6 +86,12 @@ public:
         view->set_load_listener(this);
 
         InitDraw();
+    }
+
+    ~Pimpl() {
+        // std::erase_if(ui_callbacks, [=](const auto& kv) {
+        //     return kv.second.pimpl == this;
+        // });
     }
 
     void InitDraw() {
@@ -282,6 +305,30 @@ void UiView::LoadUrl(dxtl::cstring_view path) {
 
 void UiView::Resize(glm::ivec2 size) {
     m_pimpl->requested_resize = size;
+}
+
+extern "C" static JSValueRef OnUiCallback(
+    JSContextRef ctx,
+    JSObjectRef function,
+    JSObjectRef this_object,
+    std::size_t argument_count,
+    const JSValueRef arguments[],
+    JSValueRef* exception
+) {
+    std::cout << "Got this call from the UI!\n";
+    return JSValueMakeNull(ctx);
+}
+
+void UiView::RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback [[maybe_unused]]) {
+    auto scoped_context = m_pimpl->view->LockJSContext();
+
+    JSContextRef ctx = *scoped_context;
+
+    JSString name(js_name.c_str());
+    JSObjectRef func = JSObjectMakeFunctionWithCallback(ctx, name, OnUiCallback);
+
+    JSObjectRef window = JSContextGetGlobalObject(ctx);
+    JSObjectSetProperty(ctx, window, name, func, 0, nullptr);
 }
 
 RefPtr<View> UiView::GetView() {
