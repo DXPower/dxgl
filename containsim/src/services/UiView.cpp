@@ -67,7 +67,7 @@ namespace {
 
     public:
         JsContextStorage(services::detail::UiViewPimpl& pimpl, JSContextRef context) : m_pimpl(&pimpl), m_context(context) {
-            // Store a pointer to the UiViewPimpl in the window as a property
+            // Store a pointer to the JsContextStorage in the window as a property
             JSObjectRef window = JSContextGetGlobalObject(context);
             JSString property_name(js_storage_property_name.c_str());
 

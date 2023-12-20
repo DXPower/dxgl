@@ -98,9 +98,9 @@ int main() {
 
         glViewport(0, 0, initial_screen_size.x, initial_screen_size.y);
 
-        Window debug_window("Containment Simulator Debug", {500, 500}, &main_window);
+        Window debug_window("Containment Simulator Debug", {800, 800}, &main_window);
         debug_window.MakeCurrent();
-        glViewport(0, 0, 500, 500);
+        glViewport(0, 0, 800, 800);
 
         main_window.MakeCurrent();
 
