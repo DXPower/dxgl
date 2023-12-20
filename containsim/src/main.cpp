@@ -215,7 +215,13 @@ int main() {
             input_router.PushAction(std::move(action));
         });
 
-        ui_container.GetMainView().RegisterCallback("OutputCommand", {});
+        ui_container.GetMainView()
+            .RegisterCallback(
+                "OutputCommand",
+                services::MakeUiCallback<>([x = 0]() mutable {
+                    std::cout << "Got OutputCommand " << x++ << std::endl;
+                })
+            );
 
         while (!main_window.ShouldClose() && !debug_window.ShouldClose()) {
             main_screen_buffer.Use();

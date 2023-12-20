@@ -25,14 +25,12 @@
 using namespace services;
 using namespace ultralight;
 
-constexpr dxtl::cstring_view js_storage_property_name = "UIVIEW_JS_CTX_STORAGE_ADDRESS";
-
-extern "C" static JSValueRef OnUiCallback(
-    JSContextRef ctx,
+extern "C" JSValueRef OnUiCallback(
+    JSContextRef context,
     JSObjectRef function,
-    JSObjectRef this_object,
-    std::size_t argument_count,
-    const JSValueRef arguments[],
+    JSObjectRef this_object [[maybe_unused]],
+    std::size_t argument_count [[maybe_unused]],
+    const JSValueRef arguments [[maybe_unused]][],
     JSValueRef* exception
 );
 
@@ -59,6 +57,8 @@ namespace {
         VertexData{{ 1,  1},  {1, 0}},
         VertexData{{-1,  1},  {0, 0}} 
     };
+    
+    constexpr dxtl::cstring_view js_storage_property_name = "UIVIEW_JS_CTX_STORAGE_ADDRESS";
 
     class JsContextStorage {
         services::detail::UiViewPimpl* m_pimpl{};
@@ -85,7 +85,8 @@ namespace {
         ~JsContextStorage() {
             // Delete the registered functions associated with the ui_callbacks
             for (const auto& func_name : m_ui_callbacks | std::views::elements<0>) {
-                DeleteFunction(func_name);
+                JSString js_name(func_name.c_str());
+                JSObjectDeleteProperty(m_context, GetWindow(), js_name, nullptr);
             }
         }
 
@@ -108,9 +109,9 @@ namespace {
         }
 
         void DeleteFunction(dxtl::cstring_view js_name) {
+            JSString name(js_name.c_str());
             m_ui_callbacks.erase(js_name);
 
-            JSString name(js_name.c_str());
             JSObjectDeleteProperty(m_context, GetWindow(), name, nullptr);
         }
 
@@ -130,6 +131,35 @@ namespace {
     };
 }
 
+extern "C" JSValueRef OnUiCallback(
+    JSContextRef context,
+    JSObjectRef function,
+    JSObjectRef this_object [[maybe_unused]],
+    std::size_t argument_count [[maybe_unused]],
+    const JSValueRef arguments [[maybe_unused]][],
+    JSValueRef* exception
+) {
+    // Get the function name that was called from JS
+    JSValueRef name_val = JSObjectGetProperty(context, function, JSString("name"), exception);
+    JSString name_str = JSValueToStringCopy(context, name_val, exception);
+
+    std::size_t buffer_size = JSStringGetMaximumUTF8CStringSize(name_str);
+    auto str_buffer = std::make_unique<char[]>(buffer_size);
+    JSStringGetUTF8CString(name_str, str_buffer.get(), buffer_size);
+
+    // Get the pointer to the JsContextStorage from the window object
+    JSObjectRef window = JSContextGetGlobalObject(context);
+    JSString property_name(js_storage_property_name.c_str());
+    JSValueRef js_context_ptr_val = JSObjectGetProperty(context, window, property_name, exception);
+    double js_context_ptr_dbl = JSValueToNumber(context, js_context_ptr_val, exception);
+
+    auto& js_context = *std::bit_cast<JsContextStorage*>(js_context_ptr_dbl);
+    js_context.InvokeCallback(str_buffer.get(), {});
+
+    return JSValueMakeNull(context);
+}
+
+
 class services::detail::UiViewPimpl : public ViewListener, LoadListener {
 public:
     const dxgl::Window* window{};
@@ -145,7 +175,7 @@ public:
     dxgl::Vao ui_vao{};
     dxgl::Draw ui_draw{};
 
-    JsContextStorage js_context{};
+    std::unique_ptr<JsContextStorage> js_context{};
 
     UiViewPimpl(const dxgl::Window& window, const RefPtr<View>& view) {
         this->window = &window;
@@ -155,6 +185,10 @@ public:
         bitmap = bitmap_surface->bitmap();
 
         view->set_load_listener(this);
+
+        auto scoped_context = view->LockJSContext();
+        JSContextRef context = *scoped_context;
+        js_context = std::make_unique<JsContextStorage>(*this, context);
 
         InitDraw();
     }
@@ -216,32 +250,6 @@ public:
         std::cout << "Finished loading of " << url.utf8().data() << std::endl;
     }
 };
-
-extern "C" static JSValueRef OnUiCallback(
-    JSContextRef context,
-    JSObjectRef function,
-    JSObjectRef this_object [[maybe_unused]],
-    std::size_t argument_count,
-    const JSValueRef arguments[],
-    JSValueRef* exception
-) {
-    std::cout << "Got this call from the UI!\n";
-
-    JSValueRef name_val = JSObjectGetProperty(context, function, JSString("name"), exception);
-    JSString name_str = JSValueToStringCopy(context, name_val, exception);
-
-
-    std::size_t buffer_size = JSStringGetMaximumUTF8CStringSize(name_str);
-    auto str_buffer = std::make_unique<char[]>(buffer_size);
-    JSStringGetUTF8CString(name_str, str_buffer.get(), buffer_size);
-
-    std::cout << "Function name: " << str_buffer.get();
-
-
-    js_context.InvokeCallback(str_buffer.get(), {});
-
-    return JSValueMakeNull(context);
-}
 
 void UiView::PimplDeleter::operator()(Pimpl* ptr) const {
     delete ptr;
@@ -401,20 +409,7 @@ void UiView::Resize(glm::ivec2 size) {
 void UiView::RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback [[maybe_unused]]) {
     auto scoped_context = m_pimpl->view->LockJSContext();
 
-    JSContextRef context = *scoped_context;
-    
-    auto& contexts = Pimpl::js_contexts;
-    auto cit = contexts.find(context);
-
-    if (cit == contexts.end()) {
-        cit = contexts.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(context),
-            std::forward_as_tuple(*m_pimpl, context)
-        ).first;
-    }
-
-    cit->second.MakeFunction(js_name, std::move(callback));
+    m_pimpl->js_context->MakeFunction(js_name, std::move(callback));
 }
 
 RefPtr<View> UiView::GetView() {
