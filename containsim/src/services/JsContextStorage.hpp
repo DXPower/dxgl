@@ -30,6 +30,6 @@ namespace services {
         ultralight::RefPtr<ultralight::JSContext> LockAndSetJsContext();
         
     private:
-        void HandleUiCallback(std::string js_name, const ultralight::JSObject& this_obj, const ultralight::JSArgs& args);
+        void HandleUiCallback(std::string js_name, const ultralight::JSObject& this_obj, const ultralight::JSArgs& js_args);
     };
 }

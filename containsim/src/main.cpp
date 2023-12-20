@@ -218,8 +218,9 @@ int main() {
         ui_container.GetMainView()
             .RegisterCallback(
                 "OutputCommand",
-                services::MakeUiCallback<>([x = 0]() mutable {
+                services::MakeUiCallback<std::string>([x = 0](std::string data) mutable {
                     std::cout << "Got OutputCommand " << x++ << std::endl;
+                    std::cout << "Data: " << data << "\n=====" << std::endl;
                 })
             );
 

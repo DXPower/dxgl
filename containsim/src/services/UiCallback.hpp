@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <stdexcept>
 #include <functional>
 #include <span>
 #include <string>
@@ -16,7 +17,21 @@ namespace services {
 
     struct UiCallback {
         std::function<void(std::span<UiCallbackArg>)> callback{};
+
+        struct ArityMismatchError : std::runtime_error {
+            std::size_t expected{};
+            std::size_t actual{};
+
+            ArityMismatchError(std::size_t expected, std::size_t actual);
+        };
+
+        struct ArgTypeMismatchError : std::runtime_error {
+            std::size_t arg_index{};
+
+            ArgTypeMismatchError(std::size_t arg_index);
+        };
     };
+
 
     template<typename... Args>
     UiCallback MakeUiCallback(auto&& func) {
@@ -27,11 +42,26 @@ namespace services {
             // type erased arguments from the UI. It converts them to the
             // passed-in callback's arguments' types, and then moves it from
             // the input span to the passed-in callback.
+
+            // Because we store the func as a capture, we need to mark ourselves as mutable in-case the
+            // stored function is
             .callback = [func = std::forward<decltype(func)>(func)](std::span<UiCallbackArg> input_args) mutable {
+                if (input_args.size() != sizeof...(Args)) {
+                    throw UiCallback::ArityMismatchError(sizeof...(Args), input_args.size());
+                }
+
                 std::tuple<Args...> extracted_args{};
 
-                mp::tuple_for_each(extracted_args, [&input_args, i = 0](auto&& arg) mutable {
-                    arg = std::move(std::get<decltype(arg)>(input_args[i++]));
+                mp::tuple_for_each(extracted_args, [&input_args, i = 0](auto&& output_arg) mutable {
+                    using OutputArgType = decltype(output_arg);
+                    auto& input_arg = input_args[i];
+
+                    if (!std::holds_alternative<OutputArgType>(input_arg)) {
+                        throw UiCallback::ArgTypeMismatchError(i);
+                    }
+
+                    output_arg = std::move(std::get<OutputArgType>(input_arg));
+                    i++;
                 });
 
                 std::apply(func, std::move(extracted_args));
