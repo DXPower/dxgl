@@ -21,12 +21,8 @@ namespace ultralight {
 }
 
 namespace services {
-    namespace detail {
-        class UiViewPimpl;
-    }
-
     class UiView : public IMouseTester, public IActionReceiver {
-        using Pimpl = detail::UiViewPimpl;
+        class Pimpl;
 
         struct PimplDeleter {
             void operator()(Pimpl* ptr) const;
@@ -49,7 +45,7 @@ namespace services {
         void Resize(glm::ivec2 size);
 
         void RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback);
-        void UnregisterCallback(std::string_view js_name);
+        void UnregisterCallback(dxtl::cstring_view js_name);
 
         ultralight::RefPtr<ultralight::View> GetView();
     };

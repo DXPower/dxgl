@@ -1,4 +1,5 @@
 #include <services/UiView.hpp>
+#include <services/JsContextStorage.hpp>
 #include <common/DrawQueues.hpp>
 #include <common/FileUtils.hpp>
 
@@ -25,15 +26,6 @@
 using namespace services;
 using namespace ultralight;
 
-extern "C" JSValueRef OnUiCallback(
-    JSContextRef context,
-    JSObjectRef function,
-    JSObjectRef this_object [[maybe_unused]],
-    std::size_t argument_count [[maybe_unused]],
-    const JSValueRef arguments [[maybe_unused]][],
-    JSValueRef* exception
-);
-
 namespace {
     int GLFWModsToUltralightMods(int mods);
     int GLFWKeyCodeToUltralightKeyCode(int key);
@@ -57,117 +49,20 @@ namespace {
         VertexData{{ 1,  1},  {1, 0}},
         VertexData{{-1,  1},  {0, 0}} 
     };
-    
-    constexpr dxtl::cstring_view js_storage_property_name = "UIVIEW_JS_CTX_STORAGE_ADDRESS";
-
-    class JsContextStorage {
-        services::detail::UiViewPimpl* m_pimpl{};
-        JSContextRef m_context{};
-        std::unordered_map<std::string, UiCallback> m_ui_callbacks{};
-
-    public:
-        JsContextStorage(services::detail::UiViewPimpl& pimpl, JSContextRef context) : m_pimpl(&pimpl), m_context(context) {
-            // Store a pointer to the JsContextStorage in the window as a property
-            JSObjectRef window = JSContextGetGlobalObject(context);
-            JSString property_name(js_storage_property_name.c_str());
-
-            // But only if it doesn't already have that property
-            if (not JSObjectHasProperty(context, window, property_name)) {
-                // We need to store it as a double in JS because JS doesn't have ints (facepalm)
-                // Transmute the bits from integral<->double
-                JSValueRef pimpl_addr = JSValueMakeNumber(context, std::bit_cast<double>(this));
-                JSObjectSetProperty(context, window, property_name, pimpl_addr, kJSPropertyAttributeReadOnly, nullptr);
-            }
-        }
-
-        JsContextStorage(const JsContextStorage& copy) = delete;
-
-        ~JsContextStorage() {
-            // Delete the registered functions associated with the ui_callbacks
-            for (const auto& func_name : m_ui_callbacks | std::views::elements<0>) {
-                JSString js_name(func_name.c_str());
-                JSObjectDeleteProperty(m_context, GetWindow(), js_name, nullptr);
-            }
-        }
-
-        // Makes a free function that is stored in the context's global object (window)
-        JSObjectRef MakeFunction(dxtl::cstring_view js_name, UiCallback&& callback) {
-            m_ui_callbacks.emplace(js_name, std::move(callback));
-
-            JSString name(js_name.c_str());
-            JSObjectRef func = JSObjectMakeFunctionWithCallback(m_context, name, OnUiCallback);
-
-            JSObjectSetProperty(m_context, GetWindow(), name, func, 0, nullptr);
-
-            return func;
-        }
-
-        void InvokeCallback(std::string_view name, std::span<std::any> args) {
-            assert(m_ui_callbacks.contains(std::string(name)));
-
-            m_ui_callbacks[std::string(name)].callback(args);
-        }
-
-        void DeleteFunction(dxtl::cstring_view js_name) {
-            JSString name(js_name.c_str());
-            m_ui_callbacks.erase(js_name);
-
-            JSObjectDeleteProperty(m_context, GetWindow(), name, nullptr);
-        }
-
-        JSObjectRef GetWindow() {
-            return JSContextGetGlobalObject(m_context);
-        }
-
-        const services::detail::UiViewPimpl& GetUiViewPimpl() const {
-            return *m_pimpl;
-        }
-    };
-
-    struct JSContextHasher {
-        std::size_t operator()(JSContextRef obj) const {
-            return std::hash<JSContextRef>{}(obj);
-        }
-    };
 }
 
-extern "C" JSValueRef OnUiCallback(
-    JSContextRef context,
-    JSObjectRef function,
-    JSObjectRef this_object [[maybe_unused]],
-    std::size_t argument_count [[maybe_unused]],
-    const JSValueRef arguments [[maybe_unused]][],
-    JSValueRef* exception
-) {
-    // Get the function name that was called from JS
-    JSValueRef name_val = JSObjectGetProperty(context, function, JSString("name"), exception);
-    JSString name_str = JSValueToStringCopy(context, name_val, exception);
-
-    std::size_t buffer_size = JSStringGetMaximumUTF8CStringSize(name_str);
-    auto str_buffer = std::make_unique<char[]>(buffer_size);
-    JSStringGetUTF8CString(name_str, str_buffer.get(), buffer_size);
-
-    // Get the pointer to the JsContextStorage from the window object
-    JSObjectRef window = JSContextGetGlobalObject(context);
-    JSString property_name(js_storage_property_name.c_str());
-    JSValueRef js_context_ptr_val = JSObjectGetProperty(context, window, property_name, exception);
-    double js_context_ptr_dbl = JSValueToNumber(context, js_context_ptr_val, exception);
-
-    auto& js_context = *std::bit_cast<JsContextStorage*>(js_context_ptr_dbl);
-    js_context.InvokeCallback(str_buffer.get(), {});
-
-    return JSValueMakeNull(context);
-}
-
-
-class services::detail::UiViewPimpl : public ViewListener, LoadListener {
+class UiView::Pimpl : public ViewListener, LoadListener {
 public:
+
     const dxgl::Window* window{};
 
     RefPtr<View> view{};
+    JsContextStorage js_context;
+
     RefPtr<Bitmap> bitmap{};
     BitmapSurface* bitmap_surface{};
     std::optional<glm::ivec2> requested_resize{};
+
 
     // TODO: Once rendering is on different thread, this needs to change
     // ui_texture needs to be owned in dxgl::Draw
@@ -175,9 +70,11 @@ public:
     dxgl::Vao ui_vao{};
     dxgl::Draw ui_draw{};
 
-    std::unique_ptr<JsContextStorage> js_context{};
-
-    UiViewPimpl(const dxgl::Window& window, const RefPtr<View>& view) {
+    Pimpl(const dxgl::Window& window, const RefPtr<View>& view) :
+        window(&window),
+        view(view),
+        js_context(view)
+    {
         this->window = &window;
         this->view = view;
 
@@ -185,10 +82,6 @@ public:
         bitmap = bitmap_surface->bitmap();
 
         view->set_load_listener(this);
-
-        auto scoped_context = view->LockJSContext();
-        JSContextRef context = *scoped_context;
-        js_context = std::make_unique<JsContextStorage>(*this, context);
 
         InitDraw();
     }
@@ -407,9 +300,11 @@ void UiView::Resize(glm::ivec2 size) {
 }
 
 void UiView::RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback [[maybe_unused]]) {
-    auto scoped_context = m_pimpl->view->LockJSContext();
+    m_pimpl->js_context.MakeFunction(js_name, std::move(callback));
+}
 
-    m_pimpl->js_context->MakeFunction(js_name, std::move(callback));
+void UiView::UnregisterCallback(dxtl::cstring_view js_name) {
+    m_pimpl->js_context.DeleteFunction(js_name);
 }
 
 RefPtr<View> UiView::GetView() {

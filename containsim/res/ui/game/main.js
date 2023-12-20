@@ -3,8 +3,6 @@ function HorizontalScroll(sensitivity, event) {
         return;
     }
 
-    console.log("Scroll!");
-
     event.currentTarget.scrollLeft += sensitivity * (-event.deltaY + event.deltaX);
     event.preventDefault();
 }
@@ -21,10 +19,7 @@ window.addEventListener("load", (event) => {
     console.log(hgrid_elements);
 
     Array.from(hgrid_elements).forEach((hgrid) => {
-        console.log(hgrid.outerHTML);
-
         let sensitivity = parseFloat(hgrid.dataset.scrollSensitivity);
-        console.log("Adding scroll event with sensitivity " + toString(sensitivity));
         hgrid.addEventListener("wheel", HorizontalScroll.bind(null, sensitivity));
 
         let items = hgrid.getElementsByClassName("item");
@@ -38,6 +33,5 @@ window.addEventListener("load", (event) => {
 });
 
 function SelectTile(element) {
-    console.log(element.outerHtml);
-    OutputCommand();
+    OutputCommand("test");
 }
