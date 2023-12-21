@@ -1,4 +1,5 @@
 #include <services/UiView.hpp>
+#include <services/Logging.hpp>
 #include <services/JsContextStorage.hpp>
 #include <common/DrawQueues.hpp>
 #include <common/FileUtils.hpp>
@@ -46,6 +47,7 @@ namespace {
 
 class UiView::Pimpl : public ViewListener, LoadListener {
 public:
+    logging::Logger logger;
 
     const dxgl::Window* window{};
 
@@ -64,6 +66,7 @@ public:
     dxgl::Draw ui_draw{};
 
     Pimpl(const dxgl::Window& window, const RefPtr<View>& view) :
+        logger(logging::CreateLogger("UiView")),
         window(&window),
         view(view),
         js_context(view)
@@ -121,19 +124,19 @@ public:
     }
 
     void OnBeginLoading(ultralight::View* caller [[maybe_unused]],
-                                uint64_t frame_id [[maybe_unused]],
-                                bool is_main_frame [[maybe_unused]],
-                                const String& url [[maybe_unused]]
+                        uint64_t frame_id [[maybe_unused]],
+                        bool is_main_frame [[maybe_unused]],
+                        const String& url [[maybe_unused]]
     ) override {
-        std::cout << "Begin loading of " << url.utf8().data() << std::endl;
+        logger.info("Begin loading of {}", url.utf8().data());
     }
     
     void OnFinishLoading(ultralight::View* caller [[maybe_unused]],
-                                uint64_t frame_id [[maybe_unused]],
-                                bool is_main_frame [[maybe_unused]],
-                                const String& url [[maybe_unused]]
+                         uint64_t frame_id [[maybe_unused]],
+                         bool is_main_frame [[maybe_unused]],
+                         const String& url [[maybe_unused]]
     ) override {
-        std::cout << "Finished loading of " << url.utf8().data() << std::endl;
+        logger.info("Finished loading of {}", url.utf8().data());
     }
 };
 

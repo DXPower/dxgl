@@ -19,6 +19,7 @@ JsContextStorage::~JsContextStorage() {
 }
 
 void JsContextStorage::MakeFunction(dxtl::cstring_view js_name, UiCallback&& callback) {
+    m_logger.info("Binding JS function {} to callback", js_name.c_str());
     m_ui_callbacks.emplace(js_name, std::move(callback));
 
     auto scoped_context = LockAndSetJsContext();
