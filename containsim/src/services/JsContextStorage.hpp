@@ -1,5 +1,6 @@
 #pragma once
 
+#include <services/Logging.hpp>
 #include <services/UiCallback.hpp>
 
 #include <dxtl/cstring_view.hpp>
@@ -14,6 +15,8 @@
 
 namespace services {
     class JsContextStorage {
+        spdlog::logger m_logger;
+
         ultralight::RefPtr<ultralight::View> m_view{};
         std::unordered_map<std::string, UiCallback> m_ui_callbacks{};
 

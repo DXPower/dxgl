@@ -23,6 +23,7 @@
 #include <services/UiContainer.hpp>
 #include <services/InputHandler.hpp>
 #include <services/ActionRouter.hpp>
+#include <services/Logging.hpp>
 
 #include <common/GlobalData.hpp>
 #include "Camera.hpp"
@@ -85,6 +86,9 @@ void Clear() {
 }
 
 int main() {
+    namespace logging = services::logging;
+    logging::SetCommonSink(logging::CreateConsoleSink());
+
     constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
     std::cout << "Hello, world" << std::endl;
     try {

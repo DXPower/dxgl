@@ -50,10 +50,10 @@ namespace services {
                     throw UiCallback::ArityMismatchError(sizeof...(Args), input_args.size());
                 }
 
-                std::tuple<Args...> extracted_args{};
+                std::tuple<std::remove_cvref_t<Args>...> extracted_args{};
 
                 mp::tuple_for_each(extracted_args, [&input_args, i = 0](auto&& output_arg) mutable {
-                    using OutputArgType = decltype(output_arg);
+                    using OutputArgType = std::remove_cvref_t<decltype(output_arg)>;
                     auto& input_arg = input_args[i];
 
                     if (!std::holds_alternative<OutputArgType>(input_arg)) {
