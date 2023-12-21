@@ -9,19 +9,12 @@
 #include <dxtl/overloaded.hpp>
 
 #include <array>
-#include <bit>
-#include <functional>
 #include <iostream>
-#include <unordered_map>
-#include <ranges>
-#include <vector>
 
 #include <glfw/glfw3.h>
 #include <Ultralight/Ultralight.h>
 #include <Ultralight/Listener.h>
-#include <Ultralight/JavaScript.h>
 #include <AppCore/Platform.h>
-#include <AppCore/JSHelpers.h>
 
 using namespace services;
 using namespace ultralight;
