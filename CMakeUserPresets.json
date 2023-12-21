@@ -41,7 +41,9 @@
             "CMAKE_CXX_EXTENSIONS": "OFF",
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
-            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84"
+            "COMPILE_DEFINITIONS": "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84",
+            "CMAKE_PREFIX_PATH": "C:\\Users\\myaka\\Documents\\GitHub\\CMakeModules"
         },
         "environment": {
             "CXX_WARNINGS": "/W4 /wd4458",

@@ -5,6 +5,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nlohmann_json)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/magic_enum)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/ultralight)
 
+find_package(spdlog REQUIRED)
+
 target_link_libraries(containsim PRIVATE 
     dxgl
     glad
@@ -12,11 +14,14 @@ target_link_libraries(containsim PRIVATE
     flecs::flecs_static
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum
+    spdlog::spdlog
     Ultralight
     UltralightCore
     WebCore
     AppCore
 )
+
+target_compile_definitions(containsim PRIVATE _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/common)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/modules)
