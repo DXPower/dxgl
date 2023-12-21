@@ -112,6 +112,10 @@ Window& Window::GetWindowFromGlfw(GLFWwindow* glfw_window) {
 }
 
 void Window::OnWindowResizeImpl(GLFWwindow* glfw_window, int width, int height) {
+    // Don't propogate size updates when area is 0
+    if (width == 0 || height == 0)
+        return;
+    
     glfwMakeContextCurrent(glfw_window);
     glViewport(0, 0, width, height);
     
