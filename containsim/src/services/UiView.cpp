@@ -1,4 +1,6 @@
 #include <services/UiView.hpp>
+#include <services/Logging.hpp>
+#include <services/JsContextStorage.hpp>
 #include <common/DrawQueues.hpp>
 #include <common/FileUtils.hpp>
 
@@ -9,6 +11,7 @@
 
 #include <array>
 #include <iostream>
+
 #include <glfw/glfw3.h>
 #include <Ultralight/Ultralight.h>
 #include <Ultralight/Listener.h>
@@ -27,9 +30,7 @@ namespace {
     };
 
     std::optional<DrawData> draw_data{};
-}
 
-namespace {
     struct VertexData {
         glm::vec2 local_pos{};
         glm::vec2 tex_pos{};
@@ -46,20 +47,30 @@ namespace {
 
 class UiView::Pimpl : public ViewListener, LoadListener {
 public:
+    logging::Logger logger;
+
     const dxgl::Window* window{};
 
     RefPtr<View> view{};
+    JsContextStorage js_context;
+
     RefPtr<Bitmap> bitmap{};
     BitmapSurface* bitmap_surface{};
     std::optional<glm::ivec2> requested_resize{};
+
 
     // TODO: Once rendering is on different thread, this needs to change
     // ui_texture needs to be owned in dxgl::Draw
     dxgl::Texture ui_texture{};
     dxgl::Vao ui_vao{};
     dxgl::Draw ui_draw{};
-    
-    Pimpl(const dxgl::Window& window, const RefPtr<View>& view) {
+
+    Pimpl(const dxgl::Window& window, const RefPtr<View>& view) :
+        logger(logging::CreateLogger("UiView")),
+        window(&window),
+        view(view),
+        js_context(view)
+    {
         this->window = &window;
         this->view = view;
 
@@ -113,19 +124,19 @@ public:
     }
 
     void OnBeginLoading(ultralight::View* caller [[maybe_unused]],
-                                uint64_t frame_id [[maybe_unused]],
-                                bool is_main_frame [[maybe_unused]],
-                                const String& url [[maybe_unused]]
+                        uint64_t frame_id [[maybe_unused]],
+                        bool is_main_frame [[maybe_unused]],
+                        const String& url [[maybe_unused]]
     ) override {
-        std::cout << "Begin loading of " << url.utf8().data() << std::endl;
+        logger.info("Begin loading of {}", url.utf8().data());
     }
     
     void OnFinishLoading(ultralight::View* caller [[maybe_unused]],
-                                uint64_t frame_id [[maybe_unused]],
-                                bool is_main_frame [[maybe_unused]],
-                                const String& url [[maybe_unused]]
+                         uint64_t frame_id [[maybe_unused]],
+                         bool is_main_frame [[maybe_unused]],
+                         const String& url [[maybe_unused]]
     ) override {
-        std::cout << "Finished loading of " << url.utf8().data() << std::endl;
+        logger.info("Finished loading of {}", url.utf8().data());
     }
 };
 
@@ -282,6 +293,14 @@ void UiView::LoadUrl(dxtl::cstring_view path) {
 
 void UiView::Resize(glm::ivec2 size) {
     m_pimpl->requested_resize = size;
+}
+
+void UiView::RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback [[maybe_unused]]) {
+    m_pimpl->js_context.MakeFunction(js_name, std::move(callback));
+}
+
+void UiView::UnregisterCallback(dxtl::cstring_view js_name) {
+    m_pimpl->js_context.DeleteFunction(js_name);
 }
 
 RefPtr<View> UiView::GetView() {

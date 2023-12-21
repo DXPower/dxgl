@@ -23,6 +23,7 @@
 #include <services/UiContainer.hpp>
 #include <services/InputHandler.hpp>
 #include <services/ActionRouter.hpp>
+#include <services/Logging.hpp>
 
 #include <common/GlobalData.hpp>
 #include "Camera.hpp"
@@ -85,6 +86,9 @@ void Clear() {
 }
 
 int main() {
+    namespace logging = services::logging;
+    logging::SetCommonSink(logging::CreateConsoleSink());
+
     constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
     std::cout << "Hello, world" << std::endl;
     try {
@@ -98,9 +102,9 @@ int main() {
 
         glViewport(0, 0, initial_screen_size.x, initial_screen_size.y);
 
-        Window debug_window("Containment Simulator Debug", {500, 500}, &main_window);
+        Window debug_window("Containment Simulator Debug", {800, 800}, &main_window);
         debug_window.MakeCurrent();
-        glViewport(0, 0, 500, 500);
+        glViewport(0, 0, 800, 800);
 
         main_window.MakeCurrent();
 
@@ -214,6 +218,15 @@ int main() {
         game_input.OnAction([&](Action&& action) {
             input_router.PushAction(std::move(action));
         });
+
+        ui_container.GetMainView()
+            .RegisterCallback(
+                "OutputCommand",
+                services::MakeUiCallback<std::string>([x = 0](std::string data) mutable {
+                    std::cout << "Got OutputCommand " << x++ << std::endl;
+                    std::cout << "Data: " << data << "\n=====" << std::endl;
+                })
+            );
 
         while (!main_window.ShouldClose() && !debug_window.ShouldClose()) {
             main_screen_buffer.Use();

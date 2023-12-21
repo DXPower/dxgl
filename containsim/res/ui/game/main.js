@@ -1,23 +1,37 @@
-function horizontalScroll(sensitivity, event) {
+function HorizontalScroll(sensitivity, event) {
     if (!event.deltaY) {
         return;
     }
-
-    console.log("Scroll!");
 
     event.currentTarget.scrollLeft += sensitivity * (-event.deltaY + event.deltaX);
     event.preventDefault();
 }
 
-window.onload = (event) => {
+function OnButtonClickCallFunc(func, event) {
+    func(event.target);
+    event.stopPropagation();
+}
+
+window.addEventListener("load", (event) => {
     console.log("Page is fully loaded!");
     
     let hgrid_elements = document.getElementsByClassName("hgrid");
+    console.log(hgrid_elements);
 
-    Array.from(hgrid_elements).forEach(function(element) {
+    Array.from(hgrid_elements).forEach((hgrid) => {
+        let sensitivity = parseFloat(hgrid.dataset.scrollSensitivity);
+        hgrid.addEventListener("wheel", HorizontalScroll.bind(null, sensitivity));
+
+        let items = hgrid.getElementsByClassName("item");
+        let itemSelectFunc = hgrid.dataset.itemSelectFunc;
         
-        let sensitivity = parseFloat(element.dataset.scrollSensitivity);
-        console.log("Adding scroll event with sensitivity " + toString(sensitivity));
-        element.addEventListener("wheel", horizontalScroll.bind(null, sensitivity));
+        Array.from(items).forEach((item) => {
+            item.addEventListener("click", OnButtonClickCallFunc.bind(null, window[itemSelectFunc]));
+        });
+
     });
+});
+
+function SelectTile(element) {
+    OutputCommand("test");
 }
