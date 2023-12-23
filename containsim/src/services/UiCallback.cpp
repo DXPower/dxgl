@@ -5,7 +5,7 @@
 using namespace services;
 
 UiCallback::ArityMismatchError::ArityMismatchError(std::size_t expected, std::size_t actual) 
-    : std::runtime_error(std::format("Wrong number of arguments gotten from UI callback. Got {} arguments; expected {}", expected, actual)),
+    : std::runtime_error(std::format("Wrong number of arguments gotten from UI callback. Got {} arguments; expected {}", actual, expected)),
       expected(expected),
       actual(actual)
 { }

@@ -1,7 +1,5 @@
-#include <modules/TileGrid.hpp>
-#include <common/GlobalData.hpp>
+#include <services/TileGridRenderer.hpp>
 #include <common/Rendering.hpp>
-#include <common/Tile.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
@@ -9,13 +7,11 @@
 #include <array>
 #include <fstream>
 #include <vector>
-#include <boost/multi_array.hpp>
-#include <glm/vec2.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <magic_enum_containers.hpp>
 #include <nlohmann/json.hpp>
 
-using namespace TileGrid;
+using namespace services;
 
 namespace {
     struct PerInstanceData {
@@ -42,12 +38,10 @@ namespace {
     };
 }
 
-class Module::Pimpl {
+class TileGridRenderer::Pimpl {
 public:
-    // Tile data
-    boost::multi_array<Tile, 2> tiles{};
+    const TileGrid* tiles{};
     magic_enum::containers::array<TileType, TileSpriteData> tile_sprites{};
-    glm::vec2 tile_world_size{};
 
     // Draw data
     mutable std::optional<dxgl::Draw> cached_draw{};
@@ -56,7 +50,10 @@ public:
     dxgl::Vbo quad_vbo{};
     dxgl::Texture spritesheet{};
 
-    Pimpl(const GlobalState& global_state) {
+    Pimpl(const TileGrid& tiles, dxgl::UboBindingManager& ubo_manager) {
+        this->tiles = &tiles;
+        tiles.tile_update_signal.connect<&Pimpl::OnTileUpdate>(this);
+        
         spritesheet = dxgl::LoadTextureFromFile("res/img/tiles.png");
         spritesheet.SetFilterMode(dxgl::FilterMode::Nearest);
         
@@ -67,7 +64,7 @@ public:
 
         dxgl::Uniform::Set(program, "spritesheet", 0);
         
-        global_state.ubo_manager.BindUniformLocation(
+        ubo_manager.BindUniformLocation(
             static_cast<std::size_t>(UboLocs::Camera), 
             program, 
             "camera"
@@ -76,7 +73,6 @@ public:
         quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
 
         LoadTileSpriteData();
-        (void) 0;
     }
 
     void LoadTileSpriteData() {
@@ -87,7 +83,13 @@ public:
             if (sheet_json["name"] == "tiles") {
                 for (const auto& sprite_json : sheet_json["sprites"]) {
                     auto name = sprite_json["name"].template get<std::string>();
-                    auto type = magic_enum::enum_cast<TileType>(name).value();
+                    TileType type{};
+                    
+                    if (auto casted = magic_enum::enum_cast<TileType>(name)) {
+                        type = casted.value();
+                    } else {
+                        throw std::runtime_error("Invalid TileType in JSON file: " + name);
+                    }
 
                     auto& sprite_data = tile_sprites[type];
                     
@@ -108,8 +110,10 @@ public:
     std::vector<PerInstanceData> BuildInstanceData() const {
         std::vector<PerInstanceData> instances{};
 
+        const auto tile_world_size = tiles->GetTileWorldSize();
+
         // Build the instanced sprite data for each tile
-        for (auto col : tiles) {
+        for (auto col : tiles->GetUnderlyingGrid()) {
             for (const Tile& tile : col) {
                 const glm::vec2 world_pos = (glm::vec2) tile.coord * tile_world_size;
 
@@ -180,46 +184,25 @@ public:
 
         return draw;
     }
+
+    void OnTileUpdate(const TileGrid&, TileCoord) {
+        cached_draw.reset();
+    }
 };
 
-void Module::PimplDeleter::operator()(Pimpl* p) const {
+void TileGridRenderer::PimplDeleter::operator()(Pimpl* p) const {
     delete p;
 }
 
-Module::Module(flecs::world& world) {
-    // world.module<Module>("TileGrid");
-    const auto& global_data = *world.get<GlobalData>();
-    const auto& config = *global_data.config;
-    const auto& global_state = *global_data.state;
+TileGridRenderer::TileGridRenderer(const TileGrid& tiles, dxgl::UboBindingManager& ubo_manager)
+    : m_pimpl(new Pimpl(tiles, ubo_manager))
+{ }
 
-    m_pimpl.reset(new Pimpl(global_state));
-    
-    m_pimpl->tile_world_size = config.tile_size;
+TileGridRenderer::TileGridRenderer(TileGridRenderer&& move) = default;
+TileGridRenderer::~TileGridRenderer() = default;
+TileGridRenderer& TileGridRenderer::operator=(TileGridRenderer&& move) = default;
 
-    auto& tiles = m_pimpl->tiles;
-    tiles.resize(boost::extents[config.map_size.x][config.map_size.y]);
-
-    for (int x = 0; (std::size_t) x < tiles.size(); x++) {
-        for (int y = 0; (std::size_t) y < tiles[x].size(); y++) {
-            auto& tile = tiles[x][y];
-
-            tile.coord = {x, y};
-        }
-    }
-}
-
-Module::Module(Module&& move) = default;
-Module::~Module() = default;
-Module& Module::operator=(Module&& move) = default;
-
-void Module::SetTile(const glm::ivec2& coord, const TileData& data) {
-    m_pimpl->tiles[coord.x][coord.y].data = data;
-
-    // Reset the cached draw when we change the tile data
-    m_pimpl->cached_draw.reset();
-}
-
-void Module::Render(DrawQueues& draws) const {
+void TileGridRenderer::Render(DrawQueues& draws) const {
     if (!m_pimpl->cached_draw.has_value())
         m_pimpl->cached_draw = m_pimpl->BuildDraw();
 

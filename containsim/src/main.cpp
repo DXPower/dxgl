@@ -1,5 +1,3 @@
-#include <Ultralight/Bitmap.h>
-#include <Ultralight/RefPtr.h>
 #include <common/GlobalConfig.hpp>
 #include <dxgl/Texture.hpp>
 #include <exception>
@@ -18,7 +16,8 @@
 #include <components/Transform.hpp>
 #include <systems/SpriteRenderer.hpp>
 
-#include <modules/TileGrid.hpp>
+#include <services/TileGrid.hpp>
+#include <services/TileGridRenderer.hpp>
 
 #include <services/UiContainer.hpp>
 #include <services/InputHandler.hpp>
@@ -28,8 +27,7 @@
 #include <common/GlobalData.hpp>
 #include "Camera.hpp"
 
-#include <Ultralight/Ultralight.h>
-#include <AppCore/Platform.h>
+#include <spdlog/spdlog.h>
 
 using namespace dxgl;
 
@@ -63,25 +61,9 @@ InputResults ProcessInput(GLFWwindow* window) {
 }
 
 bool cycle_tiles = false;
-bool update_html = false;
-
-void OnInput(GLFWwindow* window [[maybe_unused]], int key, int scancode [[maybe_unused]], int action, int mods [[maybe_unused]]) {
-    if (action == GLFW_PRESS) {
-        switch (key) {
-            case GLFW_KEY_E:
-                cycle_tiles = true;
-                break;
-            case GLFW_KEY_H:
-                update_html = true;
-                break;
-            default:
-                break;
-        }
-    }
-}
 
 void Clear() {
-    glClearColor(0.1f, 0.2f, 0.4f, 1.0f);
+    glClearColor(0.1f, 0.2f, 0.4f, 1.0f); // NOLINT
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
@@ -90,25 +72,23 @@ int main() {
     logging::SetCommonSink(logging::CreateConsoleSink());
 
     constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
-    std::cout << "Hello, world" << std::endl;
+    constexpr glm::ivec2 initial_debug_screen_size = { 800, 800 };
     try {
         Application::Init();
         Window main_window("Containment Simulator", initial_screen_size);
         main_window.MakeCurrent();
         
-        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+        if (gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0) { // NOLINT
             throw std::runtime_error("Failed to initialize GLAD");
         }
 
         glViewport(0, 0, initial_screen_size.x, initial_screen_size.y);
 
-        Window debug_window("Containment Simulator Debug", {800, 800}, &main_window);
+        Window debug_window("Containment Simulator Debug", initial_debug_screen_size, &main_window);
         debug_window.MakeCurrent();
-        glViewport(0, 0, 800, 800);
+        glViewport(0, 0, initial_debug_screen_size.x, initial_debug_screen_size.y);
 
         main_window.MakeCurrent();
-
-        glfwSetKeyCallback(main_window.GetGlfwWindow(), OnInput);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -147,8 +127,8 @@ int main() {
             .each(pre_store);
         
         GlobalConfig global_config{
-            .map_size = { 20, 10 },
-            .tile_size = {100, 100}
+            .map_size = { 20, 10 }, // NOLINT
+            .tile_size = {100, 100} // NOLINT
         };
 
         world.set(GlobalData{
@@ -157,17 +137,23 @@ int main() {
             .draw_queues = &draw_queues
         });
 
-        auto tg = world.import<TileGrid::Module>();
-        TileGrid::Module& tile_grid = *tg.get_mut<TileGrid::Module>();
+        services::TileGrid tile_grid(global_config);
+        services::TileGridRenderer tile_grid_renderer(tile_grid, global_state.ubo_manager);
+
+        auto logger = services::logging::CreateLogger("main");
+        logger.info("Hello, world!");
+        logger.set_level(spdlog::level::debug);
 
         auto SetTiles = [&, start = 0]() mutable {
+            logger.debug("start: {}", start);
+
             for (int x = 0; x < global_config.map_size.x; x++) {
                 for (int y = 0; y < global_config.map_size.y; y++) {
                     TileData data{};
                     data.type = static_cast<TileType>(start);
                     tile_grid.SetTile({x, y}, data);
-
-                    start = (start + 1) % magic_enum::enum_count<TileType>();
+                    
+                    start = (int) ((start + 1) % magic_enum::enum_count<TileType>());
                 }
             }
         };
@@ -197,15 +183,18 @@ int main() {
         });
 
         struct GameInput : services::IActionReceiver {
-            std::string name;
+            void PushAction(Action&& action) override {
+                if (std::holds_alternative<KeyPress>(action.data)) {
+                    const auto& key_press = std::get<KeyPress>(action.data);
 
-            void PushAction(Action&&) override {
-                // std::cout << "Got " << name << " input!\n";
+                    if (key_press.dir == ButtonDir::Down) {
+                        if (key_press.key == GLFW_KEY_E) {
+                            cycle_tiles = true;
+                        }
+                    }
+                }
             }
         } game_receiver, offscreen_receiver;
-
-        // game_receiver.name = "Game";
-        // ui_receiver.name = "UI";
 
         services::ActionRouter input_router(
             ui_container.GetMainView(), 
@@ -248,7 +237,7 @@ int main() {
                 cycle_tiles = false;
             }
 
-            tile_grid.Render(draw_queues);
+            tile_grid_renderer.Render(draw_queues);
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
@@ -256,11 +245,6 @@ int main() {
             main_screen_buffer.Render();
 
             // Update and render UI
-            if (update_html) {
-                ui_container.GetMainView().LoadHtml("file:///game/ingame.html");
-                update_html = false;
-            }
-
             ui_container.Update();
             ui_container.Render();
 

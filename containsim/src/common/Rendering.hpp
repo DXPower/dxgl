@@ -8,3 +8,7 @@ enum class RenderLayer {
     Particles,
     Ui
 };
+
+enum class UboLocs {
+    Camera = 0
+};

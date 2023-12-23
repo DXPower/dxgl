@@ -5,6 +5,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nlohmann_json)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/magic_enum)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/ultralight)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/cofsm)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nano)
 
 find_package(spdlog REQUIRED)
 
@@ -17,6 +18,7 @@ target_link_libraries(containsim PRIVATE
     magic_enum::magic_enum
     spdlog::spdlog
     cofsm
+    nano
     Ultralight
     UltralightCore
     WebCore

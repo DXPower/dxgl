@@ -21,6 +21,8 @@ Checks: '
     -cppcoreguidelines-owning-memory,
     -cppcoreguidelines-rvalue-reference-parameter-not-moved,
     -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+    -cppcoreguidelines-non-private-member-variables-in-classes,
+    -cppcoreguidelines-avoid-reference-coroutine-parameters,
   misc-*,
     -misc-non-private-member-variables-in-classes,
   modernize-*,
@@ -33,7 +35,8 @@ Checks: '
   readability-*,
     -readability-identifier-length,
     -readability-named-parameter,
-    -readability-else-after-return
+    -readability-else-after-return,
+    -readability-uppercase-literal-suffix
 '
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines

@@ -1,5 +1,7 @@
 #include "Camera.hpp"
 
+#include <common/Rendering.hpp>
+
 #include <dxgl/Application.hpp>
 #include <boost/describe/class.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -28,7 +30,7 @@ void Camera::MoveBy(glm::vec2 shift) {
 }
 
 void Camera::LookAt(glm::vec2 pos) {
-    SetPosition(pos - ((glm::vec2) viewport_size / 2.f));
+    SetPosition(pos - ((glm::vec2) viewport_size / 2.f)); // NOLINT
 }
 
 void Camera::SetPosition(glm::vec2 pos) {

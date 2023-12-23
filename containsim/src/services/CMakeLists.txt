@@ -4,6 +4,8 @@ target_sources(containsim PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/InputHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/JsContextStorage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TileGrid.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TileGridRenderer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UiCallback.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UiContainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UiView.cpp

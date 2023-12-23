@@ -10,9 +10,13 @@ enum class TileType {
 
 struct TileData {
     TileType type{};
+
+    constexpr bool operator==(const TileData& rhs) const = default;
 };
 
+using TileCoord = glm::ivec2;
+
 struct Tile {
-    glm::ivec2 coord{};
+    TileCoord coord{};
     TileData data{};
 };

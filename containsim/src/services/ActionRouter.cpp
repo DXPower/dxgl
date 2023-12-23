@@ -43,6 +43,9 @@ void ActionRouter::PushAction(Action&& action) {
             }
         } else if constexpr (std::is_same_v<T, ScrollInput>) {
             mouse_pos = a.pos;
+        } else if constexpr (std::is_same_v<T, KeyPress>) {
+            // TODO: Check for keyboard focus in UI
+            routes[InputLayer::Game] = true;
         }
     }, action.data);
 
