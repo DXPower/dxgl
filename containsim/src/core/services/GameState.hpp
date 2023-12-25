@@ -15,7 +15,7 @@ namespace services {
         ~GameState();
 
 
-        void EnterBuildPerspective();
-        void ExitPerspective();
+        void EnterBuildMode();
+        void ExitMode();
     };
 }

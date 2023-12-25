@@ -15,13 +15,13 @@ using CoFSM::Event;
 
 namespace {
     enum class StateType {
-        NormalPerspective,
-        BuildPerspective
+        NormalMode,
+        BuildMode
     };
 
     enum class EventType {
-        EnterBuildPerspective,
-        ExitPerspective
+        EnterBuildMode,
+        ExitMode
     };
 
     constexpr std::string_view GetEventName(EventType type) {
@@ -47,47 +47,47 @@ public:
     logging::Logger logger{logging::CreateLogger("GameState")};
 
     Pimpl() {
-        fsm << (NormalPerspective(fsm) = "NormalPerspective")
-            << (BuildPerspective(fsm) = "BuildPerspective");
+        fsm << (NormalMode(fsm) = "NormalMode")
+            << (BuildMode(fsm) = "BuildMode");
 
         using CoFSM::transition;
 
-        fsm << transition("NormalPerspective", "BuildPerspective", GetEventName(EventType::EnterBuildPerspective))
-            << transition("BuildPerspective", "NormalPerspective", GetEventName(EventType::ExitPerspective));
+        fsm << transition("NormalMode", "BuildMode", GetEventName(EventType::EnterBuildMode))
+            << transition("BuildMode", "NormalMode", GetEventName(EventType::ExitMode));
 
         fsm.logger = [this](const FSM&, const std::string& from_state, const Event& event, const std::string& to_state) {
             logger.info("Event {} sent from state {} to {}", event.nameAsString(), from_state, to_state);
         };
 
-        fsm.start().setState("NormalPerspective");
+        fsm.start().setState("NormalMode");
     };
 
-    State NormalPerspective(FSM& fsm) {
+    State NormalMode(FSM& fsm) {
         Event event = co_await fsm.getEvent();
 
         while (true) {
-            // if (EventMatches(event, EventType::ExitPerspective)) {
-            //     event.construct(GetEventName(EventType::ExitPerspective))
+            // if (EventMatches(event, EventType::ExitMode)) {
+            //     event.construct(GetEventName(EventType::ExitMode))
             // } else {
-            //     throw std::runtime_error(std::format("Unrecognized event {} received in BuildPerspective", event.nameAsString()));
+            //     throw std::runtime_error(std::format("Unrecognized event {} received in BuildMode", event.nameAsString()));
             // }
-            logger.info("In NormalPerspective!");
+            logger.info("In NormalMode!");
 
             event.destroy();
             event = co_await fsm.emitAndReceive(&event);
         }
     }
 
-    State BuildPerspective(FSM& fsm) {
+    State BuildMode(FSM& fsm) {
         Event event = co_await fsm.getEvent();
 
         while (true) {
-            // if (EventMatches(event, EventType::ExitPerspective)) {
-            //     event.construct(GetEventName(EventType::ExitPerspective))
+            // if (EventMatches(event, EventType::ExitMode)) {
+            //     event.construct(GetEventName(EventType::ExitMode))
             // } else {
-            //     throw std::runtime_error(std::format("Unrecognized event {} received in BuildPerspective", event.nameAsString()));
+            //     throw std::runtime_error(std::format("Unrecognized event {} received in BuildMode", event.nameAsString()));
             // }
-            logger.info("In BuildPerspective!");
+            logger.info("In BuildMode!");
             event.destroy();
             event = co_await fsm.emitAndReceive(&event);
         }
@@ -100,12 +100,12 @@ void GameState::PimplDeleter::operator()(Pimpl* ptr) const {
 
 GameState::GameState() : m_pimpl(new Pimpl()) { }
 
-void GameState::EnterBuildPerspective() {
-    auto e = MakeEvent(EventType::EnterBuildPerspective);
+void GameState::EnterBuildMode() {
+    auto e = MakeEvent(EventType::EnterBuildMode);
     m_pimpl->fsm.sendEvent(&e);
 }
 
-void GameState::ExitPerspective() {
-    auto e = MakeEvent(EventType::ExitPerspective);
+void GameState::ExitMode() {
+    auto e = MakeEvent(EventType::ExitMode);
     m_pimpl->fsm.sendEvent(&e);
 }
