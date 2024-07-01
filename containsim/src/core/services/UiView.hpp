@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/Action.hpp>
+#include <common/ActionChain.hpp>
 #include <services/UiCallback.hpp>
 #include <services/interfaces/IMouseTester.hpp>
 #include <services/interfaces/IActionReceiver.hpp>
@@ -21,7 +22,7 @@ namespace ultralight {
 }
 
 namespace services {
-    class UiView : public IMouseTester, public IActionReceiver {
+    class UiView : public IMouseTester, public ActionConsumer {
         class Pimpl;
 
         struct PimplDeleter {
@@ -36,7 +37,7 @@ namespace services {
         void Update();
         void Render(DrawQueues& draw_queues) const;
 
-        void PushAction(Action&& action) override;
+        void Consume(Action&& action) override;
         InputLayer TestMouse(glm::dvec2 pos) const override;
 
         void LoadHtml(std::string_view path);

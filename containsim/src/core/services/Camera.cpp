@@ -7,6 +7,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+using namespace services;
+
 namespace {
     struct CameraUbo {
         glm::mat4 camera_matrix;
@@ -16,10 +18,10 @@ namespace {
     BOOST_DESCRIBE_STRUCT(CameraUbo, (), (camera_matrix, projection_matrix));
 };
 
-Camera::Camera(GlobalState& global_state) {
+Camera::Camera(dxgl::UboBindingManager& ubos) {
     UpdateView();
 
-    global_state.ubo_manager.BindUboLocation(
+    ubos.BindUboLocation(
         static_cast<std::size_t>(UboLocs::Camera), 
         ubo
     );

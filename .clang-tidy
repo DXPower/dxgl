@@ -39,6 +39,7 @@ Checks: '
     -readability-named-parameter,
     -readability-else-after-return,
     -readability-uppercase-literal-suffix
+    -readability-redundant-member-init
 '
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines

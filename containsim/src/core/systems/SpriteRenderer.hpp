@@ -23,7 +23,7 @@ namespace systems {
 
         DrawQueues* m_queues_out{};
     public:
-        SpriteRenderer(const GlobalState& global_state, DrawQueues& queues);
+        SpriteRenderer(dxgl::UboBindingManager& ubos, DrawQueues& queues);
         ~SpriteRenderer();
 
         void PreStore(

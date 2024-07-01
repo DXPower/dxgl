@@ -5,18 +5,11 @@
 
 using namespace services;
 
-ActionRouter::ActionRouter(
-    const IMouseTester& mouse_tester,
-    IActionReceiver& game_actions,
-    IActionReceiver& ui_actions,
-    IActionReceiver& offscreen_actions
-) : m_mouse_tester(&mouse_tester),
-    m_game_action_receiver(&game_actions),
-    m_ui_action_receiver(&ui_actions),
-    m_offscreen_action_receiver(&offscreen_actions)
+ActionRouter::ActionRouter(const IMouseTester& mouse_tester)
+    : m_mouse_tester(&mouse_tester)
 { }
 
-void ActionRouter::PushAction(Action&& action) {
+void ActionRouter::Consume(Action&& action) {
     magic_enum::containers::array<InputLayer, bool> routes{};
     std::optional<glm::dvec2> mouse_pos{};
 
@@ -58,11 +51,11 @@ void ActionRouter::PushAction(Action&& action) {
     }
 
     if (routes[InputLayer::Game])
-        m_game_action_receiver->PushAction(std::move(action));
+        game_action_receiver.Send(std::move(action));
 
     if (routes[InputLayer::Ui])
-        m_ui_action_receiver->PushAction(std::move(action));
+        ui_action_receiver.Send(std::move(action));
 
     if (routes[InputLayer::Offscreen])
-        m_offscreen_action_receiver->PushAction(std::move(action));
+        offscreen_action_receiver.Send(std::move(action));
 }

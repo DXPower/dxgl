@@ -20,7 +20,8 @@
             "CMAKE_CXX_EXTENSIONS": "OFF",
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
-            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84"
+            "CMAKE_PREFIX_PATH": "C:\\Users\\myaka\\Documents\\GitHub\\CMakeModules",
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82"
         },
         "environment": {
             "CXX_WARNINGS": "-Wall -Wextra -Werror -Wno-error=unused-variable -Wno-error=unused-function",
@@ -42,7 +43,7 @@
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
             "COMPILE_DEFINITIONS": "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
-            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_84",
+            "BOOST_ROOT": "C:\\Program Files\\Boost\\Boost_1_82",
             "CMAKE_PREFIX_PATH": "C:\\Users\\myaka\\Documents\\GitHub\\CMakeModules"
         },
         "environment": {

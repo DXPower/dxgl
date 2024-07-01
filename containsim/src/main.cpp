@@ -10,24 +10,27 @@
 #include <dxgl/Application.hpp>
 #include <dxgl/Screenbuffer.hpp>
 
-#include <common/DrawQueues.hpp>
+#include <common/DrawQueuesKgr.hpp>
+#include <common/DxglKgr.hpp>
 #include <components/RenderData.hpp>
 #include <components/Sprite.hpp>
 #include <components/Transform.hpp>
-#include <systems/SpriteRenderer.hpp>
-
-#include <services/TileGrid.hpp>
-#include <services/TileGridRenderer.hpp>
-
+#include <systems/SpriteRendererKgr.hpp>
+#include <services/ActionRouterKgr.hpp>
+#include <services/TileGridKgr.hpp>
+#include <services/TileGridRendererKgr.hpp>
+#include <services/InputHandlerKgr.hpp>
+#include <services/UiViewKgr.hpp>
 #include <services/UiContainer.hpp>
-#include <services/InputHandler.hpp>
 #include <services/ActionRouter.hpp>
 #include <services/Logging.hpp>
+#include <services/WindowService.hpp>
+#include <services/CameraKgr.hpp>
 
-#include <common/GlobalData.hpp>
-#include "Camera.hpp"
+#include <common/GlobalConfigKgr.hpp>
 
 #include <spdlog/spdlog.h>
+#include <kangaru/kangaru.hpp>
 
 using namespace dxgl;
 
@@ -67,6 +70,7 @@ void Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
+
 int main() {
     namespace logging = services::logging;
     logging::SetCommonSink(logging::CreateConsoleSink());
@@ -75,7 +79,12 @@ int main() {
     constexpr glm::ivec2 initial_debug_screen_size = { 800, 800 };
     try {
         Application::Init();
-        Window main_window("Containment Simulator", initial_screen_size);
+
+        kgr::container main_di{};
+        kgr::container debug_di{};
+
+        main_di.emplace<services::WindowService>(dxtl::cstring_view("Containment Simulator"), initial_screen_size);
+        auto& main_window = main_di.service<services::WindowService>();
         main_window.MakeCurrent();
         
         if (gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0) { // NOLINT
@@ -84,8 +93,10 @@ int main() {
 
         glViewport(0, 0, initial_screen_size.x, initial_screen_size.y);
 
-        Window debug_window("Containment Simulator Debug", initial_debug_screen_size, &main_window);
+        debug_di.emplace<services::SubWindowService>("Containment Simulator Debug", initial_debug_screen_size, main_window);
+        auto& debug_window = debug_di.service<services::SubWindowService>();
         debug_window.MakeCurrent();
+
         glViewport(0, 0, initial_debug_screen_size.x, initial_debug_screen_size.y);
 
         main_window.MakeCurrent();
@@ -98,16 +109,15 @@ int main() {
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(initial_screen_size);
 
-        GlobalState global_state{};
-
-        Camera camera(global_state);
+        auto& camera = main_di.service<kgr::service_for<services::Camera>>();
         camera.UpdateViewportSize(initial_screen_size);
 
         flecs::world world{};
 
         using namespace components;
-        DrawQueues draw_queues{};
-        systems::SpriteRenderer sprite_renderer(global_state, draw_queues);
+        
+        auto& draw_queues = main_di.service<DrawQueuesService>();
+        auto& sprite_renderer = main_di.service<kgr::service_for<systems::SpriteRenderer>>();        
 
         std::function<void(
             const components::SpriteRenderer&,
@@ -125,20 +135,14 @@ int main() {
         )
             .kind(flecs::PreStore)
             .each(pre_store);
-        
-        GlobalConfig global_config{
+
+        main_di.emplace<GlobalConfigService>(GlobalConfig{
             .map_size = { 20, 10 }, // NOLINT
             .tile_size = {100, 100} // NOLINT
-        };
-
-        world.set(GlobalData{
-            .config = &global_config,
-            .state = &global_state,
-            .draw_queues = &draw_queues
         });
 
-        services::TileGrid tile_grid(global_config);
-        services::TileGridRenderer tile_grid_renderer(tile_grid, global_state.ubo_manager);
+        auto& tile_grid = main_di.service<kgr::service_for<services::TileGrid>>();
+        auto& tile_grid_renderer = main_di.service<kgr::service_for<services::TileGridRenderer>>();
 
         auto logger = services::logging::CreateLogger("main");
         logger.info("Hello, world!");
@@ -147,6 +151,8 @@ int main() {
         auto SetTiles = [&, start = 0]() mutable {
             logger.debug("start: {}", start);
 
+            auto& global_config = main_di.service<GlobalConfigService>();
+            
             for (int x = 0; x < global_config.map_size.x; x++) {
                 for (int y = 0; y < global_config.map_size.y; y++) {
                     TileData data{};
@@ -161,8 +167,9 @@ int main() {
         SetTiles();
 
         services::UiContainer ui_container(main_window, debug_window);
+        main_di.emplace<services::UiViewService>(ui_container.GetMainView());
         ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
-
+        
         main_window.OnResize([&](glm::ivec2 size) {
             main_screen_buffer.Resize(size);
             camera.UpdateViewportSize(size);
@@ -176,14 +183,11 @@ int main() {
         float last_time{};
         constexpr float camera_speed = 350.f;
 
-        services::InputHandler debug_input(debug_window);
-        debug_input.OnAction([&](Action&& action) {
-            // ui_renderer.InputActionDebug(action);
-            ui_container.GetInspectorView().PushAction(std::move(action));
-        });
+        auto& debug_input = debug_di.service<kgr::service_for<services::InputHandler>>();
+        chain::Connect(debug_input.actions_out, ui_container.GetInspectorView());
 
-        struct GameInput : services::IActionReceiver {
-            void PushAction(Action&& action) override {
+        struct GameInput : ActionConsumer {
+            void Consume(Action&& action) override {
                 if (std::holds_alternative<KeyPress>(action.data)) {
                     const auto& key_press = std::get<KeyPress>(action.data);
 
@@ -196,17 +200,14 @@ int main() {
             }
         } game_receiver, offscreen_receiver;
 
-        services::ActionRouter input_router(
-            ui_container.GetMainView(), 
-            game_receiver, 
-            ui_container.GetMainView(),
-            offscreen_receiver
-        );
-        
-        services::InputHandler game_input(main_window);
-        game_input.OnAction([&](Action&& action) {
-            input_router.PushAction(std::move(action));
-        });
+        auto input_router = main_di.service<services::ActionRouterService>();
+
+        chain::Connect(input_router.game_action_receiver, game_receiver);
+        chain::Connect(input_router.offscreen_action_receiver, offscreen_receiver);
+        chain::Connect(input_router.ui_action_receiver, ui_container.GetMainView());
+
+        auto& game_input = main_di.service<kgr::service_for<services::InputHandler>>();
+        chain::Connect(game_input.actions_out, input_router);
 
         ui_container.GetMainView()
             .RegisterCallback(

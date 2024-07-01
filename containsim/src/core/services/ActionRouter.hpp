@@ -1,26 +1,25 @@
 #pragma once
 
+#include <common/ActionChain.hpp>
 #include <services/interfaces/IActionReceiver.hpp>
 #include <services/interfaces/IMouseTester.hpp>
 
 #include <glm/vec2.hpp>
 
 namespace services {
-    class ActionRouter : public IActionReceiver {
-        const IMouseTester* m_mouse_tester{};
-        IActionReceiver* m_game_action_receiver{};
-        IActionReceiver* m_ui_action_receiver{};
-        IActionReceiver* m_offscreen_action_receiver{};
-
-        InputLayer m_click_start{};
+    class ActionRouter final : public ActionConsumer {
     public:
-        ActionRouter(
-            const IMouseTester& mouse_tester,
-            IActionReceiver& game_actions,
-            IActionReceiver& ui_actions,
-            IActionReceiver& offscreen_actions
-        );
+        ActionProducer game_action_receiver{};
+        ActionProducer ui_action_receiver{};
+        ActionProducer offscreen_action_receiver{};
+
+    private:
+        const IMouseTester* m_mouse_tester{};
+        InputLayer m_click_start{};
+
+    public:
+        ActionRouter(const IMouseTester& mouse_tester);
         
-        void PushAction(Action&& action) override;
+        void Consume(Action&& action) override;
     };
 }

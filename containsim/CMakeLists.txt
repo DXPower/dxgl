@@ -6,6 +6,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/cofsm)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nano)
 
 find_package(spdlog REQUIRED)
+find_package(dxfsm REQUIRED)
+find_package(kangaru REQUIRED)
+find_package(chain REQUIRED)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)

@@ -58,7 +58,7 @@ void SpriteRenderer::PimplDeleter::operator()(Pimpl* p) const {
     delete p;
 }
 
-SpriteRenderer::SpriteRenderer(const GlobalState& global_state, DrawQueues& queues) 
+SpriteRenderer::SpriteRenderer(dxgl::UboBindingManager& ubos, DrawQueues& queues) 
     : m_pimpl(new Pimpl())
     , m_queues_out(&queues) {
 
@@ -69,7 +69,7 @@ SpriteRenderer::SpriteRenderer(const GlobalState& global_state, DrawQueues& queu
 
     dxgl::Uniform::Set(m_pimpl->program, "spritesheet", 0);
     
-    global_state.ubo_manager.BindUniformLocation(
+    ubos.BindUniformLocation(
         static_cast<std::size_t>(UboLocs::Camera), 
         m_pimpl->program, 
         "camera"

@@ -13,20 +13,26 @@ namespace dxgl {
 
     class Window {
         struct GlfwWindowDeleter {
-            void operator()(GLFWwindow* ptr) const;
+            void operator()(GLFWwindow* ptr) const noexcept;
         };
-        std::unique_ptr<GLFWwindow, GlfwWindowDeleter> glfw_window;
+        std::unique_ptr<GLFWwindow, GlfwWindowDeleter> m_glfw_window;
 
-        std::function<OnWindowResizeFunc> resize_func{};
+        std::function<OnWindowResizeFunc> m_resize_func{};
     public:
         struct Fullscreen { };
 
-        Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share = nullptr);
-        Window(dxtl::cstring_view title, Fullscreen, const Window* share = nullptr);
-        Window(const Window& copy) = delete;
-        Window(Window&& move);
+        Window(dxtl::cstring_view title, glm::ivec2 window_size);
+        Window(dxtl::cstring_view title, Fullscreen);
+    protected:
+        Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share);
+        Window(dxtl::cstring_view title, Fullscreen, const Window* share);
 
-        Window& operator=(Window&& move);
+    public:
+        Window(const Window& copy) = delete;
+        Window(Window&& move) noexcept;
+        virtual ~Window() noexcept = default;
+
+        Window& operator=(Window&& move) noexcept;
 
         void MakeCurrent() const;
         void SwapBuffers();
@@ -39,10 +45,16 @@ namespace dxgl {
         glm::vec2 GetScale() const;
         bool ShouldClose() const;
 
-        GLFWwindow* GetGlfwWindow() const { return glfw_window.get(); }
+        GLFWwindow* GetGlfwWindow() const { return m_glfw_window.get(); }
         static Window& GetWindowFromGlfw(GLFWwindow* glfw_window);
     private:
         static void OnWindowResizeImpl(GLFWwindow* window, int w, int h);
+    };
+
+    class SubWindow : public Window {
+    public:
+        SubWindow(dxtl::cstring_view title, glm::ivec2 window_size, const Window& parent);
+        SubWindow(dxtl::cstring_view title, Fullscreen, const Window& parent);
     };
 
     namespace Application {

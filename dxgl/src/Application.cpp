@@ -9,7 +9,7 @@
 using namespace dxgl;
 
 namespace {
-    // std::unordered_map<GLFWwindow*, std::function<OnWindowResizeFunc>> window_resize_funcs{};
+    // std::unordered_map<GLFWwindow*, std::function<OnWindowResizeFunc>> window_m_resize_funcs{};
 
     void InitGlfw() {
         glfwInit();
@@ -19,8 +19,14 @@ namespace {
     }
 }
 
+Window::Window(dxtl::cstring_view title, glm::ivec2 window_size)
+    : Window(title, window_size, nullptr) { }
+
+Window::Window(dxtl::cstring_view title, Fullscreen)
+    : Window(title, Fullscreen{}, nullptr) { }
+
 Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share) {
-    glfw_window.reset(
+    m_glfw_window.reset(
         glfwCreateWindow(
             window_size.x,
             window_size.y,
@@ -30,7 +36,7 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* s
         )
     );
 
-    if (glfw_window == nullptr) {
+    if (m_glfw_window == nullptr) {
         throw std::runtime_error("Failed to create GLFW window");
     }
 
@@ -42,19 +48,19 @@ Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
     throw std::runtime_error("Unimplemented");
 }
 
-Window::Window(Window&& move) 
-    : glfw_window(std::move(move.glfw_window))
-    , resize_func(std::move(move.resize_func)) 
+Window::Window(Window&& move) noexcept
+    : m_glfw_window(std::move(move.m_glfw_window))
+    , m_resize_func(std::move(move.m_resize_func)) 
 {
     glfwSetWindowUserPointer(GetGlfwWindow(), this);
 }
 
-Window& Window::operator=(Window&& move) {
+Window& Window::operator=(Window&& move) noexcept {
     if (&move == this)
         return *this;
 
-    std::swap(glfw_window, move.glfw_window);
-    std::swap(resize_func, move.resize_func);
+    std::swap(m_glfw_window, move.m_glfw_window);
+    std::swap(m_resize_func, move.m_resize_func);
 
     glfwSetWindowUserPointer(GetGlfwWindow(), this);
     glfwSetWindowUserPointer(move.GetGlfwWindow(), &move);
@@ -62,24 +68,24 @@ Window& Window::operator=(Window&& move) {
     return *this;
 }
     
-void Window::GlfwWindowDeleter::operator()(GLFWwindow* ptr) const {
+void Window::GlfwWindowDeleter::operator()(GLFWwindow* ptr) const noexcept {
     glfwDestroyWindow(ptr);
 }
 
 void Window::OnResize(std::function<OnWindowResizeFunc> func) {
-    // window_resize_funcs.insert_or_assign(GetGlfwWindow(), std::move(func));
-    resize_func = std::move(func);
+    // window_m_resize_funcs.insert_or_assign(GetGlfwWindow(), std::move(func));
+    m_resize_func = std::move(func);
 }
 
 void Window::MakeCurrent() const {
     glfwMakeContextCurrent(GetGlfwWindow());
 }
 
-void Window::SwapBuffers() {
+void Window::SwapBuffers() { // NOLINT
     glfwSwapBuffers(GetGlfwWindow());
 }
 
-void Window::PollEvents() {
+void Window::PollEvents() { // NOLINT
     glfwPollEvents();
 }
 
@@ -107,20 +113,26 @@ bool Window::ShouldClose() const {
     return glfwWindowShouldClose(GetGlfwWindow());
 }
 
-Window& Window::GetWindowFromGlfw(GLFWwindow* glfw_window) {
-    return *reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfw_window));
+Window& Window::GetWindowFromGlfw(GLFWwindow* m_glfw_window) {
+    return *reinterpret_cast<Window*>(glfwGetWindowUserPointer(m_glfw_window));
 }
 
-void Window::OnWindowResizeImpl(GLFWwindow* glfw_window, int width, int height) {
+void Window::OnWindowResizeImpl(GLFWwindow* m_glfw_window, int width, int height) {
     // Don't propogate size updates when area is 0
     if (width == 0 || height == 0)
         return;
     
-    glfwMakeContextCurrent(glfw_window);
+    glfwMakeContextCurrent(m_glfw_window);
     glViewport(0, 0, width, height);
     
-    GetWindowFromGlfw(glfw_window).resize_func({width, height});
+    GetWindowFromGlfw(m_glfw_window).m_resize_func({width, height});
 }
+
+SubWindow::SubWindow(dxtl::cstring_view title, glm::ivec2 window_size, const Window& parent)
+    : Window(title, window_size, &parent) { }
+
+SubWindow::SubWindow(dxtl::cstring_view title, Fullscreen, const Window& parent)
+    : Window(title, Fullscreen{}, &parent) { }
 
 void Application::Init() {
     InitGlfw();

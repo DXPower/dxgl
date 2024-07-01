@@ -167,7 +167,7 @@ void UiView::Render(DrawQueues& draw_queues) const {
     draw_queues.QueueViewedDraw(RenderLayer::Ui, m_pimpl->ui_draw);
 }
 
-void UiView::PushAction(Action&& action) {
+void UiView::Consume(Action&& action) {
     std::visit(dxtl::overloaded{
         [this](const KeyPress& a) {
             ultralight::KeyEvent evt{};

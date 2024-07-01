@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/Action.hpp>
+#include <common/ActionChain.hpp>
 
 #include <functional>
 #include <memory>
@@ -9,6 +10,10 @@
 
 namespace services {
     class InputHandler {
+    public:
+        ActionProducer actions_out{};
+
+    private:
         class Pimpl;
         struct PimplDeleter {
             void operator()(Pimpl* ptr) const;
@@ -18,7 +23,5 @@ namespace services {
     public:
         InputHandler(const dxgl::Window& window);
         ~InputHandler();
-
-        void OnAction(std::function<void(Action&& action)> func);
     };
 }

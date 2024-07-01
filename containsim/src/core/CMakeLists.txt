@@ -1,10 +1,13 @@
 add_library(containsim_core)
 
 target_link_libraries(containsim_core PUBLIC 
+    chain
     dxgl
+    dxfsm
     glad
     glfw
     flecs::flecs_static
+    kangaru
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum
     spdlog::spdlog
@@ -25,8 +28,4 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/systems)
 
 target_include_directories(containsim_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_sources(containsim_core PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
 )
