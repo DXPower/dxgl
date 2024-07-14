@@ -2,7 +2,8 @@ add_subdirectory(commands)
 
 target_sources(containsim_core PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ActionRouter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/BuildMode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildInput.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GameState.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/InputHandler.cpp

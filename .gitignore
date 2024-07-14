@@ -5,3 +5,4 @@ dep/
 
 inspector
 *.code-workspace
+compile_commands.json

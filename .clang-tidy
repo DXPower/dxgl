@@ -38,7 +38,7 @@ Checks: '
     -readability-identifier-length,
     -readability-named-parameter,
     -readability-else-after-return,
-    -readability-uppercase-literal-suffix
+    -readability-uppercase-literal-suffix,
     -readability-redundant-member-init
 '
 CheckOptions:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <services/commands/BuildModeCommands.hpp>
+#include <services/commands/BuildInputCommands.hpp>
 #include <services/commands/StateCommands.hpp>
 #include <common/PimplHelper.hpp>
 
@@ -8,15 +8,16 @@
 #include <services/commands/CommandChains.hpp>
 
 namespace services {
-    class BuildMode 
+    class BuildInput 
         : public ActionConsumer,
-          public commands::CommandConsumer<commands::BuildModeCommand>
+          public commands::CommandConsumer<commands::BuildInputCommand>
     {
     public:
-        enum class StateType {
-            Idle,
+        enum class StateId {
+            IdleMode,
             BuildMode,
-            PlaceMode,
+            PlaceTileMode,
+            WorldTileSelectedMode,
             DeleteMode
         };
 
@@ -26,21 +27,17 @@ namespace services {
         CREATE_PIMPL(m_pimpl);
 
     public:
-        BuildMode();
-
-        DECLARE_PIMPL_SMFS(BuildMode);
+        BuildInput();
+        DECLARE_PIMPL_SMFS(BuildInput);
 
         void Consume(Action&& action) override;
-        void Consume(commands::BuildModeCommandPtr&& command) override;
+        void Consume(commands::BuildInputCommandPtr&& command) override;
 
         void EnterBuildMode();
-        void SelectTile(TileType tile);
-
+        void EnterDeleteMode();
+        void SelectTileToPlace(TileType tile);
         void ExitMode();
 
-        void BeginDeleting();
-        void EndDeleting();
-
-        StateType GetState() const;
+        StateId GetState() const;
     };
 }

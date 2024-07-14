@@ -33,5 +33,5 @@ window.addEventListener("load", (event) => {
 });
 
 function SelectTile(element) {
-    OutputCommand("test");
+    SelectTileToPlace("1");
 }

@@ -49,21 +49,25 @@ namespace services {
                     throw UiCallback::ArityMismatchError(sizeof...(Args), input_args.size());
                 }
 
-                std::tuple<std::remove_cvref_t<Args>...> extracted_args{};
+                if constexpr (sizeof...(Args) > 0) {
+                    std::tuple<std::remove_cvref_t<Args>...> extracted_args{};
 
-                mp::tuple_for_each(extracted_args, [&input_args, i = 0](auto&& output_arg) mutable {
-                    using OutputArgType = std::remove_cvref_t<decltype(output_arg)>;
-                    auto& input_arg = input_args[i];
+                    mp::tuple_for_each(extracted_args, [&input_args, i = 0](auto&& output_arg) mutable {
+                        using OutputArgType = std::remove_cvref_t<decltype(output_arg)>;
+                        auto& input_arg = input_args[i];
 
-                    if (!std::holds_alternative<OutputArgType>(input_arg)) {
-                        throw UiCallback::ArgTypeMismatchError(i);
-                    }
+                        if (!std::holds_alternative<OutputArgType>(input_arg)) {
+                            throw UiCallback::ArgTypeMismatchError(i);
+                        }
 
-                    output_arg = std::move(std::get<OutputArgType>(input_arg));
-                    i++;
-                });
+                        output_arg = std::move(std::get<OutputArgType>(input_arg));
+                        i++;
+                    });
 
-                std::apply(func, std::move(extracted_args));
+                    std::apply(func, std::move(extracted_args));
+                } else {
+                    func();
+                }
             }
         };
     }

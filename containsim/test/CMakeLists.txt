@@ -4,7 +4,7 @@ add_executable(containsim_tests)
 
 target_sources(containsim_tests PRIVATE 
     test_main.cpp
-    BuildMode.cpp
+    BuildInput.cpp
 )
 
 target_link_libraries(containsim_tests PRIVATE 

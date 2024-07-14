@@ -2,6 +2,7 @@
 #include <dxgl/Texture.hpp>
 #include <exception>
 #include <iostream>
+#include <charconv>
 
 #include <flecs.h>
 #include <glad/glad.h>
@@ -17,6 +18,7 @@
 #include <components/Transform.hpp>
 #include <systems/SpriteRendererKgr.hpp>
 #include <services/ActionRouterKgr.hpp>
+#include <services/BuildServicesKgr.hpp>
 #include <services/TileGridKgr.hpp>
 #include <services/TileGridRendererKgr.hpp>
 #include <services/InputHandlerKgr.hpp>
@@ -45,8 +47,8 @@ InputResults ProcessInput(GLFWwindow* window) {
         return glfwGetKey(window, key) == GLFW_PRESS;
     };
 
-    if (IsKeyPressed(GLFW_KEY_ESCAPE))
-        glfwSetWindowShouldClose(window, 1);
+    // if (IsKeyPressed(GLFW_KEY_ESCAPE))
+    //     glfwSetWindowShouldClose(window, 1);
     
     if (IsKeyPressed(GLFW_KEY_W))
         result.camera_movement.y -= 1;
@@ -186,35 +188,47 @@ int main() {
         auto& debug_input = debug_di.service<kgr::service_for<services::InputHandler>>();
         chain::Connect(debug_input.actions_out, ui_container.GetInspectorView());
 
-        struct GameInput : ActionConsumer {
-            void Consume(Action&& action) override {
-                if (std::holds_alternative<KeyPress>(action.data)) {
-                    const auto& key_press = std::get<KeyPress>(action.data);
-
-                    if (key_press.dir == ButtonDir::Down) {
-                        if (key_press.key == GLFW_KEY_E) {
-                            cycle_tiles = true;
-                        }
-                    }
-                }
-            }
-        } game_receiver, offscreen_receiver;
-
         auto input_router = main_di.service<services::ActionRouterService>();
-
-        chain::Connect(input_router.game_action_receiver, game_receiver);
-        chain::Connect(input_router.offscreen_action_receiver, offscreen_receiver);
-        chain::Connect(input_router.ui_action_receiver, ui_container.GetMainView());
 
         auto& game_input = main_di.service<kgr::service_for<services::InputHandler>>();
         chain::Connect(game_input.actions_out, input_router);
 
+        auto& build_input = main_di.service<kgr::service_for<services::BuildInput>>();
+        // auto& build_manager = main_di.service<kgr::service_for<services::BuildManager>>();
+
+        chain::Connect(input_router.game_action_receiver, build_input);
+        chain::Connect(input_router.offscreen_action_receiver, build_input);
+        chain::Connect(input_router.ui_action_receiver, ui_container.GetMainView());
+
         ui_container.GetMainView()
             .RegisterCallback(
-                "OutputCommand",
-                services::MakeUiCallback<std::string>([x = 0](std::string data) mutable {
-                    std::cout << "Got OutputCommand " << x++ << std::endl;
-                    std::cout << "Data: " << data << "\n=====" << std::endl;
+                "SelectTileToPlace",
+                services::MakeUiCallback<std::string>([&](std::string str) {
+                    std::underlying_type_t<TileType> type_i;
+                    std::from_chars(str.data(), str.data() + str.size(), type_i);
+
+                    logger.info("SelectTileToPlace: {}", type_i);
+                    auto type = static_cast<TileType>(type_i);
+
+                    build_input.SelectTileToPlace(type);
+                })
+            );
+
+        ui_container.GetMainView()
+            .RegisterCallback(
+                "EnterDeleteMode",
+                services::MakeUiCallback<>([&] {
+                    logger.info("EnterDeleteMode");
+                    build_input.EnterDeleteMode();
+                })
+            );
+
+        ui_container.GetMainView()
+            .RegisterCallback(
+                "ExitDeleteMode",
+                services::MakeUiCallback<>([&] {
+                    logger.info("ExitDeleteMode");
+                    build_input.ExitMode();
                 })
             );
 
