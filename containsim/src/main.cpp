@@ -19,6 +19,7 @@
 #include <systems/SpriteRendererKgr.hpp>
 #include <services/ActionRouterKgr.hpp>
 #include <services/BuildServicesKgr.hpp>
+#include <services/InputStateKgr.hpp>
 #include <services/TileGridKgr.hpp>
 #include <services/TileGridRendererKgr.hpp>
 #include <services/InputHandlerKgr.hpp>
@@ -194,17 +195,40 @@ int main() {
         chain::Connect(game_input.actions_out, input_router);
 
         auto& build_input = main_di.service<kgr::service_for<services::BuildInput>>();
-        // auto& build_manager = main_di.service<kgr::service_for<services::BuildManager>>();
+        auto& input_state = main_di.service<kgr::service_for<services::InputState>>();
 
-        chain::Connect(input_router.game_action_receiver, build_input);
-        chain::Connect(input_router.offscreen_action_receiver, build_input);
+        chain::Connect(input_router.game_action_receiver, input_state);
+        chain::Connect(input_router.offscreen_action_receiver, input_state);
         chain::Connect(input_router.ui_action_receiver, ui_container.GetMainView());
+
+        chain::Connect(input_state.build_input_cmds, build_input);
+        chain::Connect(input_state.build_actions, build_input);
+        chain::ConnectToNull(build_input.uncaptured_actions);
+        chain::ConnectToNull(input_state.idle_actions);
+        
+        ui_container.GetMainView()
+            .RegisterCallback(
+                "EnterBuildMode",
+                services::MakeUiCallback([&]() {
+                    logger.info("EnterBuildMode");
+                    input_state.EnterBuildMode();
+                })
+            );
+
+        ui_container.GetMainView()
+            .RegisterCallback(
+                "ExitBuildMode",
+                services::MakeUiCallback([&]() {
+                    logger.info("ExitBuildMode");
+                    input_state.ExitMode();
+                })
+            );
 
         ui_container.GetMainView()
             .RegisterCallback(
                 "SelectTileToPlace",
                 services::MakeUiCallback<std::string>([&](std::string str) {
-                    std::underlying_type_t<TileType> type_i;
+                    std::underlying_type_t<TileType> type_i{};
                     std::from_chars(str.data(), str.data() + str.size(), type_i);
 
                     logger.info("SelectTileToPlace: {}", type_i);

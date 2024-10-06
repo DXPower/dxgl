@@ -16,6 +16,14 @@ struct KeyPress {
     int key{};
     int scancode{};
     int mods{};
+
+    constexpr bool IsDownKey(int scancode) const {
+        return this->scancode == scancode && dir == ButtonDir::Down;
+    }
+    
+    constexpr bool IsUpKey(int scancode) const {
+        return this->scancode == scancode && dir == ButtonDir::Up;
+    }
 };
 
 struct TextInput {

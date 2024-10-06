@@ -3,8 +3,6 @@
 #include <services/commands/Command.hpp>
 #include <common/Tile.hpp>
 
-#include <memory>
-
 namespace services {
     class BuildInput;
 
