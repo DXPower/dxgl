@@ -2,9 +2,14 @@
     <head>
         <link rel="stylesheet" type="text/css" href="main.css" />
         <script src="main.js"></script>
+        <script src="cement/cement.js"></script>
     </head>
     <body>
         <div id="ui-container">
+            <concrete-mixer data-source="foobar">
+                <p>Hello, <span aggr="name"></span></p>
+                Another: <button aggr="button">Another!</button>
+            </concrete-mixer>
             <div id="bottom-bar">
                 <button onclick="EnterBuildMode()">Build</button>
                 <button onclick="ExitBuildMode()">Exit Build</button>

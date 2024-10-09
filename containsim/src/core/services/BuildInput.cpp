@@ -181,7 +181,7 @@ auto BuildInput::StateWorldTileSelected(FSM_t& fsm, StateId) -> State_t {
     }
 }
 
-auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t{
+auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t {
     Event_t event{};
 
     while (true) {
