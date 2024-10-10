@@ -37,9 +37,22 @@
 
 using namespace dxgl;
 
+static bool is_ui_loaded = true;
+static bool toggle_ui{};
+
 struct InputResults {
     glm::vec2 camera_movement{};
 };
+
+struct GlobalActions : ActionConsumer {
+    void Consume(Action&& action) override {
+        const KeyPress* press = std::get_if<KeyPress>(&action.data);
+        if (press != nullptr && press->IsDownKey(GLFW_KEY_P)) {
+            toggle_ui ^= true;
+        }
+    }
+};
+
 
 InputResults ProcessInput(GLFWwindow* window) {
     InputResults result{};
@@ -201,10 +214,12 @@ int main() {
         chain::Connect(input_router.offscreen_action_receiver, input_state);
         chain::Connect(input_router.ui_action_receiver, ui_container.GetMainView());
 
+        GlobalActions global_actions{};
+
         chain::Connect(input_state.build_input_cmds, build_input);
         chain::Connect(input_state.build_actions, build_input);
-        chain::ConnectToNull(build_input.uncaptured_actions);
-        chain::ConnectToNull(input_state.idle_actions);
+        chain::Connect(build_input.uncaptured_actions, global_actions);
+        chain::Connect(input_state.idle_actions, global_actions);
         
         ui_container.GetMainView()
             .RegisterCallback(
@@ -284,6 +299,19 @@ int main() {
             main_screen_buffer.Render();
 
             // Update and render UI
+            if (toggle_ui) {
+                if (is_ui_loaded) {
+                    logger.info("Unloading UI...");
+                    ui_container.GetMainView().LoadUrl("https://www.cloudflare.com/cdn-cgi/trace");
+                } else {
+                    logger.info("Loading UI...");
+                    ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
+                }
+
+                is_ui_loaded ^= true;
+                toggle_ui = false;
+            }
+
             ui_container.Update();
             ui_container.Render();
 

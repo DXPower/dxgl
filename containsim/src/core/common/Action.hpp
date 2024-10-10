@@ -17,12 +17,12 @@ struct KeyPress {
     int scancode{};
     int mods{};
 
-    constexpr bool IsDownKey(int scancode) const {
-        return this->scancode == scancode && dir == ButtonDir::Down;
+    constexpr bool IsDownKey(int key) const {
+        return this->key == key && dir == ButtonDir::Down;
     }
     
-    constexpr bool IsUpKey(int scancode) const {
-        return this->scancode == scancode && dir == ButtonDir::Up;
+    constexpr bool IsUpKey(int key) const {
+        return this->key == key && dir == ButtonDir::Up;
     }
 };
 
