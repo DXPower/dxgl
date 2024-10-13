@@ -35,3 +35,7 @@ window.addEventListener("load", (event) => {
 function SelectTile(element) {
     SelectTileToPlace("1");
 }
+
+function TestUiFunction(msg) {
+    console.log("Hello, world of C++->JS interop! Message: " + msg);
+}

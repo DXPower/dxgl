@@ -9,6 +9,7 @@
 #include <dxgl/Application.hpp>
 #include <dxtl/cstring_view.hpp>
 
+#include <concepts>
 #include <memory>
 #include <string_view>
 
@@ -48,6 +49,16 @@ namespace services {
         void RegisterCallback(dxtl::cstring_view js_name, UiCallback&& callback);
         void UnregisterCallback(dxtl::cstring_view js_name);
 
+        template<typename... T>
+        requires (std::constructible_from<UiArg, T> && ...)
+        UiArg CallFunction(dxtl::cstring_view js_name,  T&&... args) {
+            std::vector<UiArg> ui_args{UiArg(std::forward<T>(args))...};
+            return CallFunctionImpl(js_name, ui_args);
+        }
+
         ultralight::RefPtr<ultralight::View> GetView();
+
+    private:
+        UiArg CallFunctionImpl(dxtl::cstring_view js_name, std::span<UiArg> args);
     };
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <services/UiArg.hpp>
+
 #include <stdexcept>
 #include <functional>
 #include <span>
@@ -9,13 +11,8 @@
 #include <boost/mp11/tuple.hpp>
 
 namespace services {
-    struct UiNull { };
-    struct UiUndefined { };
-
-    using UiCallbackArg = std::variant<UiUndefined, UiNull, bool, double, std::string>;
-
     struct UiCallback {
-        std::function<void(std::span<UiCallbackArg>)> callback{};
+        std::function<void(std::span<UiArg>)> callback{};
 
         struct ArityMismatchError : std::runtime_error {
             std::size_t expected{};
@@ -44,7 +41,7 @@ namespace services {
 
             // Because we store the func as a capture, we need to mark ourselves as mutable in-case the
             // stored function is
-            .callback = [func = std::forward<decltype(func)>(func)](std::span<UiCallbackArg> input_args) mutable {
+            .callback = [func = std::forward<decltype(func)>(func)](std::span<UiArg> input_args) mutable {
                 if (input_args.size() != sizeof...(Args)) {
                     throw UiCallback::ArityMismatchError(sizeof...(Args), input_args.size());
                 }

@@ -2,6 +2,7 @@
 
 #include <services/Logging.hpp>
 #include <services/UiCallback.hpp>
+#include <services/UiArg.hpp>
 
 #include <dxtl/cstring_view.hpp>
 
@@ -29,6 +30,8 @@ namespace services {
         // Makes a free function that is stored in the context's global object (window)
         void MakeFunction(dxtl::cstring_view js_name, UiCallback&& callback);
         void DeleteFunction(dxtl::cstring_view js_name);
+
+        UiArg CallFunction(dxtl::cstring_view js_name, std::span<UiArg> args);
 
         ultralight::RefPtr<ultralight::JSContext> LockAndSetJsContext();
         

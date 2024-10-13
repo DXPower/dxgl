@@ -39,6 +39,7 @@ using namespace dxgl;
 
 static bool is_ui_loaded = true;
 static bool toggle_ui{};
+static bool test_func{};
 
 struct InputResults {
     glm::vec2 camera_movement{};
@@ -48,7 +49,11 @@ struct GlobalActions : ActionConsumer {
     void Consume(Action&& action) override {
         const KeyPress* press = std::get_if<KeyPress>(&action.data);
         if (press != nullptr && press->IsDownKey(GLFW_KEY_P)) {
-            toggle_ui ^= true;
+            toggle_ui ^= 1;
+        }
+
+        if (press != nullptr && press->dir == ButtonDir::Down) {
+            test_func = true;
         }
     }
 };
@@ -310,6 +315,11 @@ int main() {
 
                 is_ui_loaded ^= true;
                 toggle_ui = false;
+            }
+
+            if (test_func) {
+                ui_container.GetMainView().CallFunction("TestUiFunction", "Hello");
+                test_func = false;
             }
 
             ui_container.Update();
