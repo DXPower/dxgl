@@ -4,7 +4,7 @@
 using namespace services;
 using namespace ultralight;
 
-static UiArg JsToUiArg(const JSValue& js_arg) {
+static UiValue JsToUiValue(const JSValue& js_arg) {
     if (js_arg.IsUndefined()) {
         return UiUndefined{};
     } else if (js_arg.IsNull()) {
@@ -55,7 +55,35 @@ void JsContextStorage::DeleteFunction(dxtl::cstring_view js_name) {
     window.DeleteProperty(js_name.c_str());
 }
 
-UiArg JsContextStorage::CallFunction(dxtl::cstring_view js_name, std::span<UiArg> args) {
+static JSValue UiValueToJsValue(const UiValue& arg) {
+    return std::visit(dxtl::overloaded(
+        [&](UiUndefined) -> JSValue { return JSValueUndefinedTag{}; },
+        [&](UiNull) -> JSValue { return JSValueNullTag{}; },
+        [&](double o) -> JSValue { return o; },
+        [&](bool o) -> JSValue { return o; },
+        [&](const std::string& o) -> JSValue { return o.c_str(); },
+        [&](const std::unique_ptr<UiObject>& o) -> JSValue {
+            JSObject js_object{};
+            
+            for (const auto& [name, value] : o->fields) {
+                js_object[name.c_str()] = UiValueToJsValue(value);
+            }
+
+            return (JSObjectRef) js_object;
+        },
+        [&](const std::unique_ptr<UiArray>& o) -> JSValue {
+            JSArray js_array{};
+
+            for (const auto& e : o->elements) {
+                js_array.push(UiValueToJsValue(e));
+            }
+
+            return (JSObjectRef) js_array;
+        }
+    ), arg);
+}
+
+UiValue JsContextStorage::CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args) {
     auto scoped_context = LockAndSetJsContext();
 
     JSObject window = JSGlobalObject();
@@ -75,16 +103,10 @@ UiArg JsContextStorage::CallFunction(dxtl::cstring_view js_name, std::span<UiArg
     JSArgs js_args{};
 
     for (const auto& arg : args) {
-        std::visit(dxtl::overloaded(
-            [&](UiUndefined) { js_args.push_back(JSValueUndefinedTag{}); },
-            [&](UiNull) { js_args.push_back(JSValueNullTag{}); },
-            [&](double o) { js_args.push_back(o); },
-            [&](bool o) { js_args.push_back(o); },
-            [&](const std::string& o) { js_args.push_back(o.c_str()); }
-        ), arg);
+        js_args.push_back(UiValueToJsValue(arg));
     }
 
-    return JsToUiArg(js_func(js_args));
+    return JsToUiValue(js_func(js_args));
 }
 
 RefPtr<JSContext> JsContextStorage::LockAndSetJsContext() {
@@ -96,11 +118,11 @@ RefPtr<JSContext> JsContextStorage::LockAndSetJsContext() {
 
 void JsContextStorage::HandleUiCallback(std::string js_name, const JSObject& this_obj [[maybe_unused]], const JSArgs& js_args) {
     try {
-        std::vector<UiArg> cpp_args{};
+        std::vector<UiValue> cpp_args{};
         cpp_args.reserve(js_args.size());
 
         for (const auto& js_arg : std::ranges::subrange(js_args.data(), js_args.data() + js_args.size())) {
-            cpp_args.push_back(JsToUiArg(js_arg));
+            cpp_args.push_back(JsToUiValue(js_arg));
         }
 
         m_ui_callbacks.at(js_name).callback(cpp_args);

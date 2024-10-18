@@ -2,7 +2,6 @@
 
 #include <services/Logging.hpp>
 #include <services/UiCallback.hpp>
-#include <services/UiArg.hpp>
 
 #include <dxtl/cstring_view.hpp>
 
@@ -31,7 +30,7 @@ namespace services {
         void MakeFunction(dxtl::cstring_view js_name, UiCallback&& callback);
         void DeleteFunction(dxtl::cstring_view js_name);
 
-        UiArg CallFunction(dxtl::cstring_view js_name, std::span<UiArg> args);
+        UiValue CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args);
 
         ultralight::RefPtr<ultralight::JSContext> LockAndSetJsContext();
         

@@ -37,5 +37,8 @@ function SelectTile(element) {
 }
 
 function TestUiFunction(msg) {
+    if (typeof msg === "object")
+        msg = JSON.stringify(msg)
+    
     console.log("Hello, world of C++->JS interop! Message: " + msg);
 }

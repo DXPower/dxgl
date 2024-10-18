@@ -50,15 +50,17 @@ namespace services {
         void UnregisterCallback(dxtl::cstring_view js_name);
 
         template<typename... T>
-        requires (std::constructible_from<UiArg, T> && ...)
-        UiArg CallFunction(dxtl::cstring_view js_name,  T&&... args) {
-            std::vector<UiArg> ui_args{UiArg(std::forward<T>(args))...};
+        requires (std::constructible_from<UiValue, T> && ...)
+        UiValue CallFunction(dxtl::cstring_view js_name,  T&&... args) {
+            std::vector<UiValue> ui_args{};
+            (ui_args.emplace_back(std::forward<T>(args)), ...);
+            
             return CallFunctionImpl(js_name, ui_args);
         }
 
         ultralight::RefPtr<ultralight::View> GetView();
 
     private:
-        UiArg CallFunctionImpl(dxtl::cstring_view js_name, std::span<UiArg> args);
+        UiValue CallFunctionImpl(dxtl::cstring_view js_name, std::span<UiValue> args);
     };
 }

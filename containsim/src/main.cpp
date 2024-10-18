@@ -318,8 +318,23 @@ int main() {
             }
 
             if (test_func) {
-                ui_container.GetMainView().CallFunction("TestUiFunction", "Hello");
-                test_func = false;
+                try {
+                    ui_container.GetMainView().CallFunction("TestUiFunction", "Hello");
+
+                    auto ui_object = std::make_unique<services::UiObject>();
+                    ui_object->fields["first"] = 1337.f;
+                    ui_object->fields["second"] = "Hello, object";
+                    ui_container.GetMainView().CallFunction("TestUiFunction", std::move(ui_object));
+
+                    auto ui_array = std::make_unique<services::UiArray>();
+                    ui_array->elements.emplace_back(true);
+                    ui_array->elements.emplace_back(37.01f);
+                    ui_array->elements.emplace_back("Hello, array");
+                    ui_container.GetMainView().CallFunction("TestUiFunction", std::move(ui_array));
+                    test_func = false;
+                } catch (std::exception& e) {
+                    logger.warn(e.what());
+                }
             }
 
             ui_container.Update();
