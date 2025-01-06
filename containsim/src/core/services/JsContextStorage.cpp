@@ -6,18 +6,18 @@ using namespace ultralight;
 
 static UiValue JsToUiValue(const JSValue& js_arg) {
     if (js_arg.IsUndefined()) {
-        return UiUndefined{};
+        return UiValue::Make<UiTypes::Undefined>();
     } else if (js_arg.IsNull()) {
-        return UiNull{};
+        return UiValue::Make<UiTypes::Null>();
     } else if (js_arg.IsBoolean()) {
-        return js_arg.ToBoolean();
+        return UiValue::Make<UiTypes::Bool>(js_arg.ToBoolean());
     } else if (js_arg.IsNumber()) {
-        return js_arg.ToNumber();
+        return UiValue::Make<UiTypes::Double>(js_arg.ToNumber());
     } else if (js_arg.IsString()) {
         JSString js_str = js_arg.ToString();
         String ul_str = static_cast<String>(js_str);
 
-        return std::string(ul_str.utf8().data(), ul_str.utf8().sizeBytes());
+        return UiValue::Make<UiTypes::String>(std::string(ul_str.utf8().data(), ul_str.utf8().sizeBytes()));
     }
 
     throw std::runtime_error("Unimplemented JSValue possibility");
@@ -56,31 +56,38 @@ void JsContextStorage::DeleteFunction(dxtl::cstring_view js_name) {
 }
 
 static JSValue UiValueToJsValue(const UiValue& arg) {
-    return std::visit(dxtl::overloaded(
-        [&](UiUndefined) -> JSValue { return JSValueUndefinedTag{}; },
-        [&](UiNull) -> JSValue { return JSValueNullTag{}; },
-        [&](double o) -> JSValue { return o; },
-        [&](bool o) -> JSValue { return o; },
-        [&](const std::string& o) -> JSValue { return o.c_str(); },
-        [&](const std::unique_ptr<UiObject>& o) -> JSValue {
-            JSObject js_object{};
-            
-            for (const auto& [name, value] : o->fields) {
-                js_object[name.c_str()] = UiValueToJsValue(value);
-            }
+    auto ConvertUiObject = [](const auto& fields) -> JSValue {
+        JSObject js_object{};
+        
+        for (const auto& [name, value] : fields) {
+            js_object[name.c_str()] = UiValueToJsValue(value);
+        }
 
-            return (JSObjectRef) js_object;
-        },
-        [&](const std::unique_ptr<UiArray>& o) -> JSValue {
+        return (JSObjectRef) js_object;
+    };
+
+    auto ConvertUiArray = [](std::span<const UiValue> elements) -> JSValue {
             JSArray js_array{};
 
-            for (const auto& e : o->elements) {
+            for (const auto& e : elements) {
                 js_array.push(UiValueToJsValue(e));
             }
 
             return (JSObjectRef) js_array;
-        }
-    ), arg);
+    };
+
+    return arg.Visit(dxtl::overloaded(
+        [&](UiUndefined) -> JSValue { return JSValueUndefinedTag{}; },
+        [&](UiNull) -> JSValue { return JSValueNullTag{}; },
+        [&](bool o) -> JSValue { return o; },
+        [&](double o) -> JSValue { return o; },
+        [&](const std::string& o) -> JSValue { return o.c_str(); },
+        [&](dxtl::cstring_view o) -> JSValue { return o.c_str(); },
+        [&](const UiObject& o) -> JSValue { return ConvertUiObject(o.fields); },
+        [&](UiObjectView o) -> JSValue { return ConvertUiObject(*o.fields); },
+        [&](const UiArray& o) -> JSValue { return ConvertUiArray(o.elements); },
+        [&](UiArrayView o) -> JSValue { return ConvertUiArray(o.elements); }
+    ));
 }
 
 UiValue JsContextStorage::CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args) {

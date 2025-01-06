@@ -39,7 +39,6 @@ using namespace dxgl;
 
 static bool is_ui_loaded = true;
 static bool toggle_ui{};
-static bool test_func{};
 
 struct InputResults {
     glm::vec2 camera_movement{};
@@ -50,10 +49,6 @@ struct GlobalActions : ActionConsumer {
         const KeyPress* press = std::get_if<KeyPress>(&action.data);
         if (press != nullptr && press->IsDownKey(GLFW_KEY_P)) {
             toggle_ui ^= 1;
-        }
-
-        if (press != nullptr && press->dir == ButtonDir::Down) {
-            test_func = true;
         }
     }
 };
@@ -247,7 +242,7 @@ int main() {
         ui_container.GetMainView()
             .RegisterCallback(
                 "SelectTileToPlace",
-                services::MakeUiCallback<std::string>([&](std::string str) {
+                services::MakeUiCallback<UiTypes::String>([&](std::string str) {
                     std::underlying_type_t<TileType> type_i{};
                     std::from_chars(str.data(), str.data() + str.size(), type_i);
 
@@ -315,26 +310,6 @@ int main() {
 
                 is_ui_loaded ^= true;
                 toggle_ui = false;
-            }
-
-            if (test_func) {
-                try {
-                    ui_container.GetMainView().CallFunction("TestUiFunction", "Hello");
-
-                    auto ui_object = std::make_unique<services::UiObject>();
-                    ui_object->fields["first"] = 1337.f;
-                    ui_object->fields["second"] = "Hello, object";
-                    ui_container.GetMainView().CallFunction("TestUiFunction", std::move(ui_object));
-
-                    auto ui_array = std::make_unique<services::UiArray>();
-                    ui_array->elements.emplace_back(true);
-                    ui_array->elements.emplace_back(37.01f);
-                    ui_array->elements.emplace_back("Hello, array");
-                    ui_container.GetMainView().CallFunction("TestUiFunction", std::move(ui_array));
-                    test_func = false;
-                } catch (std::exception& e) {
-                    logger.warn(e.what());
-                }
             }
 
             ui_container.Update();

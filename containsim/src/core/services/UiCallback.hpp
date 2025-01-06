@@ -1,7 +1,8 @@
 #pragma once
 
-#include <services/UiValue.hpp>
+#include <common/UiValue.hpp>
 
+#include <concepts>
 #include <stdexcept>
 #include <functional>
 #include <span>
@@ -29,7 +30,7 @@ namespace services {
     };
 
 
-    template<typename... Args>
+    template<UiTypes... Args>
     UiCallback MakeUiCallback(auto&& func) {
         namespace mp = boost::mp11;
 
@@ -47,17 +48,18 @@ namespace services {
                 }
 
                 if constexpr (sizeof...(Args) > 0) {
-                    std::tuple<std::remove_cvref_t<Args>...> extracted_args{};
+                    constexpr UiTypes arg_types[] = {Args...}; // NOLINT
+                    std::tuple<std::remove_cvref_t<decltype(std::declval<UiValue>().Get<Args>())>...> extracted_args{};
 
                     mp::tuple_for_each(extracted_args, [&input_args, i = 0](auto&& output_arg) mutable {
                         using OutputArgType = std::remove_cvref_t<decltype(output_arg)>;
                         auto& input_arg = input_args[i];
 
-                        if (!std::holds_alternative<OutputArgType>(input_arg)) {
+                        if (!input_arg.Holds(arg_types[i])) {
                             throw UiCallback::ArgTypeMismatchError(i);
                         }
 
-                        output_arg = std::move(std::get<OutputArgType>(input_arg));
+                        output_arg = std::move(std::get<OutputArgType>(input_arg.GetVariant()));
                         i++;
                     });
 

@@ -24,6 +24,7 @@ Checks: '
     -cppcoreguidelines-non-private-member-variables-in-classes,
     -cppcoreguidelines-avoid-reference-coroutine-parameters,
     -cppcoreguidelines-rvalue-reference-param-not-moved,
+    -cppcoreguidelines-avoid-do-while,
   misc-*,
     -misc-non-private-member-variables-in-classes,
     -misc-no-recursion,
