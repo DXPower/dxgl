@@ -14,7 +14,7 @@ class Concrete extends HTMLElement {
 
         const data_source = this.getAttribute("data-source");
 
-        if (data_source == null && typeof data_source === "string" && data_source.length > 0)
+        if (data_source == null || typeof data_source != "string" || data_source.length == 0)
             throw "data-source string attribute of non-zero length required for concrete element";
         
         if (concretions.has(data_source))
@@ -61,6 +61,6 @@ class Concrete extends HTMLElement {
     }
 }
 
-window.onload = () => {
+window.addEventListener("load", () => {
     customElements.define("concrete-mixer", Concrete);
-}
+});

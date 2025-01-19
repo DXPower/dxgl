@@ -30,7 +30,7 @@ namespace services {
         void MakeFunction(dxtl::cstring_view js_name, UiCallback&& callback);
         void DeleteFunction(dxtl::cstring_view js_name);
 
-        UiValue CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args);
+        UiValue CallFunction(dxtl::cstring_view js_name, const UiArgs& args);
 
         ultralight::RefPtr<ultralight::JSContext> LockAndSetJsContext();
         

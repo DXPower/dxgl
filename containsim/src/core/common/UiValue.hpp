@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <type_traits>
-#include <boost/intrusive/list.hpp>
+#include <boost/intrusive/slist.hpp>
 
 namespace detail {
     template<typename T> 
@@ -58,7 +58,7 @@ enum class UiTypes {
     ArrayView
 };
 
-class UiValue {
+class UiValue : public boost::intrusive::slist_base_hook<> {
     using Data = std::variant<UiUndefined, UiNull, bool, double, std::string, dxtl::cstring_view, UiObject, UiObjectView, UiArray, UiArrayView>;
     Data m_data{};
 
@@ -116,6 +116,8 @@ public:
             return UiValue::Make<UiTypes::Array>(std::forward<T>(o));
         } else if constexpr (::detail::IsSpan<D> || std::is_same_v<UiArrayView, D>) {
             return UiValue::Make<UiTypes::ArrayView>(std::forward<T>(o));
+        } else if constexpr (std::is_same_v<UiValue, D>) {
+            return std::forward<T>(o);
         }
 
         // TODO: Replace with static_assert once DR goes into Clang
@@ -227,8 +229,4 @@ public:
     const auto& GetVariant() const { return m_data; }
 };
 
-struct UiArg : boost::intrusive::list_base_hook<> { };
-
-class UiArgs {
-
-};
+using UiArgs = boost::intrusive::slist<UiValue, boost::intrusive::cache_last<true>>;

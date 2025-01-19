@@ -303,7 +303,7 @@ void UiView::UnregisterCallback(dxtl::cstring_view js_name) {
     m_pimpl->js_context.DeleteFunction(js_name);
 }
 
-UiValue UiView::CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args) {
+UiValue UiView::CallFunction(dxtl::cstring_view js_name, const UiArgs& args) {
     return m_pimpl->js_context.CallFunction(js_name, args);
 }
 

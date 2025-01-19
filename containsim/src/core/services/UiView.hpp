@@ -51,12 +51,17 @@ namespace services {
 
         template<typename... T>
         UiValue CallFunction(dxtl::cstring_view js_name, std::in_place_t, T&&... args) {
-            std::array<UiValue, sizeof...(T)> ui_args{UiValue::Infer(std::forward<T>(args))...};
+            std::array<UiValue, sizeof...(T)> inferred{UiValue::Infer(std::forward<T>(args))...};
+            UiArgs ui_args{};
+
+            for (auto& o : inferred) {
+                ui_args.push_back(o);
+            }
 
             return CallFunction(js_name, ui_args);
         }
 
-        UiValue CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args);
+        UiValue CallFunction(dxtl::cstring_view js_name, const UiArgs& args);
 
         ultralight::RefPtr<ultralight::View> GetView();
     };

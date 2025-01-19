@@ -4,23 +4,60 @@
 using namespace services;
 using namespace ultralight;
 
-static UiValue JsToUiValue(const JSValue& js_arg) {
-    if (js_arg.IsUndefined()) {
-        return UiValue::Make<UiTypes::Undefined>();
-    } else if (js_arg.IsNull()) {
-        return UiValue::Make<UiTypes::Null>();
-    } else if (js_arg.IsBoolean()) {
-        return UiValue::Make<UiTypes::Bool>(js_arg.ToBoolean());
-    } else if (js_arg.IsNumber()) {
-        return UiValue::Make<UiTypes::Double>(js_arg.ToNumber());
-    } else if (js_arg.IsString()) {
-        JSString js_str = js_arg.ToString();
-        String ul_str = static_cast<String>(js_str);
+namespace {
+    UiValue JsToUiValue(const JSValue& js_arg) {
+        if (js_arg.IsUndefined()) {
+            return UiValue::Make<UiTypes::Undefined>();
+        } else if (js_arg.IsNull()) {
+            return UiValue::Make<UiTypes::Null>();
+        } else if (js_arg.IsBoolean()) {
+            return UiValue::Make<UiTypes::Bool>(js_arg.ToBoolean());
+        } else if (js_arg.IsNumber()) {
+            return UiValue::Make<UiTypes::Double>(js_arg.ToNumber());
+        } else if (js_arg.IsString()) {
+            JSString js_str = js_arg.ToString();
+            String ul_str = static_cast<String>(js_str);
 
-        return UiValue::Make<UiTypes::String>(std::string(ul_str.utf8().data(), ul_str.utf8().sizeBytes()));
+            return UiValue::Make<UiTypes::String>(std::string(ul_str.utf8().data(), ul_str.utf8().sizeBytes()));
+        }
+
+        throw std::runtime_error("Unimplemented JSValue possibility");
     }
 
-    throw std::runtime_error("Unimplemented JSValue possibility");
+    JSValue UiValueToJsValue(const UiValue& arg) {
+        auto ConvertUiObject = [](const auto& fields) -> JSValue {
+            JSObject js_object{};
+            
+            for (const auto& [name, value] : fields) {
+                js_object[name.c_str()] = UiValueToJsValue(value);
+            }
+
+            return (JSObjectRef) js_object;
+        };
+
+        auto ConvertUiArray = [](std::span<const UiValue> elements) -> JSValue {
+                JSArray js_array{};
+
+                for (const auto& e : elements) {
+                    js_array.push(UiValueToJsValue(e));
+                }
+
+                return (JSObjectRef) js_array;
+        };
+
+        return arg.Visit(dxtl::overloaded(
+            [&](UiUndefined) -> JSValue { return JSValueUndefinedTag{}; },
+            [&](UiNull) -> JSValue { return JSValueNullTag{}; },
+            [&](bool o) -> JSValue { return o; },
+            [&](double o) -> JSValue { return o; },
+            [&](const std::string& o) -> JSValue { return o.c_str(); },
+            [&](dxtl::cstring_view o) -> JSValue { return o.c_str(); },
+            [&](const UiObject& o) -> JSValue { return ConvertUiObject(o.fields); },
+            [&](UiObjectView o) -> JSValue { return ConvertUiObject(*o.fields); },
+            [&](const UiArray& o) -> JSValue { return ConvertUiArray(o.elements); },
+            [&](UiArrayView o) -> JSValue { return ConvertUiArray(o.elements); }
+        ));
+    }
 }
 
 JsContextStorage::JsContextStorage(RefPtr<View> view)
@@ -55,48 +92,10 @@ void JsContextStorage::DeleteFunction(dxtl::cstring_view js_name) {
     window.DeleteProperty(js_name.c_str());
 }
 
-static JSValue UiValueToJsValue(const UiValue& arg) {
-    auto ConvertUiObject = [](const auto& fields) -> JSValue {
-        JSObject js_object{};
-        
-        for (const auto& [name, value] : fields) {
-            js_object[name.c_str()] = UiValueToJsValue(value);
-        }
-
-        return (JSObjectRef) js_object;
-    };
-
-    auto ConvertUiArray = [](std::span<const UiValue> elements) -> JSValue {
-            JSArray js_array{};
-
-            for (const auto& e : elements) {
-                js_array.push(UiValueToJsValue(e));
-            }
-
-            return (JSObjectRef) js_array;
-    };
-
-    return arg.Visit(dxtl::overloaded(
-        [&](UiUndefined) -> JSValue { return JSValueUndefinedTag{}; },
-        [&](UiNull) -> JSValue { return JSValueNullTag{}; },
-        [&](bool o) -> JSValue { return o; },
-        [&](double o) -> JSValue { return o; },
-        [&](const std::string& o) -> JSValue { return o.c_str(); },
-        [&](dxtl::cstring_view o) -> JSValue { return o.c_str(); },
-        [&](const UiObject& o) -> JSValue { return ConvertUiObject(o.fields); },
-        [&](UiObjectView o) -> JSValue { return ConvertUiObject(*o.fields); },
-        [&](const UiArray& o) -> JSValue { return ConvertUiArray(o.elements); },
-        [&](UiArrayView o) -> JSValue { return ConvertUiArray(o.elements); }
-    ));
-}
-
-UiValue JsContextStorage::CallFunction(dxtl::cstring_view js_name, std::span<UiValue> args) {
+UiValue JsContextStorage::CallFunction(dxtl::cstring_view js_name, const UiArgs& args) {
     auto scoped_context = LockAndSetJsContext();
 
     JSObject window = JSGlobalObject();
-
-    // if (window.HasProperty(js_name.c_str()))
-    //     throw std::runtime_error(std::format("Attempt to call function '{}' that doesn't exist in window", js_name.c_str()));
 
     JSPropertyValue window_func = window[js_name.c_str()];
 
@@ -128,7 +127,7 @@ void JsContextStorage::HandleUiCallback(std::string js_name, const JSObject& thi
         std::vector<UiValue> cpp_args{};
         cpp_args.reserve(js_args.size());
 
-        for (const auto& js_arg : std::ranges::subrange(js_args.data(), js_args.data() + js_args.size())) {
+        for (const auto& js_arg : std::ranges::subrange(js_args.data(), js_args.data() + js_args.size())) { // NOLINT
             cpp_args.push_back(JsToUiValue(js_arg));
         }
 
