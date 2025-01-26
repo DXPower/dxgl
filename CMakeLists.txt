@@ -7,8 +7,10 @@ project(dxgl
 )
 
 message(STATUS "Compiling with C++ flags: " ${CMAKE_CXX_FLAGS})
+message("BOOST_ROOT: " $ENV{BOOST_ROOT})
 
-find_package(Boost 1.62.0)
+cmake_policy(SET CMP0167 OLD)
+find_package(Boost 1.87.0)
 
 if(NOT Boost_FOUND)
   message(FATAL_ERROR "Boost not found")

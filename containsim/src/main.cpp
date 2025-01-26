@@ -6,7 +6,7 @@
 
 #include <flecs.h>
 #include <glad/glad.h>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <dxgl/Application.hpp>
 #include <dxgl/Screenbuffer.hpp>
@@ -23,9 +23,7 @@
 #include <services/TileGridKgr.hpp>
 #include <services/TileGridRendererKgr.hpp>
 #include <services/InputHandlerKgr.hpp>
-#include <services/UiViewKgr.hpp>
-#include <services/UiContainer.hpp>
-#include <services/ActionRouter.hpp>
+#include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
 #include <services/WindowService.hpp>
 #include <services/CameraKgr.hpp>
@@ -37,18 +35,21 @@
 
 using namespace dxgl;
 
-static bool is_ui_loaded = true;
-static bool toggle_ui{};
+// static bool is_ui_loaded = true;
+// static bool toggle_ui{};
 
 struct InputResults {
     glm::vec2 camera_movement{};
 };
 
+bool cycle_tiles = false;
+
 struct GlobalActions : ActionConsumer {
     void Consume(Action&& action) override {
         const KeyPress* press = std::get_if<KeyPress>(&action.data);
-        if (press != nullptr && press->IsDownKey(GLFW_KEY_P)) {
-            toggle_ui ^= 1;
+        if (press != nullptr && press->IsDownKey(GLFW_KEY_E)) {
+            // toggle_ui ^= 1;
+            cycle_tiles = true;
         }
     }
 };
@@ -79,7 +80,6 @@ InputResults ProcessInput(GLFWwindow* window) {
     return result;
 }
 
-bool cycle_tiles = false;
 
 void Clear() {
     glClearColor(0.1f, 0.2f, 0.4f, 1.0f); // NOLINT
@@ -182,25 +182,29 @@ int main() {
 
         SetTiles();
 
-        services::UiContainer ui_container(main_window, debug_window);
-        main_di.emplace<services::UiViewService>(ui_container.GetMainView());
-        ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
+        // services::UiContainer ui_container(main_window, debug_window);
+        // main_di.emplace<services::UiViewService>(ui_container.GetMainView());
+        // ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
         
         main_window.OnResize([&](glm::ivec2 size) {
             main_screen_buffer.Resize(size);
             camera.UpdateViewportSize(size);
-            ui_container.GetMainView().Resize(size);
+            // ui_container.GetMainView().Resize(size);
         });
 
         debug_window.OnResize([&](glm::ivec2 size) {
-            ui_container.GetInspectorView().Resize(size);
+            // ui_container.GetInspectorView().Resize(size);
         });
 
         float last_time{};
         constexpr float camera_speed = 350.f;
 
         auto& debug_input = debug_di.service<kgr::service_for<services::InputHandler>>();
-        chain::Connect(debug_input.actions_out, ui_container.GetInspectorView());
+        chain::ConnectToNull(debug_input.actions_out);
+
+
+        main_di.service<services::BasicMouseTesterService>();
+        // kgr::debug::service<services::BasicMouseTesterService>();
 
         auto input_router = main_di.service<services::ActionRouterService>();
 
@@ -212,7 +216,7 @@ int main() {
 
         chain::Connect(input_router.game_action_receiver, input_state);
         chain::Connect(input_router.offscreen_action_receiver, input_state);
-        chain::Connect(input_router.ui_action_receiver, ui_container.GetMainView());
+        chain::ConnectToNull(input_router.ui_action_receiver);
 
         GlobalActions global_actions{};
 
@@ -221,55 +225,55 @@ int main() {
         chain::Connect(build_input.uncaptured_actions, global_actions);
         chain::Connect(input_state.idle_actions, global_actions);
         
-        ui_container.GetMainView()
-            .RegisterCallback(
-                "EnterBuildMode",
-                services::MakeUiCallback([&]() {
-                    logger.info("EnterBuildMode");
-                    input_state.EnterBuildMode();
-                })
-            );
+        // ui_container.GetMainView()
+        //     .RegisterCallback(
+        //         "EnterBuildMode",
+        //         services::MakeUiCallback([&]() {
+        //             logger.info("EnterBuildMode");
+        //             input_state.EnterBuildMode();
+        //         })
+        //     );
 
-        ui_container.GetMainView()
-            .RegisterCallback(
-                "ExitBuildMode",
-                services::MakeUiCallback([&]() {
-                    logger.info("ExitBuildMode");
-                    input_state.ExitMode();
-                })
-            );
+        // ui_container.GetMainView()
+        //     .RegisterCallback(
+        //         "ExitBuildMode",
+        //         services::MakeUiCallback([&]() {
+        //             logger.info("ExitBuildMode");
+        //             input_state.ExitMode();
+        //         })
+        //     );
 
-        ui_container.GetMainView()
-            .RegisterCallback(
-                "SelectTileToPlace",
-                services::MakeUiCallback<UiTypes::String>([&](std::string str) {
-                    std::underlying_type_t<TileType> type_i{};
-                    std::from_chars(str.data(), str.data() + str.size(), type_i);
+        // ui_container.GetMainView()
+        //     .RegisterCallback(
+        //         "SelectTileToPlace",
+        //         services::MakeUiCallback<UiTypes::String>([&](std::string str) {
+        //             std::underlying_type_t<TileType> type_i{};
+        //             std::from_chars(str.data(), str.data() + str.size(), type_i);
 
-                    logger.info("SelectTileToPlace: {}", type_i);
-                    auto type = static_cast<TileType>(type_i);
+        //             logger.info("SelectTileToPlace: {}", type_i);
+        //             auto type = static_cast<TileType>(type_i);
 
-                    build_input.SelectTileToPlace(type);
-                })
-            );
+        //             build_input.SelectTileToPlace(type);
+        //         })
+        //     );
 
-        ui_container.GetMainView()
-            .RegisterCallback(
-                "EnterDeleteMode",
-                services::MakeUiCallback<>([&] {
-                    logger.info("EnterDeleteMode");
-                    build_input.EnterDeleteMode();
-                })
-            );
+        // ui_container.GetMainView()
+        //     .RegisterCallback(
+        //         "EnterDeleteMode",
+        //         services::MakeUiCallback<>([&] {
+        //             logger.info("EnterDeleteMode");
+        //             build_input.EnterDeleteMode();
+        //         })
+        //     );
 
-        ui_container.GetMainView()
-            .RegisterCallback(
-                "ExitDeleteMode",
-                services::MakeUiCallback<>([&] {
-                    logger.info("ExitDeleteMode");
-                    build_input.ExitMode();
-                })
-            );
+        // ui_container.GetMainView()
+        //     .RegisterCallback(
+        //         "ExitDeleteMode",
+        //         services::MakeUiCallback<>([&] {
+        //             logger.info("ExitDeleteMode");
+        //             build_input.ExitMode();
+        //         })
+        //     );
 
         while (!main_window.ShouldClose() && !debug_window.ShouldClose()) {
             main_screen_buffer.Use();
@@ -299,28 +303,28 @@ int main() {
             main_screen_buffer.Render();
 
             // Update and render UI
-            if (toggle_ui) {
-                if (is_ui_loaded) {
-                    logger.info("Unloading UI...");
-                    ui_container.GetMainView().LoadUrl("https://www.cloudflare.com/cdn-cgi/trace");
-                } else {
-                    logger.info("Loading UI...");
-                    ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
-                }
+            // if (toggle_ui) {
+            //     if (is_ui_loaded) {
+            //         logger.info("Unloading UI...");
+            //         ui_container.GetMainView().LoadUrl("https://www.cloudflare.com/cdn-cgi/trace");
+            //     } else {
+            //         logger.info("Loading UI...");
+            //         ui_container.GetMainView().LoadUrl("file:///game/ingame.html");
+            //     }
 
-                is_ui_loaded ^= true;
-                toggle_ui = false;
-            }
+            //     is_ui_loaded ^= true;
+            //     toggle_ui = false;
+            // }
 
-            ui_container.Update();
-            ui_container.Render();
+            // ui_container.Update();
+            // ui_container.Render();
 
             dxgl::Screenbuffer::Unuse();
 
-            ui_container.GetMainView().Render(draw_queues);
+            // ui_container.GetMainView().Render(draw_queues);
 
-            draw_queues.RenderQueuedDraws();
-            draw_queues.ClearQueuedDraws();
+            // draw_queues.RenderQueuedDraws();
+            // draw_queues.ClearQueuedDraws();
 
             main_window.SwapBuffers();
             main_window.PollEvents();
@@ -328,10 +332,10 @@ int main() {
             debug_window.MakeCurrent();
             Clear();
 
-            ui_container.GetInspectorView().Render(draw_queues);
+            // ui_container.GetInspectorView().Render(draw_queues);
 
-            draw_queues.RenderQueuedDraws();
-            draw_queues.ClearQueuedDraws();
+            // draw_queues.RenderQueuedDraws();
+            // draw_queues.ClearQueuedDraws();
 
             debug_window.SwapBuffers();
             debug_window.PollEvents();

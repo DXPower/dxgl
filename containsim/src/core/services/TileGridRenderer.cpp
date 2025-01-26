@@ -8,7 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <glm/gtx/matrix_transform_2d.hpp>
-#include <magic_enum_containers.hpp>
+#include <magic_enum/magic_enum_containers.hpp>
 #include <nlohmann/json.hpp>
 
 using namespace services;

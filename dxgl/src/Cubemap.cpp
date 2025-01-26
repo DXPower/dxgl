@@ -20,7 +20,8 @@ void Cubemap::Load(std::span<const TextureSource, 6> faces) {
     for (std::size_t i = 0; i < faces.size(); i++) {
         const auto& source = faces[i];
 
-        auto [w, h] = source.GetDims();
+        auto w = source.GetDims().x;
+        auto h = source.GetDims().y;
 
         int gl_format{};
         switch (source.GetFormat()) {

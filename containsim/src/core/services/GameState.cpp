@@ -4,7 +4,7 @@
 #include <format>
 #include <string_view>
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <cofsm/CoFSM.hpp>
 
 using namespace services;

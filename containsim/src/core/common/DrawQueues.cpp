@@ -2,7 +2,7 @@
 #include "common/Rendering.hpp"
 #include <common/DrawQueues.hpp>
 
-#include <magic_enum_utility.hpp>
+#include <magic_enum/magic_enum_utility.hpp>
 
 void DrawQueues::QueueOwnedDraw(RenderLayer layer, dxgl::Draw&& draw) {
     m_owned_draws[layer].push_back(std::move(draw));

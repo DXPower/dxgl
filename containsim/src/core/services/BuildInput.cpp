@@ -1,8 +1,8 @@
 #include <services/BuildInput.hpp>
 #include <services/Logging.hpp>
 
-#include <magic_enum.hpp>
-#include <glfw/glfw3.h>
+#include <magic_enum/magic_enum.hpp>
+#include <GLFW/glfw3.h>
 
 #include <dxfsm/dxfsm.hpp>
 

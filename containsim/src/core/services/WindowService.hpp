@@ -6,7 +6,7 @@
 
 namespace services {
     struct WindowService 
-        : kgr::single_service<dxgl::Window>
+        : kgr::autowire_single_service<dxgl::Window>
         , kgr::polymorphic
         , kgr::supplied
     { };

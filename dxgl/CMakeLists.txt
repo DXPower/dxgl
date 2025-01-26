@@ -1,24 +1,29 @@
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/glad)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/glfw)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/glm)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/glfw)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/glm)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/stb)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/tiny_obj_loader)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/tiny_obj_loader)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dxtl)
+
+find_package(GLFW3 REQUIRED)
+find_package(glm REQUIRED)
 
 add_library(dxgl)
 target_include_directories(dxgl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-target_include_directories(dxgl SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+target_include_directories(dxgl SYSTEM PRIVATE ${GLFW3_INCLUDE_DIR})
+# target_include_directories(dxgl SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 
 
 target_link_libraries(dxgl 
     PUBLIC 
         dxtl
-        glm
+        glm::glm
+		Boost::boost
     PRIVATE
-        glfw
+		${GLFW3_LIBRARY}
         glad
         stb
-        tiny_obj_loader
+        # tiny_obj_loader
 )
 
 target_sources(dxgl PRIVATE

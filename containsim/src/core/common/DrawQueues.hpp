@@ -3,10 +3,7 @@
 #include <common/Rendering.hpp>
 #include <dxgl/Draw.hpp>
 
-#include <queue>
-#include <map>
-
-#include <magic_enum_containers.hpp>
+#include <magic_enum/magic_enum_containers.hpp>
 
 class DrawQueues {
     magic_enum::containers::array<RenderLayer, std::vector<dxgl::Draw>> m_owned_draws{};

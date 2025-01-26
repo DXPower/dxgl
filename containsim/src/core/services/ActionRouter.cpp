@@ -1,7 +1,7 @@
 #include <services/ActionRouter.hpp>
 
 #include <dxtl/overloaded.hpp>
-#include <magic_enum_containers.hpp>
+#include <magic_enum/magic_enum_containers.hpp>
 
 using namespace services;
 

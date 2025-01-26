@@ -56,7 +56,7 @@ Texture::Texture(const TextureSource& source) : Texture() {
 void Texture::Load(const TextureSource& source) {
     glBindTexture(GL_TEXTURE_2D, handle);
 
-    auto [w, h] = size = source.GetDims();
+    size = source.GetDims();
 
     int gl_format;
     switch (source.GetFormat()) {
@@ -70,7 +70,7 @@ void Texture::Load(const TextureSource& source) {
         // default: std::unreachable();
     }
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, gl_format, GL_UNSIGNED_BYTE, source.GetData());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, gl_format, GL_UNSIGNED_BYTE, source.GetData());
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
