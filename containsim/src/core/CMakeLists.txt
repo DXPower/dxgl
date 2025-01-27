@@ -12,6 +12,8 @@ target_link_libraries(containsim_core PUBLIC
     magic_enum::magic_enum
     spdlog::spdlog
     nano
+    RmlUi::RmlUi
+    RmlUi_Backends
 )
 
 target_compile_definitions(containsim_core PRIVATE _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING GLM_ENABLE_EXPERIMENTAL)

@@ -1,5 +1,3 @@
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nano)
-
 find_package(spdlog REQUIRED)
 find_package(dxfsm REQUIRED)
 find_package(kangaru REQUIRED)
@@ -7,6 +5,11 @@ find_package(chain REQUIRED)
 find_package(flecs REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(magic_enum REQUIRED)
+find_package(RmlUi REQUIRED)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/nano)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dep/RmlUi_Backends)
+
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)

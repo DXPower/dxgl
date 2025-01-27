@@ -20,10 +20,11 @@
             "CMAKE_CXX_EXTENSIONS": "OFF",
             "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPTS}",
             "CMAKE_EXPORT_COMPILE_COMMANDS": "True",
-            "CMAKE_PREFIX_PATH": "C:/Users/myaka/Documents/Code/CMakeModules",
-            "CMAKE_MODULE_PATH": "C:/Users/myaka/Documents/Code/CMakeModules",
-            "GLFW3_ROOT": "c:/Users/myaka/Documents/Code/CMakeModules/glfw3",
-            "BOOST_ROOT": "C:\\Users\\myaka\\Documents\\Code\\boost_1_87_0"
+            "CMAKE_PREFIX_PATH": "C:\\Users\\myaka\\Documents\\Code\\CMakeModules",
+            "CMAKE_MODULE_PATH": "C:\\Users\\myaka\\Documents\\Code\\CMakeModules",
+            "GLFW3_ROOT": "c:\\Users\\myaka\\Documents\\Code\\CMakeModules\\glfw3",
+            "BOOST_ROOT": "C:\\Users\\myaka\\Documents\\Code\\boost_1_87_0",
+            "Freetype_ROOT": "C:\\Users\\myaka\\Documents\\Code\\CMakeModules\\Freetype"
         },
         "environment": {
             "CXX_WARNINGS": "-Wall -Wextra -Werror -Wno-error=unused-variable -Wno-error=unused-function",
