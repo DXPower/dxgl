@@ -16,7 +16,7 @@ namespace {
 }
 
 
-BuildInput::BuildInput() {
+BuildInput::BuildInput(EventManager& em) {
     m_logger.set_level(spdlog::level::debug);
     
     using enum StateId;
@@ -55,6 +55,9 @@ BuildInput::BuildInput() {
     
     // SelectWorldTile
     m_fsm.AddTransition(IdleMode, SelectWorldTile, WorldTileSelectedMode);
+
+    em.GetOrRegisterSignal<commands::BuildInputCommand>()
+        .signal.connect<&BuildInput::ProcessBuiltInputCommand>(this);
 }
 
 // auto BuildInput::StateIdle(FSM_t& fsm, StateId) -> State_t {
@@ -230,10 +233,6 @@ void BuildInput::Consume(Action&& action) {
     }, action.data);
 }
 
-void BuildInput::Consume(commands::BuildInputCommandPtr&& command) {
-    command->Execute(*this);
-}
-
 void BuildInput::EnterDeleteMode() {
     m_fsm.InsertEvent(EventId::BeginDeleting);
 }
@@ -245,4 +244,8 @@ void BuildInput::SelectTileToPlace(TileType tile) {
 void BuildInput::ExitMode() {
     m_logger.info("Sending exit mode...");
     m_fsm.InsertEvent(EventId::ExitMode);
+}
+
+void BuildInput::ProcessBuiltInputCommand(const commands::BuildInputCommand& cmd) {
+    cmd.Execute(*this);
 }

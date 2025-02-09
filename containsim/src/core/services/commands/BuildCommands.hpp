@@ -14,7 +14,7 @@ namespace services {
             TileType type{};
             TileCoord coord{};
 
-            void Execute(BuildManager& manager) override;
+            void Execute(BuildManager& manager) const override;
         };
     }
 }

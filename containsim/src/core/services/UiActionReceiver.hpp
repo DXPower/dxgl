@@ -46,7 +46,7 @@ namespace services {
                     return c;
                 },
                 [&](const ScrollInput& scroll) {
-                    bool c = !RmlGLFW::ProcessScrollCallback(m_context, scroll.amount.y, 0);
+                    bool c = !RmlGLFW::ProcessScrollCallback(m_context, scroll.amount.x, scroll.amount.y, 0);
                     c |= m_context->IsMouseInteracting();
                     return c;
                 }

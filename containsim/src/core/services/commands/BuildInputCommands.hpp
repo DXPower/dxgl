@@ -13,15 +13,11 @@ namespace services {
         struct SelectTile : BuildInputCommand {
             TileType type{};
 
-            void Execute(BuildInput& fsm) override;
-        };
-
-        struct EnterBuildMode : BuildInputCommand {
-            void Execute(BuildInput& fsm) override;
+            void Execute(BuildInput& fsm) const override;
         };
 
         struct ExitBuildMode : BuildInputCommand {
-            void Execute(BuildInput& fsm) override;
+            void Execute(BuildInput& fsm) const override;
         };
 
         // These are implemented the same for now

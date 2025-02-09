@@ -5,15 +5,15 @@
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/InputStateCommands.hpp>
 #include <services/Logging.hpp>
-
+#include <services/EventManager.hpp>
 #include <dxfsm/dxfsm.hpp>
 
 namespace services {
     class BuildInput;
 
     class InputState 
-        : public commands::CommandConsumer<commands::InputStateCommand>
-        , public ActionConsumer {
+        // : public commands::CommandConsumer<commands::InputStateCommand>
+        : public ActionConsumer {
     
         enum class StateId {
             IdleMode,
@@ -32,17 +32,20 @@ namespace services {
         using State_t = FSM_t::State_t;
         using Event_t = FSM_t::Event_t;
         FSM_t m_fsm{};
+        EventManager* m_event_manager{};
+        ActionProducer* m_action_forward{};
         
         logging::Logger m_logger{"InputState"};
 
     public:
-        commands::CommandProducer<commands::BuildInputCommand> build_input_cmds{};
+        // commands::CommandProducer<commands::BuildInputCommand> build_input_cmds{};
         ActionProducer build_actions{};
         ActionProducer idle_actions{};
 
-        InputState(BuildInput& build_input);
+        InputState(EventManager& em, BuildInput& build_input);
 
-        void Consume(commands::InputStateCommandPtr&& cmd) override;
+        // void Consume(commands::InputStateCommandPtr&& cmd) override;
+        void ProcessCommand(const commands::InputStateCommand& cmd);
         void Consume(Action&& action) override;
 
         void EnterBuildMode();

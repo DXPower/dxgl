@@ -1,17 +1,20 @@
 #pragma once
 
-#include <services/commands/BuildInputCommands.hpp>
+// #include <services/commands/BuildInputCommands.hpp>
+#include <common/Tile.hpp>
+#include <services/EventManager.hpp>
 
 #include <common/ActionChain.hpp>
 #include <services/commands/CommandChains.hpp>
+#include <services/commands/BuildInputCommands.hpp>
 
 #include <dxfsm/dxfsm.hpp>
 #include <services/Logging.hpp>
 
 namespace services {
     class BuildInput 
-        : public ActionConsumer,
-          public commands::CommandConsumer<commands::BuildInputCommand>
+        : public ActionConsumer
+        //   public commands::CommandConsumer<commands::BuildInputCommand>
     {
     public:
         enum class StateId {
@@ -42,10 +45,10 @@ namespace services {
         logging::Logger m_logger = logging::CreateLogger("BuildInput");
 
     public:
-        BuildInput();
+        BuildInput(EventManager& em);
 
         void Consume(Action&& action) override;
-        void Consume(commands::BuildInputCommandPtr&& command) override;
+        // void Consume(commands::BuildInputCommandPtr&& command) override;
 
         void EnterDeleteMode();
         void SelectTileToPlace(TileType tile);
@@ -61,5 +64,7 @@ namespace services {
         State_t StatePlaceTile(FSM_t& fsm, StateId);
         State_t StateWorldTileSelected(FSM_t& fsm, StateId);
         State_t StateDelete(FSM_t& fsm, StateId);
+
+        void ProcessBuiltInputCommand(const commands::BuildInputCommand& cmd);
     };
 }

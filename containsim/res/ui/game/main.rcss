@@ -1,0 +1,46 @@
+#ui-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#bottom-bar {
+    margin-top: auto;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    background-color: grey;
+}
+
+.hgrid {
+    display: flex;
+    overflow-x: auto;
+}
+
+#bottom-bar .item {
+    width: 80dp;
+    height: 80dp;
+    margin-right: 15dp;
+    background-color:rgb(255, 0, 0);
+    flex-shrink: 0;
+}
+
+#bottom-bar .item:hover {
+    background-color: rgb(255, 94, 185);
+}
+
+body {
+    font-family: LatoLatin;
+    font-size: 30px;
+    width: 100%;
+    height: 100%;
+}
+
+.panel[panel-active=0] {
+    display: none;
+}
+
+.panel[panel-active=1] {
+    display: block;
+}

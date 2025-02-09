@@ -13,6 +13,7 @@ target_link_libraries(containsim_core PUBLIC
     spdlog::spdlog
     nano
     RmlUi::RmlUi
+    RmlUi::Debugger
     RmlUi_Backends
 )
 

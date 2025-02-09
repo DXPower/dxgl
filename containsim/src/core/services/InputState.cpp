@@ -1,22 +1,17 @@
 #include <services/InputState.hpp>
 #include <services/BuildInput.hpp>
+#include <services/ui/PanelCommands.hpp>
 #include <GLFW/glfw3.h>
 
 using namespace services;
 
-InputState::InputState(BuildInput& build_input) {
+InputState::InputState(EventManager& em, BuildInput& build_input) : m_event_manager(&em) {
     StateIdle(m_fsm, StateId::IdleMode);
     StateBuildActive(m_fsm, StateId::BuildActive);
     m_fsm.SetCurrentState(StateId::IdleMode);
 
     m_fsm.AddTransition(StateId::IdleMode, EventId::EnterBuildMode, StateId::BuildActive);
-
-    m_fsm.AddRemoteTransition(
-        StateId::BuildActive,
-        EventId::EnterBuildMode,
-        build_input.GetFsm(),
-        BuildInput::StateId::IdleMode,
-        BuildInput::EventId::Entry);
+    m_fsm.AddTransition(StateId::BuildActive, EventId::ExitMode, StateId::IdleMode);
 
     build_input.GetFsm().AddRemoteTransition(
         BuildInput::StateId::IdleMode,
@@ -25,6 +20,9 @@ InputState::InputState(BuildInput& build_input) {
         StateId::IdleMode,
         EventId::ExitMode
     );
+
+    em.RegisterSignal<commands::InputStateCommand>()
+        .signal.connect<&InputState::ProcessCommand>(this);
 }
 
 auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
@@ -34,8 +32,8 @@ auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
         m_logger.debug("In StateIdle");
 
         if (event == EventId::Action) {
-            auto& action = event.Get<Action>();
-            const auto* press = std::get_if<KeyPress>(&action.data);
+            auto& action = event.Get<Action*>();
+            const auto* press = std::get_if<KeyPress>(&action->data);
 
             if (press != nullptr) {
                 if (press->IsDownKey(GLFW_KEY_B)) {
@@ -48,7 +46,7 @@ auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
             }
 
             // Forward uncaptured actions to the next layer
-            idle_actions.Send(std::move(action));
+            m_action_forward = &idle_actions;
         }
 
         event.Clear();
@@ -63,7 +61,7 @@ auto InputState::StatePauseMenu(FSM_t& fsm, StateId) -> State_t {
         m_logger.debug("In StatePauseMenu");
 
         if (event == EventId::Action) {
-            const auto* press = std::get_if<KeyPress>(&event.Get<Action>().data);
+            const auto* press = std::get_if<KeyPress>(&event.Get<Action*>()->data);
 
             if (press->IsDownKey(GLFW_KEY_ESCAPE)) {
                 event = EventId::ExitMode;
@@ -79,26 +77,43 @@ auto InputState::StateBuildActive(FSM_t& fsm, StateId) -> State_t {
     Event_t event{};
 
     while (true) {
-        co_await fsm.EmitAndReceive(event);
-        m_logger.debug("In StateBuildActive");
+        auto leaving = co_await fsm.EmitAndReceiveResettable(event);
+
+        // If we're leaving this state, hide the build panel
+        if (leaving) {
+            ui::HidePanel cmd{};
+            cmd.name = "build-panel";
+            m_event_manager->GetSignal<ui::PanelCommand>()
+                .signal.fire(cmd);
+
+            continue;
+        }
 
         if (event == EventId::EnterBuildMode) {
-            // Just forward the event to trigger the remote transition to the Build FSM
-            continue;
+            // Just got here from another mode, show the build panel
+            ui::ShowPanel cmd{};
+            cmd.name = "build-panel";
+            m_event_manager->GetSignal<ui::PanelCommand>()
+                .signal.fire(cmd);
         } else if (event == EventId::Action) {
-            build_actions.Send(std::move(event.Get<Action>()));
+            m_action_forward = &build_actions;
         }
 
         event.Clear();
     }
 }
 
-void InputState::Consume(commands::InputStateCommandPtr&& cmd) {
-    cmd->Execute(*this);
+void InputState::ProcessCommand(const commands::InputStateCommand& cmd) {
+    cmd.Execute(*this);
 }
 
 void InputState::Consume(Action&& action) {
-    m_fsm.InsertEvent(EventId::Action, std::move(action));
+    m_fsm.InsertEvent(EventId::Action, &action);
+
+    if (m_action_forward != nullptr) {
+        m_action_forward->Send(std::move(action));
+        m_action_forward = nullptr;
+    }
 }
 
 void InputState::EnterBuildMode() {

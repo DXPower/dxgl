@@ -4,10 +4,10 @@
 using namespace services;
 using namespace services::commands;
 
-void SelectTile::Execute(BuildInput& fsm) {
+void SelectTile::Execute(BuildInput& fsm) const {
     fsm.SelectTileToPlace(type);
 }
 
-void ExitBuildMode::Execute(BuildInput& fsm) {
+void ExitBuildMode::Execute(BuildInput& fsm) const {
     fsm.ExitMode();
 }

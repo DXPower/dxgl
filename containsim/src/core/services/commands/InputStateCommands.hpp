@@ -10,11 +10,11 @@ namespace services {
         using InputStateCommandPtr = CommandPtr<InputStateCommand>;
 
         struct InputStateEnterBuildMode : InputStateCommand {
-            void Execute(InputState& input_state) override;
+            void Execute(InputState& input_state) const override;
         };
 
         struct InputStateExitMode : InputStateCommand {
-            void Execute(InputState& input_state) override;
+            void Execute(InputState& input_state) const override;
         };
     }
 }

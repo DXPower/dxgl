@@ -23,10 +23,3 @@ namespace services {
         }
     };
 }
-
-#include <services/interfaces/IMouseTesterKgr.hpp>
-
-namespace services {
-    struct BasicMouseTesterService : kgr::autowire_single_service<BasicMouseTester>, kgr::overrides<MouseTesterService> { };
-    // auto service_map(const BasicMouseTesterService&) -> BasicMouseTesterService;
-}

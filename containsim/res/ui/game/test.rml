@@ -2,12 +2,69 @@
 <head>
     <title>Hello world</title>
     <link type="text/rcss" href="rml.rcss"/>
-    <link type="text/rcss" href="window.rcss"/>
+    <link type="text/rcss" href="main.rcss"/>
 </head>
 <body>
-    <h1>RmlUi</h1>
-    <p>Hello <span id="world">world</span>!</p>
-    <p data-if="show_text">The quick brown fox jumps over the lazy.</p>
-    <input type="text" data-value="animal"/>
+    <div id="ui-contianer">
+        <div id="bottom-bar">
+            <button onclick="bc EnterBuildMode">Build</button>
+            <button onclick="bc ExitBuildMode">Exit Build</button>
+            <div id="build-panel" class="panel">
+                <div id="tile-choices" class="hgrid">
+                    <div class="item" onclick="bc SelectTileToPlace 0">
+                        <p>Grass</p>
+                    </div>
+                    <div class="item" onclick="bc SelectTileToPlace 1">
+                        <p>Dirt</p>
+                    </div>
+                    <div class="item">
+                        <p>Tile</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                    <div class="item">
+                        <p>Other</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </rml>

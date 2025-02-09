@@ -4,10 +4,10 @@
 using namespace services;
 using namespace commands;
 
-void InputStateEnterBuildMode::Execute(InputState& input_state) {
+void InputStateEnterBuildMode::Execute(InputState& input_state) const {
     input_state.EnterBuildMode();
 }
 
-void InputStateExitMode::Execute(InputState& input_state) {
+void InputStateExitMode::Execute(InputState& input_state) const {
     input_state.ExitMode();
 }

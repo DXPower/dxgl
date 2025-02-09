@@ -25,13 +25,17 @@
 #include <services/InputHandler.hpp>
 #include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
-#include <services/WindowService.hpp>
 #include <services/Camera.hpp>
 #include <RmlUi/Core.h>
 #include <RmlUi_Backends/RmlUi_Backend.h>
 #include <RmlUi_Backends/RmlUi_Renderer_GL3.h>
 #include <RmlUi_Backends/RmlUi_Platform_GLFW.h>
+#include <RmlUi/Debugger.h>
 #include <services/UiActionReceiver.hpp>
+#include <services/ui/Panel.hpp>
+#include <services/ui/BuildPanel.hpp>
+#include <services/ui/RmlEventManager.hpp>
+#include <services/EventManager.hpp>
 #include <common/GlobalConfig.hpp>
 
 #include <spdlog/spdlog.h>
@@ -44,12 +48,17 @@ struct InputResults {
 };
 
 static bool cycle_tiles = false;
+static bool toggle_debugger = false;
 
 struct GlobalActions : ActionConsumer {
     void Consume(Action&& action) override {
         const KeyPress* press = std::get_if<KeyPress>(&action.data);
         if (press != nullptr && press->IsDownKey(GLFW_KEY_E)) {
             cycle_tiles = true;
+        }
+
+        if (press != nullptr && press->IsDownKey(GLFW_KEY_F8)) {
+            toggle_debugger = true;
         }
     }
 };
@@ -128,16 +137,22 @@ int main() {
             &ui_actions
         ); 
 
-        ui_actions.SetContext(*rml_context);
-
-
         if (rml_context == nullptr) {
             throw std::runtime_error("Failed to create RmlUi context");
         }
 
+        rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
+
+        ui_actions.SetContext(*rml_context);
+        Rml::Debugger::Initialise(rml_context);
+
         if (!Rml::LoadFontFace("res/fonts/LatoLatin-Regular.ttf", true)) {
             throw std::runtime_error("Failed to load RmlUi font face");
         }
+
+        services::EventManager event_manager{};
+        services::ui::RmlEventManager ui_event_manager{event_manager};
+        Rml::Factory::RegisterEventListenerInstancer(&ui_event_manager);
 
         auto document = rml_context->LoadDocument("res/ui/game/test.rml");
 
@@ -146,6 +161,8 @@ int main() {
         }
 
         document->Show();
+
+        services::ui::BuildPanel build_panel{event_manager, *document};
 
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(initial_screen_size);
@@ -211,10 +228,11 @@ int main() {
             main_screen_buffer.Resize(size);
             camera.UpdateViewportSize(size);
             rml_context->SetDimensions(Rml::Vector2i(size.x, size.y));
+            rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
             rml_renderer.SetViewport(size.x, size.y);
         });
 
-        float last_time{};
+        double last_time{};
         constexpr float camera_speed = 350.f;
 
         services::BasicMouseTester mouse_tester{main_window, *rml_context};
@@ -225,8 +243,8 @@ int main() {
         chain::Connect(game_input.actions_out, ui_actions);
         chain::Connect(ui_actions.uncaptured_actions, input_router);
 
-        services::BuildInput build_input{};
-        services::InputState input_state{build_input};
+        services::BuildInput build_input{event_manager};
+        services::InputState input_state{event_manager, build_input};
 
         chain::Connect(input_router.game_action_receiver, input_state);
         chain::Connect(input_router.offscreen_action_receiver, input_state);
@@ -234,7 +252,7 @@ int main() {
 
         GlobalActions global_actions{};
 
-        chain::Connect(input_state.build_input_cmds, build_input);
+        // chain::Connect(input_state.build_input_cmds, build_input);
         chain::Connect(input_state.build_actions, build_input);
         chain::Connect(build_input.uncaptured_actions, global_actions);
         chain::Connect(input_state.idle_actions, global_actions);
@@ -289,16 +307,34 @@ int main() {
         //         })
         //     );
 
+
+        // auto panel_listener = std::make_shared<services::ui::PanelListener>(event_manager);
+        // ui_event_manager.AddEventListener(panel_listener);
+
+        // chain::Connect(panel_listener->build_input_cmds, build_input);
+
+
         while (!main_window.ShouldClose()) {
+            double current_time = Application::GetTime();
+            double delta_time_d = current_time - last_time;
+            
+            if (delta_time_d < 1./60) {
+                if (delta_time_d < 0.001) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+
+                continue;
+            }
+            
+            last_time = current_time;
+            float delta_time = static_cast<float>(delta_time_d);
+
             main_screen_buffer.Use();
             Clear();
             glDisable(GL_DEPTH_TEST);
             draw_queues = {};
 
             auto input [[maybe_unused]] = ProcessInput(main_window.GetGlfwWindow());
-            float current_time = (float) Application::GetTime();
-            float delta_time = current_time - last_time;
-            last_time = current_time;
 
             camera.MoveBy(input.camera_movement * camera_speed * delta_time);
 
@@ -317,6 +353,11 @@ int main() {
             main_screen_buffer.Render();
 
             dxgl::Screenbuffer::Unuse();
+
+            if (toggle_debugger) {
+                toggle_debugger = false;
+                Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
+            }
 
             rml_context->Update();
             rml_renderer.BeginFrame();

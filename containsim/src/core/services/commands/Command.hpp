@@ -7,7 +7,7 @@ namespace services::commands {
     struct Command {
         virtual ~Command() = default;
 
-        virtual void Execute(Executee& executee) = 0;
+        virtual void Execute(Executee& executee) const = 0;
     };
 
     template<typename CommandType>
