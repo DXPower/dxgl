@@ -35,6 +35,7 @@
 #include <services/ui/Panel.hpp>
 #include <services/ui/BuildPanel.hpp>
 #include <services/ui/RmlEventManager.hpp>
+#include <services/ui/InputStateBinding.hpp>
 #include <services/EventManager.hpp>
 #include <common/GlobalConfig.hpp>
 
@@ -151,6 +152,12 @@ int main() {
         }
 
         services::EventManager event_manager{};
+        services::ui::InputStateBinding input_state_binding{
+            services::InputStates::IdleMode,
+            *rml_context,
+            event_manager
+        };
+
         services::ui::RmlEventManager ui_event_manager{event_manager};
         Rml::Factory::RegisterEventListenerInstancer(&ui_event_manager);
 
@@ -256,63 +263,6 @@ int main() {
         chain::Connect(input_state.build_actions, build_input);
         chain::Connect(build_input.uncaptured_actions, global_actions);
         chain::Connect(input_state.idle_actions, global_actions);
-        
-        // ui_container.GetMainView()
-        //     .RegisterCallback(
-        //         "EnterBuildMode",
-        //         services::MakeUiCallback([&]() {
-        //             logger.info("EnterBuildMode");
-        //             input_state.EnterBuildMode();
-        //         })
-        //     );
-
-        // ui_container.GetMainView()
-        //     .RegisterCallback(
-        //         "ExitBuildMode",
-        //         services::MakeUiCallback([&]() {
-        //             logger.info("ExitBuildMode");
-        //             input_state.ExitMode();
-        //         })
-        //     );
-
-        // ui_container.GetMainView()
-        //     .RegisterCallback(
-        //         "SelectTileToPlace",
-        //         services::MakeUiCallback<UiTypes::String>([&](std::string str) {
-        //             std::underlying_type_t<TileType> type_i{};
-        //             std::from_chars(str.data(), str.data() + str.size(), type_i);
-
-        //             logger.info("SelectTileToPlace: {}", type_i);
-        //             auto type = static_cast<TileType>(type_i);
-
-        //             build_input.SelectTileToPlace(type);
-        //         })
-        //     );
-
-        // ui_container.GetMainView()
-        //     .RegisterCallback(
-        //         "EnterDeleteMode",
-        //         services::MakeUiCallback<>([&] {
-        //             logger.info("EnterDeleteMode");
-        //             build_input.EnterDeleteMode();
-        //         })
-        //     );
-
-        // ui_container.GetMainView()
-        //     .RegisterCallback(
-        //         "ExitDeleteMode",
-        //         services::MakeUiCallback<>([&] {
-        //             logger.info("ExitDeleteMode");
-        //             build_input.ExitMode();
-        //         })
-        //     );
-
-
-        // auto panel_listener = std::make_shared<services::ui::PanelListener>(event_manager);
-        // ui_event_manager.AddEventListener(panel_listener);
-
-        // chain::Connect(panel_listener->build_input_cmds, build_input);
-
 
         while (!main_window.ShouldClose()) {
             double current_time = Application::GetTime();

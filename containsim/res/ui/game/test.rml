@@ -6,10 +6,12 @@
 </head>
 <body>
     <div id="ui-contianer">
-        <div id="bottom-bar">
-            <button onclick="bc EnterBuildMode">Build</button>
-            <button onclick="bc ExitBuildMode">Exit Build</button>
-            <div id="build-panel" class="panel">
+        <div id="bottom-bar" data-model="input_state">
+            <div>
+                <button onclick="bc EnterBuildMode" data-class-hidden="cur_state == 'BuildActive'">Build</button>
+                <button onclick="bc ExitBuildMode" data-class-hidden="cur_state != 'BuildActive'">Exit Build</button>
+            </div>
+            <div id="build-panel" class="panel" data-class-hidden="cur_state != 'BuildActive'">
                 <div id="tile-choices" class="hgrid">
                     <div class="item" onclick="bc SelectTileToPlace 0">
                         <p>Grass</p>

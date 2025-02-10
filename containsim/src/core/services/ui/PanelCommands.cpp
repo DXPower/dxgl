@@ -3,10 +3,10 @@
 
 using namespace services::ui;
 
-void ShowPanel::Execute(Panel& panel) const {
-    panel.Show();
+void ShowPanel::Execute(Panel&) const {
+    // panel.Show();
 }
 
-void HidePanel::Execute(Panel& panel) const {
-    panel.Hide();
+void HidePanel::Execute(Panel&) const {
+    // panel.Hide();
 }

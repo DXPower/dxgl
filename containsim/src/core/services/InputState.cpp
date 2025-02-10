@@ -47,6 +47,10 @@ auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
 
             // Forward uncaptured actions to the next layer
             m_action_forward = &idle_actions;
+        } else if (event == EventId::ExitMode) {
+            // Just got here from another state
+            m_event_manager->GetSignal<InputStateChanged>()
+                .signal.fire(InputStateChanged{InputStates::IdleMode});
         }
 
         event.Clear();
@@ -81,20 +85,23 @@ auto InputState::StateBuildActive(FSM_t& fsm, StateId) -> State_t {
 
         // If we're leaving this state, hide the build panel
         if (leaving) {
-            ui::HidePanel cmd{};
-            cmd.name = "build-panel";
-            m_event_manager->GetSignal<ui::PanelCommand>()
-                .signal.fire(cmd);
+            // ui::HidePanel cmd{};
+            // cmd.name = "build-panel";
+            // m_event_manager->GetSignal<ui::PanelCommand>()
+            //     .signal.fire(cmd);
 
             continue;
         }
 
         if (event == EventId::EnterBuildMode) {
             // Just got here from another mode, show the build panel
-            ui::ShowPanel cmd{};
-            cmd.name = "build-panel";
-            m_event_manager->GetSignal<ui::PanelCommand>()
-                .signal.fire(cmd);
+            // ui::ShowPanel cmd{};
+            // cmd.name = "build-panel";
+            // m_event_manager->GetSignal<ui::PanelCommand>()
+            //     .signal.fire(cmd);
+
+            m_event_manager->GetSignal<InputStateChanged>()
+                .signal.fire(InputStateChanged{InputStates::BuildActive});
         } else if (event == EventId::Action) {
             m_action_forward = &build_actions;
         }

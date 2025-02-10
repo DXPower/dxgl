@@ -44,3 +44,7 @@ body {
 .panel[panel-active=1] {
     display: block;
 }
+
+.hidden {
+    display: none;
+}

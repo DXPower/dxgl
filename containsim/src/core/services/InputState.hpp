@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/ActionChain.hpp>
+#include <services/InputStateEvents.hpp>
 #include <services/commands/BuildInputCommands.hpp>
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/InputStateCommands.hpp>
@@ -15,11 +16,7 @@ namespace services {
         // : public commands::CommandConsumer<commands::InputStateCommand>
         : public ActionConsumer {
     
-        enum class StateId {
-            IdleMode,
-            PauseMenu,
-            BuildActive
-        };
+        using StateId = services::InputStates;
 
         enum class EventId {
             ExitMode,
@@ -34,7 +31,7 @@ namespace services {
         FSM_t m_fsm{};
         EventManager* m_event_manager{};
         ActionProducer* m_action_forward{};
-        
+
         logging::Logger m_logger{"InputState"};
 
     public:

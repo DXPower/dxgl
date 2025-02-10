@@ -16,38 +16,38 @@ namespace ui {
 
 class Panel {
     std::string m_name{};
-    Rml::Element* m_panel_root{};
+    // Rml::Element* m_panel_root{};
 
 protected:
     logging::Logger m_logger;
 
 public:
     // Name must match an element's ID within document
-    Panel(std::string name, services::EventManager& em, Rml::ElementDocument& document)
+    Panel(std::string name, services::EventManager& em, Rml::ElementDocument&)
         : m_name(std::move(name)), m_logger(logging::CreateLogger("Panel" + m_name)) {
 
         em.GetOrRegisterSignal<PanelCommand>()
             .signal.connect<&Panel::ProcessPanelEvent>(this);
 
-        m_panel_root = document.GetElementById(m_name);
+        // m_panel_root = document.GetElementById(m_name);
 
-        if (m_panel_root == nullptr) {
-            throw std::runtime_error("Failed to find panel root element: " + m_name);
-        }
+        // if (m_panel_root == nullptr) {
+        //     throw std::runtime_error("Failed to find panel root element: " + m_name);
+        // }
 
-        if (!m_panel_root->HasAttribute("panel-active")) {
-            m_panel_root->SetAttribute("panel-active", false);
-        }
+        // if (!m_panel_root->HasAttribute("panel-active")) {
+        //     m_panel_root->SetAttribute("panel-active", false);
+        // }
     }
 
 
-    void Show() {
-        m_panel_root->SetAttribute("panel-active", true);
-    }
+    // void Show() {
+    //     m_panel_root->SetAttribute("panel-active", true);
+    // }
 
-    void Hide() {
-        m_panel_root->SetAttribute("panel-active", false);
-    }
+    // void Hide() {
+    //     m_panel_root->SetAttribute("panel-active", false);
+    // }
 
 private:
     void ProcessPanelEvent(const PanelCommand& cmd) {
