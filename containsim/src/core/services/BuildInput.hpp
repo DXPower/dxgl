@@ -5,6 +5,7 @@
 #include <services/EventManager.hpp>
 
 #include <common/ActionChain.hpp>
+#include <services/BuildInputEvents.hpp>
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/BuildInputCommands.hpp>
 
@@ -14,15 +15,9 @@
 namespace services {
     class BuildInput 
         : public ActionConsumer
-        //   public commands::CommandConsumer<commands::BuildInputCommand>
     {
     public:
-        enum class StateId {
-            IdleMode,
-            PlaceTileMode,
-            WorldTileSelectedMode,
-            DeleteMode
-        };
+        using StateId = BuildInputStates;
         
         enum class EventId {
             Entry,
@@ -42,6 +37,7 @@ namespace services {
         using FSM_t = dxfsm::FSM<StateId, EventId>;
 
         FSM_t m_fsm{};
+        EventManager* m_event_manager{};
         logging::Logger m_logger = logging::CreateLogger("BuildInput");
 
     public:

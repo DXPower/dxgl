@@ -16,7 +16,7 @@ namespace {
 }
 
 
-BuildInput::BuildInput(EventManager& em) {
+BuildInput::BuildInput(EventManager& em) : m_event_manager(&em) {
     m_logger.set_level(spdlog::level::debug);
     
     using enum StateId;
@@ -60,26 +60,21 @@ BuildInput::BuildInput(EventManager& em) {
         .signal.connect<&BuildInput::ProcessBuiltInputCommand>(this);
 }
 
-// auto BuildInput::StateIdle(FSM_t& fsm, StateId) -> State_t {
-//         Event_t event = co_await fsm.ReceiveInitialEvent();
-
-//         while (true) {
-//             m_logger.debug("In StateIdle");
-            
-//             if (event == EventId::ExitMode) {
-//                 EmitStateCommand<commands::StateExitMode>();
-//                 m_logger.info("Send ExitBuildMode state command!");
-//             }
-
-//             co_await fsm.ReceiveEvent(event);
-//         }
-//     }
-
-auto BuildInput::StateIdle(FSM_t& fsm, StateId) -> State_t {
-    Event_t event = co_await fsm.ReceiveInitialEvent();
+auto BuildInput::StateIdle(FSM_t& fsm, StateId state_id) -> State_t {
+    Event_t event{};
+    bool entering_state = true;
 
     while (true) {
-        m_logger.debug("In StateBuild");
+        auto should_reset = co_await fsm.EmitAndReceiveResettable(event);
+
+        if (should_reset) {
+            entering_state = true;
+            continue;
+        } else if (entering_state) {
+            entering_state = false;
+            m_event_manager->GetSignal<BuildInputStateChanged>()
+                .signal.fire(BuildInputStateChanged{state_id});
+        }
 
         if (event == EventId::KeyPress) {
             const auto& press = event.Get<KeyPress>();
@@ -87,24 +82,32 @@ auto BuildInput::StateIdle(FSM_t& fsm, StateId) -> State_t {
             if (press.dir == ButtonDir::Down && press.key == GLFW_KEY_R) {
                 m_logger.info("Keyboard shortcut to go to delete mode");
                 event = EventId::BeginDeleting;
-                co_await fsm.EmitAndReceive(event);
                 continue;
             } else {
                 uncaptured_actions.Send(Action{press});
             }
         }
 
-        co_await fsm.ReceiveEvent(event);
+        event.Clear();
     }
 }
 
-auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
+auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId state_id) -> State_t {
     Event_t event{};
     TileType selected_tile{};
+    bool entering_state = true;
 
     while (true) {
-        co_await fsm.EmitAndReceive(event);
-        m_logger.debug("In StatePlaceTile");
+        auto should_reset = co_await fsm.EmitAndReceiveResettable(event);
+
+        if (should_reset) {
+            entering_state = true;
+            continue;
+        } else if (entering_state) {
+            entering_state = false;
+            m_event_manager->GetSignal<BuildInputStateChanged>()
+                .signal.fire(BuildInputStateChanged{state_id});
+        }
 
         if (event == EventId::SelectTileToPlace) {
             selected_tile = event.Get<TileType>();
@@ -137,13 +140,22 @@ auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
     }
 }
 
-auto BuildInput::StateWorldTileSelected(FSM_t& fsm, StateId) -> State_t {
+auto BuildInput::StateWorldTileSelected(FSM_t& fsm, StateId state_id) -> State_t {
     Event_t event{};
     TileCoord selected_tile{};
+    bool entering_state = true;
 
     while (true) {
-        co_await fsm.ReceiveEvent(event);
-        m_logger.debug("In StateWorldTileSelected");
+        auto should_reset = co_await fsm.EmitAndReceiveResettable(event);
+
+        if (should_reset) {
+            entering_state = true;
+            continue;
+        } else if (entering_state) {
+            entering_state = false;
+            m_event_manager->GetSignal<BuildInputStateChanged>()
+                .signal.fire(BuildInputStateChanged{state_id});
+        }
 
         if (event == EventId::SelectWorldTile) {
             const auto& tile = event.Get<SelectWorldTile>();
@@ -184,12 +196,21 @@ auto BuildInput::StateWorldTileSelected(FSM_t& fsm, StateId) -> State_t {
     }
 }
 
-auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t {
+auto BuildInput::StateDelete(FSM_t& fsm, StateId state_id) -> State_t {
     Event_t event{};
-
+    bool entering_state = true;
+    
     while (true) {
-        co_await fsm.ReceiveEvent(event);
-        m_logger.debug("In StateDelete"); 
+        auto should_reset = co_await fsm.EmitAndReceiveResettable(event);
+
+        if (should_reset) {
+            entering_state = true;
+            continue;
+        } else if (entering_state) {
+            entering_state = false;
+            m_event_manager->GetSignal<BuildInputStateChanged>()
+                .signal.fire(BuildInputStateChanged{state_id});
+        }
 
         if (event == EventId::Click) {
             const auto& click = event.Get<MouseClick>();
@@ -203,7 +224,9 @@ auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t {
             );
 
             if (press.key == GLFW_KEY_B) {
-                m_logger.info("Keyboard shortcut to go to build mode");
+                event = EventId::ExitMode;
+                continue;
+            } else if (press.key == GLFW_KEY_ESCAPE) {
                 event = EventId::ExitMode;
                 continue;
             } else {
