@@ -32,7 +32,7 @@ namespace services {
         EventManager* m_event_manager{};
         ActionProducer* m_action_forward{};
 
-        logging::Logger m_logger{"InputState"};
+        logging::Logger m_logger = logging::CreateLogger("InputState");
 
     public:
         // commands::CommandProducer<commands::BuildInputCommand> build_input_cmds{};

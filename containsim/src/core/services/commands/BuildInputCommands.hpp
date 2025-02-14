@@ -22,5 +22,9 @@ namespace services {
 
         // These are implemented the same for now
         using ExitDeleteMode = ExitBuildMode;
+
+        struct ResetBuildInput : BuildInputCommand {
+            void Execute(BuildInput& fsm) const override;
+        };
     }
 }

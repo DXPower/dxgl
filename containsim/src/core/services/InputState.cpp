@@ -1,11 +1,15 @@
 #include <services/InputState.hpp>
 #include <services/BuildInput.hpp>
 #include <services/ui/PanelCommands.hpp>
+#include <services/commands/BuildInputCommands.hpp>
 #include <GLFW/glfw3.h>
+#include <magic_enum/magic_enum.hpp>
 
 using namespace services;
 
 InputState::InputState(EventManager& em, BuildInput& build_input) : m_event_manager(&em) {
+    m_logger.set_level(spdlog::level::debug);
+
     StateIdle(m_fsm, StateId::IdleMode);
     StateBuildActive(m_fsm, StateId::BuildActive);
     m_fsm.SetCurrentState(StateId::IdleMode);
@@ -21,6 +25,30 @@ InputState::InputState(EventManager& em, BuildInput& build_input) : m_event_mana
         EventId::ExitMode
     );
 
+    m_fsm.SetTransitionObserver([this](const FSM_t&, std::optional<State_t> from, State_t to, const Event_t& ev) {
+        std::string ev_str = !ev.Empty() ? std::format(" Event: {}", magic_enum::enum_name(ev.GetId())) : "";
+        
+        if (!from.has_value()) {
+            m_logger.info("Transitioning to {}.{}", magic_enum::enum_name(to.Id()), ev_str);
+        } else {
+            m_logger.info(
+                "Transitioning from {} to {}.{}",
+                magic_enum::enum_name(from->Id()),
+                magic_enum::enum_name(to.Id()),
+                ev_str
+            );
+        }
+
+        m_event_manager->GetSignal<InputStateChanged>()
+            .signal.fire(InputStateChanged{to.Id()});
+
+        if (from.has_value() && from->Id() == StateId::BuildActive) {
+            commands::ResetBuildInput cmd{};
+            m_event_manager->GetSignal<commands::BuildInputCommand>()
+                .signal.fire(cmd);
+        }
+    });
+
     em.RegisterSignal<commands::InputStateCommand>()
         .signal.connect<&InputState::ProcessCommand>(this);
 }
@@ -29,7 +57,6 @@ auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
     Event_t event{};
     while (true) {
         co_await fsm.EmitAndReceive(event);
-        m_logger.debug("In StateIdle");
 
         if (event == EventId::Action) {
             auto& action = event.Get<Action*>();
@@ -47,10 +74,6 @@ auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
 
             // Forward uncaptured actions to the next layer
             m_action_forward = &idle_actions;
-        } else if (event == EventId::ExitMode) {
-            // Just got here from another state
-            m_event_manager->GetSignal<InputStateChanged>()
-                .signal.fire(InputStateChanged{InputStates::IdleMode});
         }
 
         event.Clear();
@@ -62,7 +85,6 @@ auto InputState::StatePauseMenu(FSM_t& fsm, StateId) -> State_t {
 
     while (true) {
         co_await fsm.EmitAndReceive(event);
-        m_logger.debug("In StatePauseMenu");
 
         if (event == EventId::Action) {
             const auto* press = std::get_if<KeyPress>(&event.Get<Action*>()->data);
@@ -81,28 +103,9 @@ auto InputState::StateBuildActive(FSM_t& fsm, StateId) -> State_t {
     Event_t event{};
 
     while (true) {
-        auto leaving = co_await fsm.EmitAndReceiveResettable(event);
+        co_await fsm.EmitAndReceive(event);
 
-        // If we're leaving this state, hide the build panel
-        if (leaving) {
-            // ui::HidePanel cmd{};
-            // cmd.name = "build-panel";
-            // m_event_manager->GetSignal<ui::PanelCommand>()
-            //     .signal.fire(cmd);
-
-            continue;
-        }
-
-        if (event == EventId::EnterBuildMode) {
-            // Just got here from another mode, show the build panel
-            // ui::ShowPanel cmd{};
-            // cmd.name = "build-panel";
-            // m_event_manager->GetSignal<ui::PanelCommand>()
-            //     .signal.fire(cmd);
-
-            m_event_manager->GetSignal<InputStateChanged>()
-                .signal.fire(InputStateChanged{InputStates::BuildActive});
-        } else if (event == EventId::Action) {
+        if (event == EventId::Action) {
             m_action_forward = &build_actions;
         }
 

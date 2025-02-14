@@ -11,3 +11,7 @@ void SelectTile::Execute(BuildInput& fsm) const {
 void ExitBuildMode::Execute(BuildInput& fsm) const {
     fsm.ExitMode();
 }
+
+void ResetBuildInput::Execute(BuildInput& fsm) const {
+    fsm.GetFsm().SetCurrentState(BuildInput::StateId::IdleMode);
+}

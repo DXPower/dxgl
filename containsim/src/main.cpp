@@ -36,6 +36,7 @@
 #include <services/ui/BuildPanel.hpp>
 #include <services/ui/RmlEventManager.hpp>
 #include <services/ui/InputStateBinding.hpp>
+#include <services/ui/TilesBinding.hpp>
 #include <services/EventManager.hpp>
 #include <common/GlobalConfig.hpp>
 
@@ -157,6 +158,7 @@ int main() {
             *rml_context,
             event_manager
         };
+        services::ui::TilesBinding tiles_binding{*rml_context};
 
         services::ui::RmlEventManager ui_event_manager{event_manager};
         Rml::Factory::RegisterEventListenerInstancer(&ui_event_manager);

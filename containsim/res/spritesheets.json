@@ -2,7 +2,7 @@
     "sheets": [
         {
             "name": "tiles",
-            "path": "tiles.png",
+            "path": "tiles.tga",
             "sprites": [
                 {
                     "name": "Grass",

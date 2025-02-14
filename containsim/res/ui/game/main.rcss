@@ -24,10 +24,25 @@
     margin-right: 15dp;
     background-color:rgb(255, 0, 0);
     flex-shrink: 0;
+    position: relative;
 }
 
-#bottom-bar .item:hover {
-    background-color: rgb(255, 94, 185);
+#bottom-bar .item img {
+    width: 100%;
+    height: 100%;
+}
+
+#bottom-bar .item .after {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+}
+
+#bottom-bar .item .after:hover {
+    opacity: 0.2;
 }
 
 body {
