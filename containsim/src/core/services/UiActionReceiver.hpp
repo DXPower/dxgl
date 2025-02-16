@@ -23,6 +23,11 @@ namespace services {
         }
 
         void Consume(Action&& action) override {
+            auto IsMousePassthrough = [&] -> bool {
+                auto* elem = m_context->GetHoverElement();
+                return elem != nullptr && elem->GetTagName() != "body";
+            };
+
             bool consumed = std::visit(dxtl::overloaded {
                 [&](const KeyPress& press) {
                     auto dir = press.dir == ButtonDir::Up ? GLFW_RELEASE : GLFW_PRESS;
@@ -36,19 +41,17 @@ namespace services {
                     return c;
                 },
                 [&](const MouseMove& move) {
-                    bool c = !RmlGLFW::ProcessCursorPosCallback(m_context, m_window->GetGlfwWindow(), move.to.x, move.to.y, 0);
-                    c |= m_context->IsMouseInteracting();
-                    return c;
+                    RmlGLFW::ProcessCursorPosCallback(m_context, m_window->GetGlfwWindow(), move.to.x, move.to.y, 0);
+                    return IsMousePassthrough();
                 },
                 [&](const MouseClick& click) {
-                    bool c = !RmlGLFW::ProcessMouseButtonCallback(m_context, click.button, click.dir == ButtonDir::Up ? GLFW_RELEASE : GLFW_PRESS, click.mods);
-                    c |= m_context->IsMouseInteracting();
-                    return c;
+                    RmlGLFW::ProcessMouseButtonCallback(m_context, click.button, click.dir == ButtonDir::Up ? GLFW_RELEASE : GLFW_PRESS, click.mods);
+                    return IsMousePassthrough();
                 },
                 [&](const ScrollInput& scroll) {
-                    bool c = !RmlGLFW::ProcessScrollCallback(m_context, scroll.amount.x, scroll.amount.y, 0);
-                    c |= m_context->IsMouseInteracting();
-                    return c;
+                    RmlGLFW::ProcessScrollCallback(m_context, scroll.amount.x, scroll.amount.y, 0);
+                    return IsMousePassthrough();
+
                 }
             }, action.data);
 
