@@ -1,3 +1,5 @@
+#pragma once
+
 #include <dxgl/Ubo.hpp>
 #include <glm/glm.hpp>
 

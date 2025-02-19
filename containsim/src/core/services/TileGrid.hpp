@@ -6,7 +6,7 @@
 #include <glm/vec2.hpp>
 #include <nano/nano_signal_slot.hpp>
 #include <boost/multi_array.hpp>
-
+#include <optional>
 
 
 namespace services {
@@ -23,7 +23,7 @@ namespace services {
         void SetTile(TileCoord coord, TileData data);
         const TileData& GetTile(TileCoord coord) const;
 
-        TileCoord WorldPosToTileCoord(glm::vec2 world_pos) const;
+        std::optional<TileCoord> WorldPosToTileCoord(glm::vec2 world_pos) const;
         TileCoord GetGridSize() const { return m_grid_size; }
         glm::vec2 GetTileWorldSize() const { return m_tile_world_size; }
 

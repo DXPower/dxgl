@@ -11,3 +11,11 @@ void BuildManager::PlaceTile(TileCoord coord, TileType type) {
 
     m_tile_grid->SetTile(coord, tile);
 }
+
+void BuildManager::DeleteTile(TileCoord) {
+    
+}
+
+void BuildManager::Consume(commands::BuildCommandPtr&& cmd) {
+    cmd->Execute(*this);
+}

@@ -10,10 +10,17 @@ namespace services {
         using BuildCommand = Command<BuildManager>;
         using BuildCommandPtr = CommandPtr<BuildCommand>;
         
-        struct PlaceTile : BuildCommand {
+        struct PlaceTiles : BuildCommand {
             TileType type{};
-            TileCoord coord{};
+            TileCoord from{};
+            TileCoord to{};
 
+            void Execute(BuildManager& manager) const override;
+        };
+
+        struct DeleteTiles : BuildCommand {
+            TileCoord from{};
+            TileCoord to{};
             void Execute(BuildManager& manager) const override;
         };
     }

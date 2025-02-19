@@ -8,9 +8,13 @@
 #include <services/BuildInputEvents.hpp>
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/BuildInputCommands.hpp>
+#include <services/commands/BuildCommands.hpp>
 
 #include <dxfsm/dxfsm.hpp>
 #include <services/Logging.hpp>
+
+#include <services/Camera.hpp>
+#include <services/TileGrid.hpp>
 
 namespace services {
     class BuildInput 
@@ -30,6 +34,7 @@ namespace services {
         };
         
         ActionProducer uncaptured_actions{};
+        commands::CommandProducer<commands::BuildCommand> build_commands{};
 
     private:
         using State_t = dxfsm::State<StateId>;
@@ -38,10 +43,12 @@ namespace services {
 
         FSM_t m_fsm{};
         EventManager* m_event_manager{};
+        const Camera* m_camera{};
+        const TileGrid* m_tiles{};
         logging::Logger m_logger = logging::CreateLogger("BuildInput");
 
     public:
-        BuildInput(EventManager& em);
+        BuildInput(EventManager& em, const Camera& cam, const TileGrid& tiles);
 
         void Consume(Action&& action) override;
         // void Consume(commands::BuildInputCommandPtr&& command) override;

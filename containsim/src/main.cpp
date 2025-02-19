@@ -19,6 +19,7 @@
 #include <systems/SpriteRenderer.hpp>
 #include <services/ActionRouter.hpp>
 #include <services/BuildInput.hpp>
+#include <services/BuildManager.hpp>
 #include <services/InputState.hpp>
 #include <services/TileGrid.hpp>
 #include <services/TileGridRenderer.hpp>
@@ -252,12 +253,15 @@ int main() {
         chain::Connect(game_input.actions_out, ui_actions);
         chain::Connect(ui_actions.uncaptured_actions, input_router);
 
-        services::BuildInput build_input{event_manager};
+        services::BuildInput build_input{event_manager, camera, tile_grid};
         services::InputState input_state{event_manager, build_input};
 
         chain::Connect(input_router.game_action_receiver, input_state);
         chain::Connect(input_router.offscreen_action_receiver, input_state);
         chain::ConnectToNull(input_router.ui_action_receiver);
+
+        services::BuildManager build_manager{tile_grid};
+        chain::Connect(build_input.build_commands, build_manager);
 
         GlobalActions global_actions{};
 

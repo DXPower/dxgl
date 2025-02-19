@@ -28,6 +28,11 @@ const TileData& TileGrid::GetTile(TileCoord coord) const {
     return m_tiles[coord.x][coord.y].data;
 }
 
-glm::ivec2 TileGrid::WorldPosToTileCoord(glm::vec2 world_pos) const {
-    return world_pos / m_tile_world_size;
+std::optional<glm::ivec2> TileGrid::WorldPosToTileCoord(glm::vec2 world_pos) const {
+    auto res = (world_pos + (m_tile_world_size / glm::vec2(2, 2))) / m_tile_world_size;
+    
+    if (res.x < 0 || res.y < 0 || res.x >= m_grid_size.x || res.y >= m_grid_size.y) [[unlikely]]
+        return std::nullopt;
+
+    return static_cast<glm::ivec2>(res);
 }
