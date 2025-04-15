@@ -23,7 +23,7 @@ void DeleteTiles::Execute(BuildManager& manager) const {
 
     for (auto x = min_x; x <= max_x; x++) {
         for (auto y = min_y; y <= max_y; y++) {
-            manager.DeleteTile(TileCoord{x, y});
+            manager.DeleteTopmostTile(TileCoord{x, y}, TileLayer::Walls);
         }
     }
 }

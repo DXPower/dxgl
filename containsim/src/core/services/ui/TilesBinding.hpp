@@ -5,6 +5,8 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <magic_enum/magic_enum.hpp>
 
+#include <ranges>
+
 namespace services {
 namespace ui {
 
@@ -17,7 +19,7 @@ class TilesBinding {
 
 public:
     TilesBinding(Rml::Context& context) {
-        m_data.metas = LoadTileMetas();
+        m_data.metas = LoadTileMetas() | std::views::values | std::ranges::to<std::vector>();
 
         Rml::DataModelConstructor constructor = context.CreateDataModel("tiles");
 

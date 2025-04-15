@@ -2,12 +2,14 @@
 
 #include <glm/vec2.hpp>
 #include <string>
-#include <vector>
+#include <map>
 
 enum class TileType {
+    Nothing,
     Grass,
     Dirt,
-    Tile
+    Tile,
+    Wall
 };
 
 struct TileData {
@@ -18,13 +20,22 @@ struct TileData {
 
 using TileCoord = glm::ivec2;
 
+enum class TileLayer {
+    Subterranean,
+    Ground,
+    Walls,
+    Ceiling
+};
+
 struct Tile {
     TileCoord coord{};
+    TileLayer layer{};
     TileData data{};
 };
 
 struct TileMeta {
     TileType type{};
+    TileLayer layer{};
     std::string friendly_name{};
     // TODO: Use asset manager for this
     std::string spritesheet_name{};
@@ -32,4 +43,4 @@ struct TileMeta {
     glm::ivec2 sprite_size{};
 };
 
-std::vector<TileMeta> LoadTileMetas();
+std::map<TileType, TileMeta> LoadTileMetas();

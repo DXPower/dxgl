@@ -6,6 +6,7 @@
             "sprites": [
                 {
                     "name": "Grass",
+                    "layer": "Ground",
                     "x": 0,
                     "y": 140,
                     "w": 28,
@@ -13,6 +14,7 @@
                 },
                 {
                     "name": "Dirt",
+                    "layer": "Ground",
                     "x": 140,
                     "y": 140,
                     "w": 28,
@@ -20,8 +22,17 @@
                 },
                 {
                     "name": "Tile",
+                    "layer": "Ground",
                     "x": 280,
                     "y": 140,
+                    "w": 28,
+                    "h": 28
+                },
+                {
+                    "name": "Wall",
+                    "layer": "Walls",
+                    "x": 0,
+                    "y": 0,
                     "w": 28,
                     "h": 28
                 }

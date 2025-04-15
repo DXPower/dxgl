@@ -12,7 +12,7 @@ namespace services {
 
         struct SelectTile : BuildInputCommand {
             TileType type{};
-
+            
             void Execute(BuildInput& fsm) const override;
         };
 

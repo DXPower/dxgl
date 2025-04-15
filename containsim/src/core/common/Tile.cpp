@@ -5,8 +5,8 @@
 #include <magic_enum/magic_enum.hpp>
 
 
-std::vector<TileMeta> LoadTileMetas() {
-    std::vector<TileMeta> metas{};
+std::map<TileType, TileMeta> LoadTileMetas() {
+    std::map<TileType, TileMeta> metas{};
 
     std::ifstream json_file("res/spritesheets.json");
     nlohmann::json json_data = nlohmann::json::parse(json_file);
@@ -23,6 +23,13 @@ std::vector<TileMeta> LoadTileMetas() {
                     throw std::runtime_error("Invalid TileType in JSON file: " + name);
                 }
 
+                auto layer = sprite_json["layer"].template get<std::string>();
+                if (auto casted = magic_enum::enum_cast<TileLayer>(layer)) {
+                    meta.layer = casted.value();
+                } else {
+                    throw std::runtime_error("Invalid TileLayer in JSON file: " + layer);
+                }
+
                 meta.friendly_name = name;
                 meta.spritesheet_name = "tiles.tga";
 
@@ -36,7 +43,7 @@ std::vector<TileMeta> LoadTileMetas() {
                     sprite_json["h"].template get<int>()
                 };
 
-                metas.push_back(meta);
+                metas.emplace(meta.type, meta);
             }
         }
     }

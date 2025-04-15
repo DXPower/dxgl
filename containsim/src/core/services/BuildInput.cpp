@@ -103,12 +103,6 @@ auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
     TileCoord drag_start{};
     bool drag_valid = false;
 
-    auto GetTilePos = [&](glm::vec2 screen_pos) {
-        const auto cam_view = m_camera->GetViewMatrix();
-        const auto world_pos = glm::inverse(cam_view) * glm::vec4(screen_pos, 1, 1);
-        return m_tiles->WorldPosToTileCoord(world_pos);
-    };
-
     while (true) {
         co_await fsm.EmitAndReceive(event);
 
@@ -119,7 +113,7 @@ auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
             const auto& click = event.Get<MouseClick>();
 
             if (click.button == 0 && click.dir == ButtonDir::Down) {
-                const auto tile_pos = GetTilePos(click.pos);
+                const auto tile_pos = ScreenToTilePos(click.pos);
 
                 if (tile_pos.has_value()) {
                     drag_start = *tile_pos;
@@ -129,7 +123,7 @@ auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
                 }
             } else if (click.button == 0 && click.dir == ButtonDir::Up) {
                 if (drag_valid) {
-                    const auto tile_pos = GetTilePos(click.pos);
+                    const auto tile_pos = ScreenToTilePos(click.pos);
 
                     if (tile_pos.has_value()) {
                         auto cmd = commands::MakeCommandPtr<commands::PlaceTiles>();
@@ -215,7 +209,18 @@ auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t {
 
         if (event == EventId::Click) {
             const auto& click = event.Get<MouseClick>();
-            m_logger.info("Delete tile at {}, {}", click.pos.x, click.pos.y);
+            
+            if (click.button == 0 && click.dir == ButtonDir::Up) {
+                m_logger.info("Delete tile at {}, {}", click.pos.x, click.pos.y);
+
+                const auto tile_pos = ScreenToTilePos(click.pos);
+                if (tile_pos.has_value()) {
+                    auto cmd = commands::MakeCommandPtr<commands::DeleteTiles>();
+                    cmd->from = *tile_pos;
+                    cmd->to = *tile_pos;
+                    build_commands.Send(std::move(cmd));
+                }
+            }
         } else if (event == EventId::KeyPress) {
             const auto& press = event.Get<KeyPress>();
 
@@ -266,4 +271,10 @@ void BuildInput::ExitMode() {
 
 void BuildInput::ProcessBuiltInputCommand(const commands::BuildInputCommand& cmd) {
     cmd.Execute(*this);
+}
+
+std::optional<TileCoord> BuildInput::ScreenToTilePos(glm::vec2 screen_pos) const {
+    const auto cam_view = m_camera->GetViewMatrix();
+    const auto world_pos = glm::inverse(cam_view) * glm::vec4(screen_pos, 1, 1);
+    return m_tiles->WorldPosToTileCoord(world_pos);
 }

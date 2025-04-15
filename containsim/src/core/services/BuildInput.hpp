@@ -69,5 +69,7 @@ namespace services {
         State_t StateDelete(FSM_t& fsm, StateId);
 
         void ProcessBuiltInputCommand(const commands::BuildInputCommand& cmd);
+
+        std::optional<TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
     };
 }

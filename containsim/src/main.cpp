@@ -98,6 +98,7 @@ static void Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
+#define CATCH_EXCEPTIONS 0
 
 int main() {
     namespace logging = services::logging;
@@ -105,7 +106,9 @@ int main() {
 
     constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
 
+#if CATCH_EXCEPTIONS == 1
     try {
+#endif        
         Application::Init();
 
         Window main_window(dxtl::cstring_view("Containment Simulator"), initial_screen_size);
@@ -219,17 +222,21 @@ int main() {
         logger.set_level(spdlog::level::debug);
 
         auto SetTiles = [&, start = 0]() mutable {
-            logger.debug("start: {}", start);
+            constexpr static std::array types = {
+                TileType::Grass,
+                TileType::Dirt,
+                TileType::Tile
+            };
 
             for (int x = 0; x < global_config.map_size.x; x++) {
                 for (int y = 0; y < global_config.map_size.y; y++) {
                     TileData data{};
-                    data.type = static_cast<TileType>(start);
-                    tile_grid.SetTile({x, y}, data);
-                    
-                    start = (int) ((start + 1) % magic_enum::enum_count<TileType>());
+                    data.type = types[(start + x + y) % types.size()]; // NOLINT
+                    tile_grid.SetTile({x, y}, TileLayer::Ground, data);
                 }
             }
+            
+            start++;
         };
 
         SetTiles();
@@ -326,8 +333,10 @@ int main() {
 
         Rml::Shutdown();
         Application::Terminate();
+#if CATCH_EXCEPTIONS == 1
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
+#endif    
 
 }

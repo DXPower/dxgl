@@ -44,7 +44,7 @@ public:
     magic_enum::containers::array<TileType, TileSpriteData> tile_sprites{};
 
     // Draw data
-    mutable std::optional<dxgl::Draw> cached_draw{};
+    mutable magic_enum::containers::array<TileLayer, std::optional<dxgl::Draw>> cached_draws{};
     
     mutable dxgl::Program program{};
     dxgl::Vbo quad_vbo{};
@@ -107,14 +107,17 @@ public:
         }
     }
 
-    std::vector<PerInstanceData> BuildInstanceData() const {
+    std::vector<PerInstanceData> BuildInstanceData(TileLayer layer) const {
         std::vector<PerInstanceData> instances{};
 
         const auto tile_world_size = tiles->GetTileWorldSize();
 
         // Build the instanced sprite data for each tile
-        for (auto col : tiles->GetUnderlyingGrid()) {
+        for (const auto& col : tiles->GetUnderlyingGrid()[layer]) {
             for (const Tile& tile : col) {
+                if (tile.data.type == TileType::Nothing)
+                    continue;
+                    
                 const glm::vec2 world_pos = (glm::vec2) tile.coord * tile_world_size;
 
                 auto world_mat = glm::mat3(1);
@@ -124,9 +127,10 @@ public:
                 const auto& cutout = tile_sprites[tile.data.type];
                 const glm::vec2 tex_size = spritesheet.GetSize();
 
+                // Need to flip the Y coordinate for OpenGL
                 glm::vec2 pos_mod = { 
                     cutout.origin.x,
-                    cutout.size.y - cutout.origin.y - cutout.size.y
+                    tex_size.y - (cutout.origin.y + cutout.size.y)
                 };
 
                 auto tex_mat = glm::mat3(1);
@@ -143,8 +147,8 @@ public:
         return instances;
     }
 
-    dxgl::Draw BuildDraw() const {
-        auto instances = BuildInstanceData();
+    dxgl::Draw BuildDraw(TileLayer layer) const {
+        auto instances = BuildInstanceData(layer);
 
         // Make the draw to be queued using the generated instance data
         dxgl::Draw draw{};
@@ -185,8 +189,8 @@ public:
         return draw;
     }
 
-    void OnTileUpdate(const TileGrid&, TileCoord) {
-        cached_draw.reset();
+    void OnTileUpdate(const TileGrid&, const Tile& tile) {
+        cached_draws[tile.layer].reset();
     }
 };
 
@@ -203,8 +207,16 @@ TileGridRenderer::~TileGridRenderer() = default;
 TileGridRenderer& TileGridRenderer::operator=(TileGridRenderer&& move) = default;
 
 void TileGridRenderer::Render(DrawQueues& draws) const {
-    if (!m_pimpl->cached_draw.has_value())
-        m_pimpl->cached_draw = m_pimpl->BuildDraw();
+    for (auto layer : magic_enum::enum_values<TileLayer>()) {
+        if (!m_pimpl->cached_draws[layer].has_value())
+            m_pimpl->cached_draws[layer] = m_pimpl->BuildDraw(layer);
 
-    draws.QueueViewedDraw(RenderLayer::Background, *m_pimpl->cached_draw);
+        magic_enum::containers::array<TileLayer, RenderLayer> render_layer_map;
+        render_layer_map[TileLayer::Subterranean] = RenderLayer::Floors;
+        render_layer_map[TileLayer::Ground] = RenderLayer::Floors;
+        render_layer_map[TileLayer::Walls] = RenderLayer::Walls;
+        render_layer_map[TileLayer::Ceiling] = RenderLayer::Ceilings;
+
+        draws.QueueViewedDraw(render_layer_map[layer], *m_pimpl->cached_draws[layer]);
+    }
 }

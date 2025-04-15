@@ -14,7 +14,7 @@ namespace services {
         BuildManager(TileGrid& tile_grid);
 
         void PlaceTile(TileCoord coord, TileType type);
-        void DeleteTile(TileCoord coord);
+        void DeleteTopmostTile(TileCoord coord, TileLayer stop_at);
 
         void Consume(commands::BuildCommandPtr&& cmd) override;
     };
