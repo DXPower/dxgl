@@ -50,3 +50,17 @@ std::map<TileType, TileMeta> LoadTileMetas() {
 
     return metas;
 }
+
+auto TileCoordNeighbors::ToList() const -> NeighborList {
+    NeighborList list{};
+    if (north) list.push_back(*north);
+    if (northeast) list.push_back(*northeast);
+    if (east) list.push_back(*east);
+    if (southeast) list.push_back(*southeast);
+    if (south) list.push_back(*south);
+    if (southwest) list.push_back(*southwest);
+    if (west) list.push_back(*west);
+    if (northwest) list.push_back(*northwest);
+
+    return list;
+}

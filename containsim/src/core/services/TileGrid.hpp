@@ -25,9 +25,13 @@ namespace services {
         const TileData& GetTile(TileCoord coord, TileLayer layer) const;
 
         std::optional<TileCoord> WorldPosToTileCoord(glm::vec2 world_pos) const;
+        glm::vec2 TileCoordToWorldPos(TileCoord coord) const;
+        
         TileCoord GetGridSize() const { return m_grid_size; }
         glm::vec2 GetTileWorldSize() const { return m_tile_world_size; }
 
         const auto& GetUnderlyingGrid() const { return m_tiles; }
     };
+
+    TileCoordNeighbors GetTileCoordNeighbors(const TileGrid& grid, TileCoord coord);
 }

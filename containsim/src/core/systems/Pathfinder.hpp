@@ -17,5 +17,8 @@ namespace systems {
         PathPoints FindPath(const glm::vec2& start, const glm::vec2& end) const;
 
         void PreUpdate(flecs::world& world) const;
+
+    private:
+        std::vector<TileCoord> AStar(const TileCoord& start, const TileCoord& end) const;
     };
 }

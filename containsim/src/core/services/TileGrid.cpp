@@ -35,11 +35,51 @@ const TileData& TileGrid::GetTile(TileCoord coord, TileLayer layer) const {
     return m_tiles[layer][coord.x][coord.y].data;
 }
 
-std::optional<glm::ivec2> TileGrid::WorldPosToTileCoord(glm::vec2 world_pos) const {
+std::optional<TileCoord> TileGrid::WorldPosToTileCoord(glm::vec2 world_pos) const {
     auto res = (world_pos + (m_tile_world_size / glm::vec2(2, 2))) / m_tile_world_size;
     
-    if (res.x < 0 || res.y < 0 || res.x >= m_grid_size.x || res.y >= m_grid_size.y) [[unlikely]]
+    if (res.x < 0 || res.y < 0 || res.x >= (float) m_grid_size.x || res.y >= (float) m_grid_size.y) [[unlikely]]
         return std::nullopt;
 
-    return static_cast<glm::ivec2>(res);
+    return static_cast<TileCoord>(res);
+}
+
+glm::vec2 TileGrid::TileCoordToWorldPos(TileCoord coord) const {
+    // Don't need to offset because the tile center is the origin in world space
+    return glm::vec2(coord) * m_tile_world_size;
+}
+
+TileCoordNeighbors services::GetTileCoordNeighbors(const TileGrid& grid, TileCoord coord) {
+    TileCoordNeighbors neighbors{};
+    auto grid_size = grid.GetGridSize();
+
+    if (coord.x > 0) {
+        neighbors.west = {coord.x - 1, coord.y};
+        if (coord.y > 0) {
+            neighbors.northwest = {coord.x - 1, coord.y - 1};
+        }
+        if (coord.y < grid_size.y - 1) {
+            neighbors.southwest = {coord.x - 1, coord.y + 1};
+        }
+    }
+
+    if (coord.x < grid_size.x - 1) {
+        neighbors.east = {coord.x + 1, coord.y};
+        if (coord.y > 0) {
+            neighbors.northeast = {coord.x + 1, coord.y - 1};
+        }
+        if (coord.y < grid_size.y - 1) {
+            neighbors.southeast = {coord.x + 1, coord.y + 1};
+        }
+    }
+
+    if (coord.y > 0) {
+        neighbors.north = {coord.x, coord.y - 1};
+    }
+
+    if (coord.y < grid_size.y - 1) {
+        neighbors.south = {coord.x, coord.y + 1};
+    }
+
+    return neighbors;
 }

@@ -20,7 +20,7 @@ void systems::PathMover(flecs::world& world) {
             const auto delta = target - transform.position;
             const auto distance2 = glm::length2(delta);
 
-            DebugDraws::MakeWorldDraw(path.points, {1.f, 0.f, 0.f, 1.f}, dxgl::PrimType::Line);
+            DebugDraws::MakeWorldDraw(path.points, {1.f, 0.f, 0.f, 1.f}, dxgl::PrimType::LineStrip);
 
             if (distance2 <= (mobility.speed * mobility.speed * it.delta_time() * it.delta_time())) {
                 transform.position = target;
