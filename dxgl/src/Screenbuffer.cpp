@@ -76,7 +76,6 @@ void Screenbuffer::Render() const {
     screen_vao.Use();
     color_buffer.Use(0);
     
-    
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 

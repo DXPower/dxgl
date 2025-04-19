@@ -3,11 +3,10 @@
 enum class RenderLayer {
     Background,
     Floors,
-    Walls,
-    Entities,
-    Particles,
+    Objects,
     Ceilings,
-    Ui
+    Ui,
+    Debug
 };
 
 enum class UboLocs {

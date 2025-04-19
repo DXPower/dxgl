@@ -211,10 +211,10 @@ void TileGridRenderer::Render(DrawQueues& draws) const {
         if (!m_pimpl->cached_draws[layer].has_value())
             m_pimpl->cached_draws[layer] = m_pimpl->BuildDraw(layer);
 
-        magic_enum::containers::array<TileLayer, RenderLayer> render_layer_map;
+        magic_enum::containers::array<TileLayer, RenderLayer> render_layer_map{};
         render_layer_map[TileLayer::Subterranean] = RenderLayer::Floors;
         render_layer_map[TileLayer::Ground] = RenderLayer::Floors;
-        render_layer_map[TileLayer::Walls] = RenderLayer::Walls;
+        render_layer_map[TileLayer::Walls] = RenderLayer::Objects;
         render_layer_map[TileLayer::Ceiling] = RenderLayer::Ceilings;
 
         draws.QueueViewedDraw(render_layer_map[layer], *m_pimpl->cached_draws[layer]);

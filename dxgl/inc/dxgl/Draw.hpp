@@ -7,7 +7,12 @@
 #include <boost/container/small_vector.hpp>
 
 namespace dxgl {
-    enum PrimType {
+    struct DrawOptions {
+        float line_width{1};
+        uint8_t wireframe : 1{};
+    };
+
+    enum class PrimType {
         Point = 0x0,
         Line,
         LineLoop,
@@ -36,7 +41,8 @@ namespace dxgl {
         uint32_t num_indices{};
         int32_t first_index{};
         uint32_t num_instances = 1;
-
+        DrawOptions options{};
+        
         void Render() const;
     };
 }

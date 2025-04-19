@@ -39,8 +39,13 @@
 #include <services/ui/InputStateBinding.hpp>
 #include <services/ui/TilesBinding.hpp>
 #include <services/EventManager.hpp>
-#include <common/GlobalConfig.hpp>
-
+#include <systems/CircleMover.hpp>
+#include <components/Pathing.hpp>
+#include <components/Actor.hpp>
+#include <components/Mobility.hpp>
+#include <systems/Pathfinder.hpp>
+#include <systems/PathMover.hpp>
+#include <common/DebugDraws.hpp>
 #include <spdlog/spdlog.h>
 #include <kangaru/kangaru.hpp>
 
@@ -52,6 +57,7 @@ struct InputResults {
 
 static bool cycle_tiles = false;
 static bool toggle_debugger = false;
+static std::optional<glm::vec2> target_pos{};
 
 struct GlobalActions : ActionConsumer {
     void Consume(Action&& action) override {
@@ -62,6 +68,11 @@ struct GlobalActions : ActionConsumer {
 
         if (press != nullptr && press->IsDownKey(GLFW_KEY_F8)) {
             toggle_debugger = true;
+        }
+
+        const MouseClick* click = std::get_if<MouseClick>(&action.data);
+        if (click != nullptr && click->button == 0 && click->dir == ButtonDir::Up) {
+            target_pos = click->pos;
         }
     }
 };
@@ -98,7 +109,7 @@ static void Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-#define CATCH_EXCEPTIONS 0
+#define CATCH_EXCEPTIONS 1
 
 int main() {
     namespace logging = services::logging;
@@ -175,6 +186,7 @@ int main() {
 
         document->Show();
 
+
         services::ui::BuildPanel build_panel{event_manager, *document};
 
         Screenbuffer main_screen_buffer{};
@@ -189,6 +201,8 @@ int main() {
         using namespace components;
         
         DrawQueues draw_queues{};
+        DebugDraws::Init(ubos, draw_queues);
+
         systems::SpriteRenderer sprite_renderer(ubos, draw_queues);
 
 
@@ -277,12 +291,38 @@ int main() {
         chain::Connect(build_input.uncaptured_actions, global_actions);
         chain::Connect(input_state.idle_actions, global_actions);
 
+        systems::Pathfinder pathfinder{tile_grid};
+        pathfinder.PreUpdate(world);
+        systems::PathMover(world);
+
+        // Populate world actors
+        dxgl::Texture gardner_sheet = dxgl::LoadTextureFromFile("res/img/gardner.png");
+        auto test_actor = world.entity();
+        test_actor.set<components::Actor>(components::Actor{.id = 1});
+        test_actor.set<components::PathMover>(components::PathMover{});
+        test_actor.set(components::Transform{
+            .size = {95, 95},
+        });
+        test_actor.set(components::Sprite{
+            .spritesheet = gardner_sheet,
+            .cutout = {
+                .position = {0, 0},
+                .size = {64, 64}
+            }
+        });
+        test_actor.set(components::RenderData{
+            .layer = RenderLayer::Objects
+        });
+        test_actor.add<components::SpriteRenderer>();
+        test_actor.set<components::Mobility>(components::Mobility{.speed = 350.f});
+
+
         while (!main_window.ShouldClose()) {
             double current_time = Application::GetTime();
             double delta_time_d = current_time - last_time;
             
             if (delta_time_d < 1./60) {
-                if (delta_time_d < 0.001) {
+                if (delta_time_d < 0.005) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
 
@@ -299,6 +339,17 @@ int main() {
 
             auto input [[maybe_unused]] = ProcessInput(main_window.GetGlfwWindow());
 
+            if (target_pos.has_value()) {
+                const auto cam_view = camera.GetViewMatrix();
+                const auto world_pos = glm::inverse(cam_view) * glm::vec4(*target_pos, 1, 1);
+
+                logger.info("Moving to {}, {}", world_pos.x, world_pos.y);
+
+                test_actor.set(components::DestinationIntent{.position = world_pos});
+                test_actor.add<components::StaleDestination>();
+                target_pos.reset();
+            }
+
             camera.MoveBy(input.camera_movement * camera_speed * delta_time);
 
             world.progress();
@@ -309,6 +360,7 @@ int main() {
             }
 
             tile_grid_renderer.Render(draw_queues);
+            sprite_renderer.OnStore();
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
