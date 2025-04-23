@@ -40,6 +40,8 @@
 #include <services/ui/TilesBinding.hpp>
 #include <services/EventManager.hpp>
 #include <systems/CircleMover.hpp>
+#include <systems/Collision.hpp>
+#include <components/Collider.hpp>
 #include <components/Pathing.hpp>
 #include <components/Actor.hpp>
 #include <components/Mobility.hpp>
@@ -109,7 +111,7 @@ static void Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-#define CATCH_EXCEPTIONS 1
+#define CATCH_EXCEPTIONS 0
 
 int main() {
     namespace logging = services::logging;
@@ -294,13 +296,18 @@ int main() {
         systems::Pathfinder pathfinder{tile_grid};
         pathfinder.PreUpdate(world);
         systems::PathMover(world);
+        systems::Collision(world);
+
+        struct PlayerTest { };
 
         // Populate world actors
         dxgl::Texture gardner_sheet = dxgl::LoadTextureFromFile("res/img/gardner.png");
         auto test_actor = world.entity();
         test_actor.set<components::Actor>(components::Actor{.id = 1});
+        test_actor.add<PlayerTest>();
         test_actor.set<components::PathMover>(components::PathMover{});
         test_actor.set(components::Transform{
+            .position = {400, 400},
             .size = {95, 95},
         });
         test_actor.set(components::Sprite{
@@ -315,7 +322,67 @@ int main() {
         });
         test_actor.add<components::SpriteRenderer>();
         test_actor.set<components::Mobility>(components::Mobility{.speed = 350.f});
+        test_actor.set(components::Collider{
+            .is_listening = true
+        });
+        test_actor.set(components::SquareCollider{
+            .relative_size = {.9f, .95f}
+        });
+        
+        for (int i = 0; i < 2; i++) {
+            auto other_actor = world.entity();
+            other_actor.set<components::Actor>(components::Actor{.id = 2 + (unsigned int)i});
+            other_actor.set(components::Transform{
+                .position = {100 + (105 * i), 100},
+                .size = {200, 200},
+            });
+            other_actor.set(components::Sprite{
+                .spritesheet = gardner_sheet,
+                .cutout = {
+                    .position = {0, 64},
+                    .size = {64, 64}
+                }
+            });
+            other_actor.set(components::RenderData{
+                .layer = RenderLayer::Objects
+            });
+            other_actor.add<components::SpriteRenderer>();
+            other_actor.set(components::Collider{
+                .is_trigger = true,
+                .is_listening = false
+            });
+            other_actor.set(components::SquareCollider{
+                .relative_size = {.5f, .9f}
+            });
+        }
 
+        world.system<components::CollisionBegan, PlayerTest>("PlayerCollisionBegan")
+            .term_at(0).second(flecs::Wildcard)
+            .kind(flecs::OnUpdate)
+            .each([&](flecs::iter& it, size_t, components::CollisionBegan, PlayerTest) {
+                logger.info("Player collided with something!");
+                auto other = it.pair(0).second();
+
+                const auto* other_actor = other.get<components::Actor>();
+
+                if (other_actor) {
+                    logger.info("Player collided with actor {}", other_actor->id);
+                }
+            });
+
+        world.system<components::CollisionEnded, PlayerTest>("PlayerCollisionEnded")
+            .term_at(0).second(flecs::Wildcard)
+            .kind(flecs::OnUpdate)
+            .each([&](flecs::iter& it, size_t, components::CollisionEnded, PlayerTest) {
+                logger.info("Player stopped colliding with something!");
+                auto other = it.pair(0).second();
+
+                const auto* other_actor = other.get<components::Actor>();
+
+                if (other_actor) {
+                    logger.info("Player stopped colliding with actor {}", other_actor->id);
+                }
+            });
 
         while (!main_window.ShouldClose()) {
             double current_time = Application::GetTime();

@@ -1,11 +1,17 @@
 #pragma once
 
 #include <glm/vec2.hpp>
+#include <common/Rect.hpp>
 
 namespace components {
     struct Transform {
         glm::vec2 position{};
         glm::vec2 size{};
-        glm::vec2 rotation{};
+
+        Rect ToRect() const {
+            return Rect{
+                .position = position, 
+                .size = size};
+        }
     };
 }

@@ -18,6 +18,11 @@ PathPoints Pathfinder::FindPath(const glm::vec2& start, const glm::vec2& end) co
     }
 
     auto tile_path = AStar(start_tile.value(), end_tile.value());
+
+    if (tile_path.empty()) {
+        return {}; // No path found
+    }
+
     PathPoints path{};
     path.reserve(tile_path.size());
     
@@ -48,13 +53,6 @@ float Heuristic(const TileCoord& a, const TileCoord& b) {
     // Chebyshev distance
     return (float) std::max(std::abs(a.x - b.x), std::abs(a.y - b.y));
 }
-
-// struct HeuristicComparator {
-//     // In std::priority_map, using > here means the smallest heuristic score is popped first
-//     bool operator()(const TileCoord& a, const TileCoord& b) const {
-//         return Heuristic(a, b) > Heuristic(b, a);
-//     }
-// };
 
 struct OpenSetTileCoord {
     TileCoord coord;
