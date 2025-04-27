@@ -27,6 +27,7 @@
 #include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
 #include <services/Camera.hpp>
+#include <systems/TilePrefabs.hpp>
 #include <RmlUi/Core.h>
 #include <RmlUi_Backends/RmlUi_Backend.h>
 #include <RmlUi_Backends/RmlUi_Renderer_GL3.h>
@@ -111,7 +112,7 @@ static void Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-#define CATCH_EXCEPTIONS 0
+#define CATCH_EXCEPTIONS 1
 
 int main() {
     namespace logging = services::logging;
@@ -230,7 +231,8 @@ int main() {
             .tile_size = {100, 100} // NOLINT
         };
 
-        services::TileGrid tile_grid(global_config);
+        services::InitTilePrefabs(world, global_config);
+        services::TileGrid tile_grid(global_config, world);
         services::TileGridRenderer tile_grid_renderer(tile_grid, ubos);
 
         auto logger = services::logging::CreateLogger("main");

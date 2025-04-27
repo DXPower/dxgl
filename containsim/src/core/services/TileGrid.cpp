@@ -1,10 +1,12 @@
 #include <services/TileGrid.hpp>
+#include <components/Transform.hpp>
 
 using namespace services;
 
-TileGrid::TileGrid(const GlobalConfig& config)
+TileGrid::TileGrid(const GlobalConfig& config, flecs::world& world)
     : m_grid_size(config.map_size),
-      m_tile_world_size(config.tile_size)
+      m_tile_world_size(config.tile_size),
+      m_world(&world)
 {
     for (auto& layer : m_tiles) {
         layer.resize(boost::extents[m_grid_size.x][m_grid_size.y]);
@@ -23,10 +25,35 @@ TileGrid::TileGrid(const GlobalConfig& config)
 }
 
 void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
+    static auto tile_metas = LoadTileMetas();
+
     auto& tile = m_tiles[layer][coord.x][coord.y];
 
     if (tile.data != data) {
+        // Destroy the old entity if it exists
+        if (tile.entity)
+            tile.entity.destruct();
+
         tile.data = data;
+
+        // Lookup the prefab
+        auto meta_it = tile_metas.find(data.type);
+
+        if (meta_it != tile_metas.end() && meta_it->second.prefab_name.has_value()) {
+            const auto& meta = meta_it->second;
+            auto prefab = m_world->lookup(meta.prefab_name->c_str());
+
+            if (!prefab) {
+                throw std::runtime_error("Prefab not found: " + *meta.prefab_name);
+            }
+
+            tile.entity = m_world->entity()
+                .is_a(prefab)
+                .set<TileCoord>(coord);
+
+            tile.entity.get_mut<components::Transform>()->position = TileCoordToWorldPos(coord);
+        }
+
         tile_update_signal.fire(*this, tile);
     }
 }

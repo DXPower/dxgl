@@ -31,6 +31,11 @@ std::map<TileType, TileMeta> LoadTileMetas() {
                 }
 
                 meta.friendly_name = name;
+
+                if (sprite_json.contains("prefab")) {
+                    meta.prefab_name = sprite_json["prefab"].template get<std::string>();
+                }
+
                 meta.spritesheet_name = "tiles.tga";
 
                 meta.sprite_origin = {

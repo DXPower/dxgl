@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/vec2.hpp>
+#include <flecs.h>
 #include <string>
 #include <map>
 #include <optional>
@@ -16,7 +17,7 @@ enum class TileType {
 
 struct TileData {
     TileType type{};
-
+    
     constexpr bool operator==(const TileData& rhs) const = default;
 };
 
@@ -33,12 +34,14 @@ struct Tile {
     TileCoord coord{};
     TileLayer layer{};
     TileData data{};
+    flecs::entity entity{};
 };
 
 struct TileMeta {
     TileType type{};
     TileLayer layer{};
     std::string friendly_name{};
+    std::optional<std::string> prefab_name{};
     // TODO: Use asset manager for this
     std::string spritesheet_name{};
     glm::ivec2 sprite_origin{};
