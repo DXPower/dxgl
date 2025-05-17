@@ -7,19 +7,35 @@
 
 using namespace services;
 
-InputState::InputState(EventManager& em, BuildInput& build_input) : m_event_manager(&em) {
+InputState::InputState(EventManager& em, BuildInput& build_input, RoomInput& room_input) : m_event_manager(&em) {
     m_logger.set_level(spdlog::level::debug);
 
     StateIdle(m_fsm, StateId::IdleMode);
     StateBuildActive(m_fsm, StateId::BuildActive);
+    StateRoomActive(m_fsm, StateId::RoomActive);
+
     m_fsm.SetCurrentState(StateId::IdleMode);
 
     m_fsm.AddTransition(StateId::IdleMode, EventId::EnterBuildMode, StateId::BuildActive);
     m_fsm.AddTransition(StateId::BuildActive, EventId::ExitMode, StateId::IdleMode);
+    
+    m_fsm.AddTransition(StateId::IdleMode, EventId::EnterRoomMode, StateId::RoomActive);
+    m_fsm.AddTransition(StateId::RoomActive, EventId::ExitMode, StateId::IdleMode);
+
+    m_fsm.AddTransition(StateId::BuildActive, EventId::EnterRoomMode, StateId::RoomActive);
+    m_fsm.AddTransition(StateId::RoomActive, EventId::EnterBuildMode, StateId::BuildActive);
 
     build_input.GetFsm().AddRemoteTransition(
         BuildInput::StateId::IdleMode,
         BuildInput::EventId::ExitMode,
+        m_fsm,
+        StateId::IdleMode,
+        EventId::ExitMode
+    );
+
+    room_input.GetFsm().AddRemoteTransition(
+        RoomInput::StateId::IdleMode,
+        RoomInput::EventId::ExitMode,
         m_fsm,
         StateId::IdleMode,
         EventId::ExitMode
@@ -55,6 +71,8 @@ InputState::InputState(EventManager& em, BuildInput& build_input) : m_event_mana
 
 auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
     Event_t event{};
+    m_action_forward = &idle_actions;
+    
     while (true) {
         co_await fsm.EmitAndReceive(event);
 
@@ -65,6 +83,9 @@ auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
             if (press != nullptr) {
                 if (press->IsDownKey(GLFW_KEY_B)) {
                     event = EventId::EnterBuildMode;
+                    continue;
+                } else if (press->IsDownKey(GLFW_KEY_R)) {
+                    event = EventId::EnterRoomMode;
                     continue;
                 } else if (press->IsDownKey(GLFW_KEY_ESCAPE)) {
                     event = EventId::PauseGame;
@@ -113,6 +134,20 @@ auto InputState::StateBuildActive(FSM_t& fsm, StateId) -> State_t {
     }
 }
 
+auto InputState::StateRoomActive(FSM_t& fsm, StateId) -> State_t {
+    Event_t event{};
+
+    while (true) {
+        co_await fsm.EmitAndReceive(event);
+
+        if (event == EventId::Action) {
+            m_action_forward = &room_actions;
+        }
+
+        event.Clear();
+    }
+}
+
 void InputState::ProcessCommand(const commands::InputStateCommand& cmd) {
     cmd.Execute(*this);
 }
@@ -128,6 +163,10 @@ void InputState::Consume(Action&& action) {
 
 void InputState::EnterBuildMode() {
     m_fsm.InsertEvent(EventId::EnterBuildMode);
+}
+
+void InputState::EnterRoomMode() {
+    m_fsm.InsertEvent(EventId::EnterRoomMode);
 }
 
 void InputState::ExitMode() {

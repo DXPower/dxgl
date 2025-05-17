@@ -5,7 +5,8 @@ namespace services {
 enum class InputStates {
     IdleMode,
     PauseMenu,
-    BuildActive
+    BuildActive,
+    RoomActive,
 };
 
 struct InputStateChanged {

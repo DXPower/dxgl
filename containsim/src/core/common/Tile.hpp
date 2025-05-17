@@ -1,10 +1,13 @@
 #pragma once
 
+#include <common/TileCoord.hpp>
+#include <common/Room.hpp>
 #include <glm/vec2.hpp>
 #include <flecs.h>
 #include <string>
 #include <map>
 #include <optional>
+#include <generator>
 #include <boost/container/small_vector.hpp>
 
 enum class TileType {
@@ -21,8 +24,6 @@ struct TileData {
     constexpr bool operator==(const TileData& rhs) const = default;
 };
 
-using TileCoord = glm::ivec2;
-
 enum class TileLayer {
     Subterranean,
     Ground,
@@ -34,6 +35,7 @@ struct Tile {
     TileCoord coord{};
     TileLayer layer{};
     TileData data{};
+    RoomId room{};
     flecs::entity entity{};
 };
 
@@ -57,4 +59,11 @@ struct TileCoordNeighbors {
         south, southwest, west, northwest;
 
     NeighborList ToList() const;
+};
+
+struct TileSelection {
+    TileCoord start{}; // Inclusive
+    TileCoord end{}; // Inclusive
+
+    std::generator<TileCoord> Iterate() const;
 };

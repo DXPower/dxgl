@@ -17,7 +17,7 @@ target_link_libraries(containsim_core PUBLIC
     RmlUi_Backends
 )
 
-target_compile_definitions(containsim_core PRIVATE _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING GLM_ENABLE_EXPERIMENTAL)
+target_compile_definitions(containsim_core PUBLIC _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING GLM_ENABLE_EXPERIMENTAL)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/common)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules)

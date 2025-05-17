@@ -5,15 +5,16 @@
 #include <services/commands/BuildInputCommands.hpp>
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/InputStateCommands.hpp>
+#include <services/commands/RoomInputCommands.hpp>
 #include <services/Logging.hpp>
 #include <services/EventManager.hpp>
+#include <services/RoomInput.hpp>
 #include <dxfsm/dxfsm.hpp>
 
 namespace services {
     class BuildInput;
 
     class InputState 
-        // : public commands::CommandConsumer<commands::InputStateCommand>
         : public ActionConsumer {
     
         using StateId = services::InputStates;
@@ -21,6 +22,7 @@ namespace services {
         enum class EventId {
             ExitMode,
             EnterBuildMode,
+            EnterRoomMode,
             PauseGame,
             Action
         };
@@ -35,17 +37,17 @@ namespace services {
         logging::Logger m_logger = logging::CreateLogger("InputState");
 
     public:
-        // commands::CommandProducer<commands::BuildInputCommand> build_input_cmds{};
         ActionProducer build_actions{};
+        ActionProducer room_actions{};
         ActionProducer idle_actions{};
 
-        InputState(EventManager& em, BuildInput& build_input);
+        InputState(EventManager& em, BuildInput& build_input, RoomInput& room_input);
 
-        // void Consume(commands::InputStateCommandPtr&& cmd) override;
         void ProcessCommand(const commands::InputStateCommand& cmd);
         void Consume(Action&& action) override;
 
         void EnterBuildMode();
+        void EnterRoomMode();
         void EnterStaffManagement();
         void EnterEconomyManagement();
         void Pause();
@@ -55,5 +57,6 @@ namespace services {
         State_t StateIdle(FSM_t& fsm, StateId);
         State_t StatePauseMenu(FSM_t& fsm, StateId);
         State_t StateBuildActive(FSM_t& fsm, StateId); 
+        State_t StateRoomActive(FSM_t& fsm, StateId);
     };
 }

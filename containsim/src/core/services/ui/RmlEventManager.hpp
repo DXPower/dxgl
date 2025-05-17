@@ -6,8 +6,8 @@
 #include <services/Logging.hpp>
 #include <services/EventManager.hpp>
 
-#include <memory>
 #include <string>
+#include <span>
 #include <vector>
 
 namespace services {

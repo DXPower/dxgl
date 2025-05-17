@@ -26,6 +26,9 @@ namespace services {
         void SetTile(TileCoord coord, TileLayer layer, TileData data);
         const TileData& GetTile(TileCoord coord, TileLayer layer) const;
 
+        RoomId GetRoomAt(TileCoord coord) const;
+        void SetRoomAt(TileCoord coord, RoomId room_id);
+
         std::optional<TileCoord> WorldPosToTileCoord(glm::vec2 world_pos) const;
         glm::vec2 TileCoordToWorldPos(TileCoord coord) const;
         

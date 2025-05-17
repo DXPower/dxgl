@@ -62,6 +62,16 @@ const TileData& TileGrid::GetTile(TileCoord coord, TileLayer layer) const {
     return m_tiles[layer][coord.x][coord.y].data;
 }
 
+RoomId TileGrid::GetRoomAt(TileCoord coord) const {
+    return m_tiles[TileLayer::Ceiling][coord.x][coord.y].room;
+}
+
+void TileGrid::SetRoomAt(TileCoord coord, RoomId room_id) {
+    for (auto layer : magic_enum::enum_values<TileLayer>()) {
+        m_tiles[layer][coord.x][coord.y].room = room_id;
+    }
+}
+
 std::optional<TileCoord> TileGrid::WorldPosToTileCoord(glm::vec2 world_pos) const {
     auto res = (world_pos + (m_tile_world_size / glm::vec2(2, 2))) / m_tile_world_size;
     

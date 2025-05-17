@@ -13,6 +13,10 @@ namespace services {
             void Execute(InputState& input_state) const override;
         };
 
+        struct InputStateEnterRoomMode : InputStateCommand {
+            void Execute(InputState& input_state) const override;
+        };
+
         struct InputStateExitMode : InputStateCommand {
             void Execute(InputState& input_state) const override;
         };

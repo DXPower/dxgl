@@ -2,9 +2,10 @@
 
 #include <services/InputStateEvents.hpp>
 #include <services/BuildInputEvents.hpp>
+#include <services/RoomInputEvents.hpp>
 #include <services/EventManager.hpp>
 #include <RmlUi/Core/DataModelHandle.h>
-
+#include <RmlUi/Core/Context.h>
 #include <magic_enum/magic_enum.hpp>
 
 namespace services {
@@ -37,6 +38,7 @@ class InputStateBinding {
     struct Data {
         InputStates main_state{};
         BuildInputStates build_state{};
+        RoomInputStates room_state{};
     } m_data{};
     Rml::DataModelHandle m_model{};
 
@@ -60,8 +62,14 @@ public:
             detail::MakeEnumSetter<BuildInputStates>()
         );
 
+        constructor.RegisterScalar<RoomInputStates>(
+            detail::MakeEnumGetter<RoomInputStates>(),
+            detail::MakeEnumSetter<RoomInputStates>()
+        );
+
         constructor.Bind("main_state", &m_data.main_state);
         constructor.Bind("build_state", &m_data.build_state);
+        constructor.Bind("room_state", &m_data.room_state);
 
         m_model = constructor.GetModelHandle();
 
@@ -70,6 +78,9 @@ public:
 
         em.GetOrRegisterSignal<BuildInputStateChanged>()
             .signal.connect<&InputStateBinding::UpdateBuildState>(this);
+
+        em.GetOrRegisterSignal<RoomInputStateChanged>()
+            .signal.connect<&InputStateBinding::UpdateRoomState>(this);
     }
 
 private:
@@ -81,6 +92,11 @@ private:
     void UpdateBuildState(const BuildInputStateChanged& event) {
         m_data.build_state = event.to;
         m_model.DirtyVariable("build_state");
+    }
+
+    void UpdateRoomState(const RoomInputStateChanged& event) {
+        m_data.room_state = event.to;
+        m_model.DirtyVariable("room_state");
     }
 };
 

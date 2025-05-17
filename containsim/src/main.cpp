@@ -20,6 +20,7 @@
 #include <services/ActionRouter.hpp>
 #include <services/BuildInput.hpp>
 #include <services/BuildManager.hpp>
+#include <services/RoomManager.hpp>
 #include <services/InputState.hpp>
 #include <services/TileGrid.hpp>
 #include <services/TileGridRenderer.hpp>
@@ -36,6 +37,7 @@
 #include <services/UiActionReceiver.hpp>
 #include <services/ui/Panel.hpp>
 #include <services/ui/BuildPanel.hpp>
+#include <services/ui/RoomPanel.hpp>
 #include <services/ui/RmlEventManager.hpp>
 #include <services/ui/InputStateBinding.hpp>
 #include <services/ui/TilesBinding.hpp>
@@ -191,6 +193,7 @@ int main() {
 
 
         services::ui::BuildPanel build_panel{event_manager, *document};
+        services::ui::RoomPanel room_panel{event_manager, *document};
 
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(initial_screen_size);
@@ -279,7 +282,8 @@ int main() {
         chain::Connect(ui_actions.uncaptured_actions, input_router);
 
         services::BuildInput build_input{event_manager, camera, tile_grid};
-        services::InputState input_state{event_manager, build_input};
+        services::RoomInput room_input{event_manager, camera, tile_grid};
+        services::InputState input_state{event_manager, build_input, room_input};
 
         chain::Connect(input_router.game_action_receiver, input_state);
         chain::Connect(input_router.offscreen_action_receiver, input_state);
@@ -288,13 +292,18 @@ int main() {
         services::BuildManager build_manager{tile_grid};
         chain::Connect(build_input.build_commands, build_manager);
 
+        services::RoomManager room_manager{tile_grid};
+        chain::Connect(room_input.room_commands, room_manager);
+
         GlobalActions global_actions{};
 
         // chain::Connect(input_state.build_input_cmds, build_input);
+        chain::Connect(input_state.idle_actions, global_actions);
         chain::Connect(input_state.build_actions, build_input);
         chain::Connect(build_input.uncaptured_actions, global_actions);
-        chain::Connect(input_state.idle_actions, global_actions);
-
+        chain::Connect(input_state.room_actions, room_input);
+        chain::Connect(room_input.uncaptured_actions, global_actions);
+        
         systems::Pathfinder pathfinder{tile_grid};
         pathfinder.PreUpdate(world);
         systems::PathMover(world);

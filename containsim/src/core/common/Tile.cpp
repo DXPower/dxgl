@@ -1,9 +1,9 @@
 #include <common/Tile.hpp>
 
+#include <algorithm>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <magic_enum/magic_enum.hpp>
-
 
 std::map<TileType, TileMeta> LoadTileMetas() {
     std::map<TileType, TileMeta> metas{};
@@ -68,4 +68,15 @@ auto TileCoordNeighbors::ToList() const -> NeighborList {
     if (northwest) list.push_back(*northwest);
 
     return list;
+}
+
+std::generator<TileCoord> TileSelection::Iterate() const {
+    int x_step = start.x < end.x ? 1 : -1;
+    int y_step = start.y < end.y ? 1 : -1;
+
+    for (auto x = start.x; x != end.x + x_step; x += x_step) {
+        for (auto y = start.y; y != end.y + y_step; y += y_step) {
+            co_yield TileCoord{x, y};
+        }
+    }
 }
