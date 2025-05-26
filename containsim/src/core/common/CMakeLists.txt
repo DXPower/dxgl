@@ -5,4 +5,5 @@ target_sources(containsim_core PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Rect.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Room.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Tile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TileCoord.cpp
 )

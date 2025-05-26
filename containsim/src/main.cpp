@@ -24,6 +24,7 @@
 #include <services/InputState.hpp>
 #include <services/TileGrid.hpp>
 #include <services/TileGridRenderer.hpp>
+#include <services/RoomRenderer.hpp>
 #include <services/InputHandler.hpp>
 #include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
@@ -293,6 +294,8 @@ int main() {
         chain::Connect(build_input.build_commands, build_manager);
 
         services::RoomManager room_manager{tile_grid};
+        services::RoomRenderer room_renderer(room_manager, ubos);
+
         chain::Connect(room_input.room_commands, room_manager);
 
         GlobalActions global_actions{};
@@ -303,7 +306,7 @@ int main() {
         chain::Connect(build_input.uncaptured_actions, global_actions);
         chain::Connect(input_state.room_actions, room_input);
         chain::Connect(room_input.uncaptured_actions, global_actions);
-        
+
         systems::Pathfinder pathfinder{tile_grid};
         pathfinder.PreUpdate(world);
         systems::PathMover(world);
@@ -438,6 +441,7 @@ int main() {
             }
 
             tile_grid_renderer.Render(draw_queues);
+            room_renderer.Render(draw_queues);
             sprite_renderer.OnStore();
 
             draw_queues.RenderQueuedDraws();

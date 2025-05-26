@@ -41,18 +41,43 @@ Room& RoomManager::MarkTilesAsRoom(const TileSelection& tiles, RoomType type) {
     // 2. No rooms to merge - create a new room
     // 3. Two or more rooms to merge - merge them into a new room
     if (rooms_to_merge.size() == 1) {
+        for (auto coord : tiles_to_merge) {
+            m_tile_grid->SetRoomAt(coord, rooms_to_merge[0]->GetId());
+        }
+
         rooms_to_merge[0]->AddTiles(std::move(tiles_to_merge));
+        room_modified_signal.fire(RoomModified{.room = rooms_to_merge[0]});
+
         return *rooms_to_merge[0];
     } else {
-        Room new_room(m_next_id++, type);
+        auto new_id = m_next_id++;
+        auto [it, ins] = m_rooms.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(new_id),
+            std::forward_as_tuple(new_id, type)
+        );
+        Room& new_room = it->second;
+        
+        for (auto coord : tiles_to_merge) {
+            m_tile_grid->SetRoomAt(coord, new_id);
+        }
 
         new_room.AddTiles(std::move(tiles_to_merge));
 
         for (auto* room : rooms_to_merge) {
+            for (auto coord : room->GetTiles()) {
+                m_tile_grid->SetRoomAt(coord, new_id);
+            }
+
             new_room.AddTiles(room->ExtractTiles());
+            
+            auto remove_id = room->GetId();
+            m_rooms.erase(remove_id);
+            
+            room_removed_signal.fire(RoomRemoved{.id = remove_id});
         }
 
-        auto [it, ins] = m_rooms.emplace(new_room.GetId(), std::move(new_room));
+        room_added_signal.fire(RoomAdded{.room = &new_room});
         return it->second;
     }
 }

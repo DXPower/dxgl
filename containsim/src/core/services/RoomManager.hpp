@@ -8,6 +8,8 @@
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/RoomCommands.hpp>
 
+#include <nano/nano_signal_slot.hpp>
+
 namespace services {
     class RoomManager : public commands::CommandConsumer<commands::RoomCommand> {
         std::unordered_map<RoomId, Room> m_rooms{};
@@ -15,6 +17,11 @@ namespace services {
         RoomId m_next_id{1};
 
     public:
+        // TODO: use event manager
+        mutable Nano::Signal<void(const RoomAdded&)> room_added_signal{};
+        mutable Nano::Signal<void(const RoomRemoved&)> room_removed_signal{};
+        mutable Nano::Signal<void(const RoomModified&)> room_modified_signal{};
+
         RoomManager(TileGrid& tile_grid);
 
         Room& MarkTilesAsRoom(const TileSelection& tiles, RoomType type);
@@ -41,6 +48,14 @@ namespace services {
 
         void Consume(commands::RoomCommandPtr&& cmd) override {
             cmd->Execute(*this);
+        }
+
+        const auto& GetRooms() const {
+            return m_rooms;
+        }
+
+        const auto& GetTileGrid() const {
+            return *m_tile_grid;
         }
     };
 }

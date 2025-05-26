@@ -8,7 +8,6 @@
 #include <map>
 #include <optional>
 #include <generator>
-#include <boost/container/small_vector.hpp>
 
 enum class TileType {
     Nothing,
@@ -51,15 +50,6 @@ struct TileMeta {
 };
 
 std::map<TileType, TileMeta> LoadTileMetas();
-
-struct TileCoordNeighbors {
-    using NeighborList = boost::container::small_vector<TileCoord, 8>;
-
-    std::optional<TileCoord> north, northeast, east, southeast,
-        south, southwest, west, northwest;
-
-    NeighborList ToList() const;
-};
 
 struct TileSelection {
     TileCoord start{}; // Inclusive

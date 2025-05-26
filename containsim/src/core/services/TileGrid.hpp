@@ -12,6 +12,8 @@
 
 
 namespace services {
+    class RoomManager;
+
     class TileGrid {
         magic_enum::containers::array<TileLayer, boost::multi_array<Tile, 2>> m_tiles;
         TileCoord m_grid_size{};
@@ -27,7 +29,6 @@ namespace services {
         const TileData& GetTile(TileCoord coord, TileLayer layer) const;
 
         RoomId GetRoomAt(TileCoord coord) const;
-        void SetRoomAt(TileCoord coord, RoomId room_id);
 
         std::optional<TileCoord> WorldPosToTileCoord(glm::vec2 world_pos) const;
         glm::vec2 TileCoordToWorldPos(TileCoord coord) const;
@@ -36,6 +37,11 @@ namespace services {
         glm::vec2 GetTileWorldSize() const { return m_tile_world_size; }
 
         const auto& GetUnderlyingGrid() const { return m_tiles; }
+
+    private:
+        void SetRoomAt(TileCoord coord, RoomId room_id);
+
+        friend class RoomManager;
     };
 
     TileCoordNeighbors GetTileCoordNeighbors(const TileGrid& grid, TileCoord coord);

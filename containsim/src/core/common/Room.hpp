@@ -35,3 +35,15 @@ public:
 
     static Room Merge(RoomId new_id, Room&& a, Room&& b);
 };
+
+struct RoomAdded {
+    const Room* room{};
+};
+
+struct RoomRemoved {
+    RoomId id{};
+};
+
+struct RoomModified {
+    const Room* room{};
+};
