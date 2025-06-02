@@ -55,5 +55,6 @@ struct TileSelection {
     TileCoord start{}; // Inclusive
     TileCoord end{}; // Inclusive
 
+    bool Contains(const TileCoord& coord) const;
     std::generator<TileCoord> Iterate() const;
 };

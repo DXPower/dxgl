@@ -24,7 +24,7 @@ namespace services {
 
         RoomManager(TileGrid& tile_grid);
 
-        Room& MarkTilesAsRoom(const TileSelection& tiles, RoomType type);
+        void MarkTilesAsRoom(const TileSelection& tiles, RoomType type);
         void UnmarkTiles(const TileSelection& tiles);
 
         auto* GetRoom(this auto&& self, RoomId room_id) noexcept {

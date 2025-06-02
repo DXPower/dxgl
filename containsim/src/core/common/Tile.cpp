@@ -70,6 +70,14 @@ auto TileCoordNeighbors::ToList() const -> NeighborList {
     return list;
 }
 
+bool TileSelection::Contains(const TileCoord& coord) const {
+    auto [x_min, x_max] = std::minmax(start.x, end.x);
+    auto [y_min, y_max] = std::minmax(start.y, end.y);
+
+    return coord.x >= x_min && coord.x <= x_max &&
+           coord.y >= y_min && coord.y <= y_max;
+}
+
 std::generator<TileCoord> TileSelection::Iterate() const {
     int x_step = start.x < end.x ? 1 : -1;
     int y_step = start.y < end.y ? 1 : -1;
