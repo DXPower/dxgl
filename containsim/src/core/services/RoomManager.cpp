@@ -14,7 +14,7 @@ namespace {
 // Just guessing a good number here for a realistic case of merging
 constexpr std::size_t estimated_merge_count = 10;
 
-struct MergeResults {
+struct RegionResults {
     struct Region {
         std::unordered_set<TileCoord> unmerged_tiles{};
         std::unordered_set<RoomId> rooms_to_merge{};
@@ -23,24 +23,34 @@ struct MergeResults {
     small_vector<Region, estimated_merge_count> regions;
 };
 
+enum class FloodfillType : std::uint8_t {
+    Merge,
+    Split
+};
+
+template<FloodfillType Type>
 void FloodfillDfs(
     const RoomManager& rooms,
     const TileGrid& grid,
     std::unordered_set<TileCoord>& working_set,
     const std::unordered_set<TileCoord>::iterator& start_it,
     RoomType type_to_merge,
-    MergeResults::Region& region
+    RegionResults::Region& region
 ) {
     const auto start_coord = *start_it;
     const auto room_id = grid.GetRoomAt(start_coord);
     auto start_handle = working_set.extract(start_it);
 
-    if (room_id == NoRoom) {
-        region.unmerged_tiles.insert(std::move(start_handle));
-    } else if (rooms.GetRoom(room_id)->GetType() == type_to_merge) {
-        region.rooms_to_merge.insert(room_id);
+    if constexpr (Type == FloodfillType::Merge) {
+        if (room_id == NoRoom) {
+            region.unmerged_tiles.insert(std::move(start_handle));
+        } else if (rooms.GetRoom(room_id)->GetType() == type_to_merge) {
+            region.rooms_to_merge.insert(room_id);
+        } else {
+            return; // Not the type we are looking for
+        }
     } else {
-        return; // Not the type we are looking for
+        region.unmerged_tiles.insert(std::move(start_handle));
     }
 
     // Check neighbors
@@ -51,19 +61,19 @@ void FloodfillDfs(
 
         if (neighbor_it != working_set.end()) {
             // If the neighbor is in the working set, continue the flood fill
-            FloodfillDfs(rooms, grid, working_set, neighbor_it, type_to_merge, region);
+            FloodfillDfs<Type>(rooms, grid, working_set, neighbor_it, type_to_merge, region);
         }
     }
 }
 
-MergeResults CalculateMerges(
+RegionResults CalculateMerges(
     const RoomManager& rooms,
     const TileSelection& tiles,
     RoomType type_to_merge
 ) {
     const auto& grid = rooms.GetTileGrid();
 
-    MergeResults results{};
+    RegionResults results{};
     std::unordered_set<TileCoord> working_set{};
 
     // Initialize the working set with all tiles in the selection
@@ -76,11 +86,53 @@ MergeResults CalculateMerges(
 
         // Take a tile from the working set to start the flood fill
         auto start_it = working_set.begin();
-        FloodfillDfs(rooms, grid, working_set, start_it, type_to_merge, region);
+        FloodfillDfs<FloodfillType::Merge>(rooms, grid, working_set, start_it, type_to_merge, region);
     }
 
     return results;
 }
+
+RegionResults CalculateSplits(
+    const RoomManager& rooms,
+    const TileSelection& tiles,
+    std::unordered_set<RoomId>& visited_rooms
+) {
+    const auto& grid = rooms.GetTileGrid();
+
+    RegionResults results{};
+    for (const TileCoord& coord : tiles.Iterate()) {
+        // If we have already visited this room, skip it.
+        const auto room_id = grid.GetRoomAt(coord);
+        if (room_id == NoRoom || visited_rooms.contains(room_id))
+            continue;
+        
+        visited_rooms.insert(room_id);
+        
+        const auto& room = rooms.GetRoomThrowing(room_id);
+
+        // Copy the room's tiles into the working set,
+        // as long as they are not in the tiles we are removing.
+        std::unordered_set<TileCoord> working_set{};
+        const auto& room_tiles = room.GetTiles();
+        std::ranges::copy_if(room_tiles, std::inserter(working_set, working_set.end()),
+            [&tiles](const TileCoord& coord) {
+                return !tiles.Contains(coord);
+            }
+        );
+
+        // Now, we can flood fill the working set to find remaining regions after removing the tiles
+        while (!working_set.empty()) {
+            auto& region = results.regions.emplace_back();
+
+            // Take a tile from the working set to start the flood fill
+            const auto start_it = working_set.begin();
+            FloodfillDfs<FloodfillType::Split>(rooms, grid, working_set, start_it, room.GetType(), region);
+        }
+    }
+
+    return results;
+}
+
 }
 
 void RoomManager::MarkTilesAsRoom(const TileSelection& tiles, RoomType type) {
@@ -145,6 +197,40 @@ void RoomManager::MarkTilesAsRoom(const TileSelection& tiles, RoomType type) {
     }
 }
 
-void RoomManager::UnmarkTiles(const TileSelection&) {
+void RoomManager::UnmarkTiles(const TileSelection& tiles) {
+    std::unordered_set<RoomId> visited_rooms{};
+    auto splits = CalculateSplits(*this, tiles, visited_rooms);
 
+    // Clear the room in the tile selection
+    for (const TileCoord& coord : tiles.Iterate()) {
+        m_tile_grid->SetRoomAt(coord, NoRoom);
+    }
+
+    for (auto& region : splits.regions) {
+        const auto& old_room_id = m_tile_grid->GetRoomAt(*region.unmerged_tiles.begin());
+        const auto& old_room = GetRoomThrowing(old_room_id);
+        const auto new_id = m_next_id++;
+
+        // Create a new room with the remaining tiles
+        auto [it, ins] = m_rooms.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(new_id),
+            std::forward_as_tuple(new_id, old_room.GetType())
+        );
+
+        Room& new_room = it->second;
+
+        for (const TileCoord& coord : region.unmerged_tiles) {
+            m_tile_grid->SetRoomAt(coord, new_id);
+        }
+
+        new_room.AddTiles(std::move(region.unmerged_tiles));
+        room_added_signal.fire(RoomAdded{.room = &new_room});
+    }
+    
+    for (RoomId room_id : visited_rooms) {
+        // Remove the room from the manager
+        m_rooms.erase(room_id);
+        room_removed_signal.fire(RoomRemoved{.id = room_id});
+    }
 }
