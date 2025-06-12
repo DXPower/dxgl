@@ -1,7 +1,7 @@
 #include <systems/TilePrefabs.hpp>
 #include <common/Tile.hpp>
 #include <components/Transform.hpp>
-#include <components/Collider.hpp>
+#include <modules/physics/Collider.hpp>
 
 using namespace components;
 
@@ -10,9 +10,9 @@ void services::InitTilePrefabs(flecs::world& world, const GlobalConfig& config) 
         .set(Transform{
             .size = config.tile_size
         })
-        .set(Collider{
+        .set(physics::Collider{
             .is_fixed = true
         })
-        .add<SquareCollider>()
+        .add<physics::SquareCollider>()
         .add<TileCoord>();
 }

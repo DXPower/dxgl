@@ -1,9 +1,8 @@
 #pragma once
 
-#include <common/Pathing.hpp>
-#include <glm/vec2.hpp>
+#include <common/Paths.hpp>
 
-namespace components {
+namespace pathing {
     struct DestinationIntent {
         glm::vec2 position{};
     };
@@ -13,7 +12,7 @@ namespace components {
     struct Path {
         PathPoints points{};
     };
-
+    
     struct PathMover {
         std::size_t cur_node_idx{};
     };

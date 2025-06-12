@@ -1,12 +1,11 @@
 #pragma once
 
-#include <components/ComponentProducer.hpp>
 #include <glm/vec2.hpp>
 #include <flecs.h>
 
 #include <optional>
 
-namespace components {
+namespace physics {
     struct Collider {
         // If true, this collider will not move nor move others in response to penetration
         bool is_trigger{};

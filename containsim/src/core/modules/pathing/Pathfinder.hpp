@@ -1,12 +1,11 @@
 #pragma once
 
-#include <common/Pathing.hpp>
-#include <components/Pathing.hpp>
+#include <common/Paths.hpp>
 #include <services/TileGrid.hpp>
 
 #include <flecs.h>
 
-namespace systems {
+namespace pathing {
     class Pathfinder {
         [[maybe_unused]] const services::TileGrid* m_tile_grid{};
 

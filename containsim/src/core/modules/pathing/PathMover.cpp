@@ -1,18 +1,19 @@
-#include <systems/PathMover.hpp>
-#include <components/Pathing.hpp>
+#include <modules/pathing/PathMover.hpp>
+#include <modules/pathing/Pathing.hpp>
 #include <components/Transform.hpp>
 #include <components/Mobility.hpp>
 #include <common/DebugDraws.hpp>
 
 #include <glm/gtx/norm.hpp>
-#include <cmath>
 
-void systems::PathMover(flecs::world& world) {
-    world.system<components::Path, components::PathMover, const components::Mobility, components::Transform>("PathMover")
+using namespace pathing;
+
+void pathing::PathMoverSystem(flecs::world& world) {
+    world.system<Path, PathMover, const components::Mobility, components::Transform>("PathMover")
         .kind(flecs::OnUpdate)
-        .each([](flecs::iter& it, size_t row, components::Path& path, components::PathMover& mover, const components::Mobility& mobility, components::Transform& transform) {
+        .each([](flecs::iter& it, size_t row, Path& path, PathMover& mover, const components::Mobility& mobility, components::Transform& transform) {
             if (mover.cur_node_idx >= path.points.size()) {
-                it.entity(row).remove<components::Path>();
+                it.entity(row).remove<Path>();
                 return;
             }
 
@@ -31,7 +32,7 @@ void systems::PathMover(flecs::world& world) {
             }
 
             if (mover.cur_node_idx >= path.points.size()) {
-                it.entity(row).remove<components::Path>();
+                it.entity(row).remove<Path>();
             }
         });
 }

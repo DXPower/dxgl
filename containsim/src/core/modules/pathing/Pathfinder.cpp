@@ -1,12 +1,12 @@
-#include <components/Pathing.hpp>
+#include <modules/pathing/Pathfinder.hpp>
+#include <modules/pathing/PathingComponents.hpp>
 #include <components/Transform.hpp>
-#include <systems/Pathfinder.hpp>
 #include <glm/gtx/hash.hpp>
 #include <queue>
 #include <unordered_set>
 #include <numbers>
 
-using namespace systems;
+using namespace pathing;
 using namespace components;
 
 PathPoints Pathfinder::FindPath(const glm::vec2& start, const glm::vec2& end) const {

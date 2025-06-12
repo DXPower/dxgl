@@ -44,16 +44,13 @@
 #include <services/ui/TilesBinding.hpp>
 #include <services/EventManager.hpp>
 #include <systems/CircleMover.hpp>
-#include <systems/Collision.hpp>
-#include <components/Collider.hpp>
-#include <components/Pathing.hpp>
 #include <components/Actor.hpp>
 #include <components/Mobility.hpp>
-#include <systems/Pathfinder.hpp>
-#include <systems/PathMover.hpp>
 #include <common/DebugDraws.hpp>
 #include <spdlog/spdlog.h>
-#include <kangaru/kangaru.hpp>
+
+#include <modules/physics/Physics.hpp>
+#include <modules/pathing/Pathing.hpp>
 
 using namespace dxgl;
 
@@ -236,7 +233,11 @@ int main() {
         };
 
         services::InitTilePrefabs(world, global_config);
-        services::TileGrid tile_grid(global_config, world);
+        // services::TileGrid tile_grid(global_config, world);
+        world.component<services::TileGrid>().add(flecs::Sparse);
+        world.emplace<services::TileGrid>(global_config, world);
+        auto& tile_grid = *world.get_mut<services::TileGrid>();
+
         services::TileGridRenderer tile_grid_renderer(tile_grid, ubos);
 
         auto logger = services::logging::CreateLogger("main");
@@ -307,10 +308,8 @@ int main() {
         chain::Connect(input_state.room_actions, room_input);
         chain::Connect(room_input.uncaptured_actions, global_actions);
 
-        systems::Pathfinder pathfinder{tile_grid};
-        pathfinder.PreUpdate(world);
-        systems::PathMover(world);
-        systems::Collision(world);
+        world.import<physics::Physics>();
+        world.import<pathing::Pathing>();
 
         struct PlayerTest { };
 
@@ -319,7 +318,7 @@ int main() {
         auto test_actor = world.entity();
         test_actor.set<components::Actor>(components::Actor{.id = 1});
         test_actor.add<PlayerTest>();
-        test_actor.set<components::PathMover>(components::PathMover{});
+        test_actor.set<pathing::PathMover>(pathing::PathMover{});
         test_actor.set(components::Transform{
             .position = {400, 400},
             .size = {95, 95},
@@ -336,10 +335,10 @@ int main() {
         });
         test_actor.add<components::SpriteRenderer>();
         test_actor.set<components::Mobility>(components::Mobility{.speed = 350.f});
-        test_actor.set(components::Collider{
+        test_actor.set(physics::Collider{
             .is_listening = true
         });
-        test_actor.set(components::SquareCollider{
+        test_actor.set(physics::SquareCollider{
             .relative_size = {.9f, .95f}
         });
         
@@ -361,19 +360,19 @@ int main() {
                 .layer = RenderLayer::Objects
             });
             other_actor.add<components::SpriteRenderer>();
-            other_actor.set(components::Collider{
+            other_actor.set(physics::Collider{
                 .is_trigger = true,
                 .is_listening = false
             });
-            other_actor.set(components::SquareCollider{
+            other_actor.set(physics::SquareCollider{
                 .relative_size = {.5f, .9f}
             });
         }
 
-        world.system<components::CollisionBegan, PlayerTest>("PlayerCollisionBegan")
+        world.system<physics::CollisionBegan, PlayerTest>("PlayerCollisionBegan")
             .term_at(0).second(flecs::Wildcard)
             .kind(flecs::OnUpdate)
-            .each([&](flecs::iter& it, size_t, components::CollisionBegan, PlayerTest) {
+            .each([&](flecs::iter& it, size_t, physics::CollisionBegan, PlayerTest) {
                 logger.info("Player collided with something!");
                 auto other = it.pair(0).second();
 
@@ -384,10 +383,10 @@ int main() {
                 }
             });
 
-        world.system<components::CollisionEnded, PlayerTest>("PlayerCollisionEnded")
+        world.system<physics::CollisionEnded, PlayerTest>("PlayerCollisionEnded")
             .term_at(0).second(flecs::Wildcard)
             .kind(flecs::OnUpdate)
-            .each([&](flecs::iter& it, size_t, components::CollisionEnded, PlayerTest) {
+            .each([&](flecs::iter& it, size_t, physics::CollisionEnded, PlayerTest) {
                 logger.info("Player stopped colliding with something!");
                 auto other = it.pair(0).second();
 
@@ -426,8 +425,8 @@ int main() {
 
                 logger.info("Moving to {}, {}", world_pos.x, world_pos.y);
 
-                test_actor.set(components::DestinationIntent{.position = world_pos});
-                test_actor.add<components::StaleDestination>();
+                test_actor.set(pathing::DestinationIntent{.position = world_pos});
+                test_actor.add<pathing::StaleDestination>();
                 target_pos.reset();
             }
 

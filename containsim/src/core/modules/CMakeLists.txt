@@ -1,2 +1,2 @@
-target_sources(containsim_core PRIVATE
-)
+add_subdirectory(physics)
+add_subdirectory(pathing)
