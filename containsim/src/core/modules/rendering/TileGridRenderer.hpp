@@ -1,14 +1,14 @@
 #pragma once
 
 #include <services/TileGrid.hpp>
-#include <common/DrawQueues.hpp>
+#include <modules/rendering/DrawQueues.hpp>
 
 #include <dxgl/Ubo.hpp>
 
 #include <memory>
 #include <glm/vec2.hpp>
 
-namespace services {
+namespace rendering {
     class TileGridRenderer {
         class Pimpl;
         struct PimplDeleter {
@@ -18,7 +18,7 @@ namespace services {
         std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
     public:
-        TileGridRenderer(const TileGrid& tiles, dxgl::UboBindingManager& ubo_manager);
+        TileGridRenderer(const services::TileGrid& tiles, dxgl::UboBindingManager& ubo_manager);
         ~TileGridRenderer();
         TileGridRenderer(TileGridRenderer&& move);
         TileGridRenderer& operator=(TileGridRenderer&& move);

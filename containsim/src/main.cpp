@@ -12,23 +12,17 @@
 #include <dxgl/Screenbuffer.hpp>
 #include <dxgl/Ubo.hpp>
 
-#include <common/DrawQueues.hpp>
-#include <components/RenderData.hpp>
-#include <components/Sprite.hpp>
 #include <components/Transform.hpp>
-#include <systems/SpriteRenderer.hpp>
 #include <services/ActionRouter.hpp>
 #include <services/BuildInput.hpp>
 #include <services/BuildManager.hpp>
 #include <services/RoomManager.hpp>
 #include <services/InputState.hpp>
 #include <services/TileGrid.hpp>
-#include <services/TileGridRenderer.hpp>
-#include <services/RoomRenderer.hpp>
 #include <services/InputHandler.hpp>
 #include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
-#include <services/Camera.hpp>
+#include <modules/rendering/Camera.hpp>
 #include <systems/TilePrefabs.hpp>
 #include <RmlUi/Core.h>
 #include <RmlUi_Backends/RmlUi_Backend.h>
@@ -51,6 +45,10 @@
 
 #include <modules/physics/Physics.hpp>
 #include <modules/pathing/Pathing.hpp>
+#include <modules/rendering/Rendering.hpp>
+#include <modules/rendering/SpriteRenderer.hpp>
+#include <modules/rendering/TileGridRenderer.hpp>
+#include <modules/rendering/RoomRenderer.hpp>
 
 using namespace dxgl;
 
@@ -196,36 +194,7 @@ int main() {
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(initial_screen_size);
 
-        UboBindingManager ubos{};
-        services::Camera camera(ubos);
-        camera.UpdateViewportSize(initial_screen_size);
-
         flecs::world world{};
-
-        using namespace components;
-        
-        DrawQueues draw_queues{};
-        DebugDraws::Init(ubos, draw_queues);
-
-        systems::SpriteRenderer sprite_renderer(ubos, draw_queues);
-
-
-        std::function<void(
-            const components::SpriteRenderer&,
-            const components::Transform&,
-            const components::RenderData&,
-            const components::Sprite&
-        )> pre_store = std::bind_front(&systems::SpriteRenderer::PreStore, &sprite_renderer);
-
-        world.system<
-            components::SpriteRenderer,
-            components::Transform,
-            components::RenderData,
-            components::Sprite>(
-            "SpriteRenderer"
-        )
-            .kind(flecs::PreStore)
-            .each(pre_store);
 
         GlobalConfig global_config{
             .map_size = { 20, 10 }, // NOLINT
@@ -233,12 +202,28 @@ int main() {
         };
 
         services::InitTilePrefabs(world, global_config);
-        // services::TileGrid tile_grid(global_config, world);
         world.component<services::TileGrid>().add(flecs::Sparse);
         world.emplace<services::TileGrid>(global_config, world);
-        auto& tile_grid = *world.get_mut<services::TileGrid>();
+        auto& tile_grid = world.get_mut<services::TileGrid>();
 
-        services::TileGridRenderer tile_grid_renderer(tile_grid, ubos);
+        world.component<services::RoomManager>().add(flecs::Sparse);
+        world.emplace<services::RoomManager>(tile_grid);
+        auto& room_manager = world.get_mut<services::RoomManager>();
+
+        world.import<rendering::Rendering>();
+        auto& camera = world.get_mut<rendering::Camera>();
+        auto& ubos = world.get_mut<dxgl::UboBindingManager>();
+        auto& draw_queues = world.get_mut<rendering::DrawQueues>();
+
+        auto& tile_grid_renderer = world.get_mut<rendering::TileGridRenderer>();
+        auto& room_renderer = world.get_mut<rendering::RoomRenderer>();
+        auto& sprite_renderer = world.get_mut<rendering::SpriteRendererSystem>();
+
+        camera.UpdateViewportSize(initial_screen_size);
+
+        using namespace components;
+        
+        DebugDraws::Init(ubos, draw_queues);
 
         auto logger = services::logging::CreateLogger("main");
         logger.info("Hello, world!");
@@ -294,9 +279,6 @@ int main() {
         services::BuildManager build_manager{tile_grid};
         chain::Connect(build_input.build_commands, build_manager);
 
-        services::RoomManager room_manager{tile_grid};
-        services::RoomRenderer room_renderer(room_manager, ubos);
-
         chain::Connect(room_input.room_commands, room_manager);
 
         GlobalActions global_actions{};
@@ -323,17 +305,17 @@ int main() {
             .position = {400, 400},
             .size = {95, 95},
         });
-        test_actor.set(components::Sprite{
+        test_actor.set(rendering::Sprite{
             .spritesheet = gardner_sheet,
             .cutout = {
                 .position = {0, 0},
                 .size = {64, 64}
             }
         });
-        test_actor.set(components::RenderData{
+        test_actor.set(rendering::RenderData{
             .layer = RenderLayer::Objects
         });
-        test_actor.add<components::SpriteRenderer>();
+        test_actor.add<rendering::SpriteRenderer>();
         test_actor.set<components::Mobility>(components::Mobility{.speed = 350.f});
         test_actor.set(physics::Collider{
             .is_listening = true
@@ -349,17 +331,17 @@ int main() {
                 .position = {100 + (105 * i), 100},
                 .size = {200, 200},
             });
-            other_actor.set(components::Sprite{
+            other_actor.set(rendering::Sprite{
                 .spritesheet = gardner_sheet,
                 .cutout = {
                     .position = {0, 64},
                     .size = {64, 64}
                 }
             });
-            other_actor.set(components::RenderData{
+            other_actor.set(rendering::RenderData{
                 .layer = RenderLayer::Objects
             });
-            other_actor.add<components::SpriteRenderer>();
+            other_actor.add<rendering::SpriteRenderer>();
             other_actor.set(physics::Collider{
                 .is_trigger = true,
                 .is_listening = false
@@ -376,10 +358,9 @@ int main() {
                 logger.info("Player collided with something!");
                 auto other = it.pair(0).second();
 
-                const auto* other_actor = other.get<components::Actor>();
-
-                if (other_actor) {
-                    logger.info("Player collided with actor {}", other_actor->id);
+                if (other.has<components::Actor>()) {
+                    const auto& other_actor = other.get<components::Actor>();
+                    logger.info("Player collided with actor {}", other_actor.id);
                 }
             });
 
@@ -390,10 +371,9 @@ int main() {
                 logger.info("Player stopped colliding with something!");
                 auto other = it.pair(0).second();
 
-                const auto* other_actor = other.get<components::Actor>();
-
-                if (other_actor) {
-                    logger.info("Player stopped colliding with actor {}", other_actor->id);
+                if (other.has<components::Actor>()) {
+                    const auto& other_actor = other.get<components::Actor>();
+                    logger.info("Player stopped colliding with actor {}", other_actor.id);
                 }
             });
 

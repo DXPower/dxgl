@@ -3,7 +3,7 @@
 #include <dxgl/Ubo.hpp>
 #include <glm/glm.hpp>
 
-namespace services {
+namespace rendering {
     class Camera {
         glm::vec2 cur_pos{};
 

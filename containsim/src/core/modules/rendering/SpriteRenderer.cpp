@@ -7,8 +7,8 @@
 #include "dxgl/Vbo.hpp"
 #include <dxgl//Uniform.hpp>
 #include <memory>
-#include <systems/SpriteRenderer.hpp>
-#include <common/DrawQueues.hpp>
+#include <modules/rendering/SpriteRenderer.hpp>
+#include <modules/rendering/DrawQueues.hpp>
 
 // #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
@@ -16,7 +16,7 @@
 #include <array>
 #include <map>
 
-using namespace systems;
+using namespace rendering;
 
 namespace {
     struct InstanceDataBuffer {
@@ -47,7 +47,7 @@ namespace {
     };
 }
 
-class SpriteRenderer::Pimpl {
+class SpriteRendererSystem::Pimpl {
 public:
     std::map<RenderLayer, InstanceData> layer_instances{};
 
@@ -55,11 +55,11 @@ public:
     dxgl::Vbo quad_vbo{};
 };
 
-void SpriteRenderer::PimplDeleter::operator()(Pimpl* p) const {
+void SpriteRendererSystem::PimplDeleter::operator()(Pimpl* p) const {
     delete p;
 }
 
-SpriteRenderer::SpriteRenderer(dxgl::UboBindingManager& ubos, DrawQueues& queues) 
+SpriteRendererSystem::SpriteRendererSystem(dxgl::UboBindingManager& ubos, DrawQueues& queues) 
     : m_pimpl(new Pimpl())
     , m_queues_out(&queues) {
 
@@ -79,14 +79,14 @@ SpriteRenderer::SpriteRenderer(dxgl::UboBindingManager& ubos, DrawQueues& queues
     m_pimpl->quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
 }
 
-SpriteRenderer::~SpriteRenderer() = default;
+SpriteRendererSystem::~SpriteRendererSystem() = default;
 
 
-void SpriteRenderer::PreStore(
-    const components::SpriteRenderer&,
+void SpriteRendererSystem::PreStore(
+    const SpriteRenderer&,
     const components::Transform& transform,
-    const components::RenderData& rdata, 
-    const components::Sprite& sprite
+    const RenderData& rdata, 
+    const Sprite& sprite
 ) {
     auto world_mat = glm::mat3(1);
     world_mat = glm::translate(world_mat, transform.position);
@@ -112,7 +112,7 @@ void SpriteRenderer::PreStore(
     instance_data.instance_data_misc.emplace_back().spritesheet = sprite.spritesheet;
 }
 
-void SpriteRenderer::OnStore() {
+void SpriteRendererSystem::OnStore() {
     using namespace dxgl;
 
     for (const auto& [layer, instance_data] : m_pimpl->layer_instances) {
@@ -155,7 +155,7 @@ void SpriteRenderer::OnStore() {
     m_pimpl->layer_instances.clear();
 }
 
-dxgl::Draw SpriteRenderer::MakeDrawTemplate() const {
+dxgl::Draw SpriteRendererSystem::MakeDrawTemplate() const {
     dxgl::Draw draw{};
 
     draw.program = m_pimpl->program;

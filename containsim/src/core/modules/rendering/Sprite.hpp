@@ -3,7 +3,7 @@
 #include <dxgl/Texture.hpp>
 #include <common/Rect.hpp>
 
-namespace components {
+namespace rendering {
     struct Sprite {
         dxgl::TextureRef spritesheet{};
         Rect cutout{};

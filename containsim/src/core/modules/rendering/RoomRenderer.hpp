@@ -1,14 +1,14 @@
 #pragma once
 
 #include <services/RoomManager.hpp>
-#include <common/DrawQueues.hpp>
+#include <modules/rendering/DrawQueues.hpp>
 
 #include <dxgl/Ubo.hpp>
 
 #include <memory>
 #include <glm/vec2.hpp>
 
-namespace services {
+namespace rendering {
     class RoomRenderer {
         class Pimpl;
         struct PimplDeleter {
@@ -18,7 +18,7 @@ namespace services {
         std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
     public:
-        RoomRenderer(const RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager);
+        RoomRenderer(const services::RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager);
         ~RoomRenderer();
         RoomRenderer(RoomRenderer&& move) noexcept;
         RoomRenderer& operator=(RoomRenderer&& move) noexcept;

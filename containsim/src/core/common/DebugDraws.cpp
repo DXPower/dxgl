@@ -10,7 +10,7 @@ namespace {
 Program program{};
 }
 
-void DebugDraws::Init(UboBindingManager& ubos, DrawQueues& queues) {
+void DebugDraws::Init(UboBindingManager& ubos, rendering::DrawQueues& queues) {
     m_queues = &queues;
 
     program = ProgramBuilder()

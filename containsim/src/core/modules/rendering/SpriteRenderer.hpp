@@ -1,8 +1,8 @@
 #pragma once
 
 #include <components/Transform.hpp>
-#include <components/RenderData.hpp>
-#include <components/Sprite.hpp>
+#include <modules/rendering/RenderData.hpp>
+#include <modules/rendering/Sprite.hpp>
 
 #include <common/GlobalState.hpp>
 
@@ -10,10 +10,9 @@ namespace dxgl {
     struct Draw;
 }
 
-class DrawQueues;
-
-namespace systems {
-    class SpriteRenderer {
+namespace rendering {
+    class DrawQueues;
+    class SpriteRendererSystem {
         class Pimpl;
         struct PimplDeleter {
             void operator()(Pimpl* p) const;
@@ -23,14 +22,14 @@ namespace systems {
 
         DrawQueues* m_queues_out{};
     public:
-        SpriteRenderer(dxgl::UboBindingManager& ubos, DrawQueues& queues);
-        ~SpriteRenderer();
+        SpriteRendererSystem(dxgl::UboBindingManager& ubos, DrawQueues& queues);
+        ~SpriteRendererSystem();
 
         void PreStore(
-            const components::SpriteRenderer&,
+            const SpriteRenderer&,
             const components::Transform& transform,
-            const components::RenderData& rdata, 
-            const components::Sprite& sprite
+            const RenderData& rdata, 
+            const Sprite& sprite
         );
 
         void OnStore();

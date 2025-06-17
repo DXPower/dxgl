@@ -42,8 +42,9 @@ void Pathfinder::PreUpdate(flecs::world& world) const {
             e.remove<StaleDestination>();
 
             // Reset the path mover to look at the start of the new path if we update it
-            if (auto* path_mover = e.get_mut<PathMover>()) {
-                path_mover->cur_node_idx = 1;
+            if (e.has<PathMover>()) {
+                auto& path_mover = e.get_mut<PathMover>();
+                path_mover.cur_node_idx = 1;
             }
         });
 }

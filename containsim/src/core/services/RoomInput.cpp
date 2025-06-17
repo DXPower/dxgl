@@ -10,7 +10,7 @@
 using namespace services;
 using namespace commands;
 
-RoomInput::RoomInput(EventManager& em, const Camera& cam, const TileGrid& tiles)
+RoomInput::RoomInput(EventManager& em, const rendering::Camera& cam, const TileGrid& tiles)
     : m_event_manager(&em), m_camera(&cam), m_tiles(&tiles) {
     m_logger.set_level(spdlog::level::debug);
     

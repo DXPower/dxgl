@@ -51,7 +51,7 @@ void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
                 .is_a(prefab)
                 .set<TileCoord>(coord);
 
-            tile.entity.get_mut<components::Transform>()->position = TileCoordToWorldPos(coord);
+            tile.entity.get_mut<components::Transform>().position = TileCoordToWorldPos(coord);
         }
 
         tile_update_signal.fire(*this, tile);

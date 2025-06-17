@@ -12,7 +12,7 @@
 #include <dxfsm/dxfsm.hpp>
 #include <services/Logging.hpp>
 
-#include <services/Camera.hpp>
+#include <modules/rendering/Camera.hpp>
 #include <services/TileGrid.hpp>
 
 namespace services {
@@ -41,12 +41,12 @@ namespace services {
 
         FSM_t m_fsm{};
         EventManager* m_event_manager{};
-        const Camera* m_camera{};
+        const rendering::Camera* m_camera{};
         const TileGrid* m_tiles{};
         logging::Logger m_logger = logging::CreateLogger("RoomInput");
 
     public:
-        RoomInput(EventManager& em, const Camera& cam, const TileGrid& tiles);
+        RoomInput(EventManager& em, const rendering::Camera& cam, const TileGrid& tiles);
 
         void Consume(Action&& action) override;
 

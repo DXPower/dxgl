@@ -1,4 +1,4 @@
-#include <services/TileGridRenderer.hpp>
+#include <modules/rendering/TileGridRenderer.hpp>
 #include <common/Rendering.hpp>
 
 #include <dxgl/Uniform.hpp>
@@ -11,7 +11,7 @@
 #include <magic_enum/magic_enum_containers.hpp>
 #include <nlohmann/json.hpp>
 
-using namespace services;
+using namespace rendering;
 
 namespace {
     struct PerInstanceData {
@@ -40,7 +40,7 @@ namespace {
 
 class TileGridRenderer::Pimpl {
 public:
-    const TileGrid* tiles{};
+    const services::TileGrid* tiles{};
     magic_enum::containers::array<TileType, TileSpriteData> tile_sprites{};
 
     // Draw data
@@ -50,7 +50,7 @@ public:
     dxgl::Vbo quad_vbo{};
     dxgl::Texture spritesheet{};
 
-    Pimpl(const TileGrid& tiles, dxgl::UboBindingManager& ubo_manager) {
+    Pimpl(const services::TileGrid& tiles, dxgl::UboBindingManager& ubo_manager) {
         this->tiles = &tiles;
         tiles.tile_update_signal.connect<&Pimpl::OnTileUpdate>(this);
         
@@ -189,7 +189,7 @@ public:
         return draw;
     }
 
-    void OnTileUpdate(const TileGrid&, const Tile& tile) {
+    void OnTileUpdate(const services::TileGrid&, const Tile& tile) {
         cached_draws[tile.layer].reset();
     }
 };
@@ -198,7 +198,7 @@ void TileGridRenderer::PimplDeleter::operator()(Pimpl* p) const {
     delete p;
 }
 
-TileGridRenderer::TileGridRenderer(const TileGrid& tiles, dxgl::UboBindingManager& ubo_manager)
+TileGridRenderer::TileGridRenderer(const services::TileGrid& tiles, dxgl::UboBindingManager& ubo_manager)
     : m_pimpl(new Pimpl(tiles, ubo_manager))
 { }
 

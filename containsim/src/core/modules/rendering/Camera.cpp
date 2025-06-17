@@ -1,4 +1,4 @@
-#include "Camera.hpp"
+#include <modules/rendering/Camera.hpp>
 
 #include <common/Rendering.hpp>
 
@@ -7,7 +7,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-using namespace services;
+using namespace rendering;
 
 namespace {
     struct CameraUbo {

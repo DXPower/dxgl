@@ -1,4 +1,4 @@
-#include <services/RoomRenderer.hpp>
+#include <modules/rendering/RoomRenderer.hpp>
 #include <common/Rendering.hpp>
 
 #include <dxgl/Uniform.hpp>
@@ -10,7 +10,7 @@
 #include <magic_enum/magic_enum_containers.hpp>
 #include <nlohmann/json.hpp>
 
-using namespace services;
+using namespace rendering;
 
 namespace {
     struct VertexData {
@@ -22,14 +22,14 @@ namespace {
 
 class RoomRenderer::Pimpl {
 public:
-    const RoomManager* room_manager{};
+    const services::RoomManager* room_manager{};
 
     // Draw data
     mutable std::unordered_map<RoomId, std::optional<dxgl::Draw>> cached_draws{};
     
     mutable dxgl::Program program{};
 
-    Pimpl(const RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager) {
+    Pimpl(const services::RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager) {
         this->room_manager = &room_manager;
         room_manager.room_added_signal.connect<&Pimpl::OnRoomAdded>(this);     
         room_manager.room_modified_signal.connect<&Pimpl::OnRoomModified>(this);     
@@ -155,7 +155,7 @@ void RoomRenderer::PimplDeleter::operator()(Pimpl* p) const {
     delete p;
 }
 
-RoomRenderer::RoomRenderer(const RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager)
+RoomRenderer::RoomRenderer(const services::RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager)
     : m_pimpl(new Pimpl(room_manager, ubo_manager))
 { }
 

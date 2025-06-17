@@ -2,7 +2,7 @@
 
 #include <common/Rendering.hpp>
 
-namespace components {
+namespace rendering {
     struct RenderData {
         RenderLayer layer{};
     };
