@@ -26,15 +26,7 @@ Rendering::Rendering(flecs::world& world) {
     world.component<Camera>().add(flecs::Sparse);
     world.emplace<Camera>(ubos);
 
-    world.component<SpriteRendererSystem>().add(flecs::Sparse);
-    world.emplace<SpriteRendererSystem>(ubos, draw_queues);
-    auto& sprite_renderer = world.get_mut<SpriteRendererSystem>();
-
-    using components::Transform;
-    
-    world.system<SpriteRenderer, Transform, RenderData, Sprite>("SpriteRenderer")
-        .kind(flecs::PreStore)
-        .each(std::bind_front(&SpriteRendererSystem::PreStore, &sprite_renderer));
+    SpriteRendererSystems(world);
 
     const auto& tile_grid = world.get<services::TileGrid>();
     world.component<TileGridRenderer>().add(flecs::Sparse);

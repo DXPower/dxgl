@@ -217,7 +217,7 @@ int main() {
 
         auto& tile_grid_renderer = world.get_mut<rendering::TileGridRenderer>();
         auto& room_renderer = world.get_mut<rendering::RoomRenderer>();
-        auto& sprite_renderer = world.get_mut<rendering::SpriteRendererSystem>();
+        // auto& sprite_renderer = world.get_mut<rendering::SpriteRendererSystem>();
 
         camera.UpdateViewportSize(initial_screen_size);
 
@@ -421,7 +421,7 @@ int main() {
 
             tile_grid_renderer.Render(draw_queues);
             room_renderer.Render(draw_queues);
-            sprite_renderer.OnStore();
+            // sprite_renderer.OnStore();
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
