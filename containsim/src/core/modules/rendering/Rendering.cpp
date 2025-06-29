@@ -17,7 +17,6 @@ Rendering::Rendering(flecs::world& world) {
 
     world.component<DrawQueues>().add(flecs::Sparse);
     world.add<DrawQueues>();
-    auto& draw_queues = world.get_mut<DrawQueues>();
 
     world.component<dxgl::UboBindingManager>().add(flecs::Sparse);
     world.add<dxgl::UboBindingManager>();
@@ -28,8 +27,5 @@ Rendering::Rendering(flecs::world& world) {
 
     SpriteRendererSystems(world);
     TileGridRendererSystem(world);
-
-    const auto& room_manager = world.get<services::RoomManager>();
-    world.component<RoomRenderer>().add(flecs::Sparse);
-    world.emplace<RoomRenderer>(room_manager, ubos);
+    RoomRendererSystem(world);
 }

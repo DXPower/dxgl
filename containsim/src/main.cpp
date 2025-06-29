@@ -215,9 +215,6 @@ int main() {
         auto& ubos = world.get_mut<dxgl::UboBindingManager>();
         auto& draw_queues = world.get_mut<rendering::DrawQueues>();
 
-        auto& room_renderer = world.get_mut<rendering::RoomRenderer>();
-        // auto& sprite_renderer = world.get_mut<rendering::SpriteRendererSystem>();
-
         camera.UpdateViewportSize(initial_screen_size);
 
         using namespace components;
@@ -418,8 +415,6 @@ int main() {
             
             world.progress();
 
-
-            room_renderer.Render(draw_queues);
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();

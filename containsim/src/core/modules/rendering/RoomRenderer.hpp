@@ -9,20 +9,21 @@
 #include <glm/vec2.hpp>
 
 namespace rendering {
-    class RoomRenderer {
-        class Pimpl;
-        struct PimplDeleter {
-            void operator()(Pimpl* p) const;
-        };
+    void RoomRendererSystem(flecs::world& world);
+    // class RoomRenderer {
+    //     class Pimpl;
+    //     struct PimplDeleter {
+    //         void operator()(Pimpl* p) const;
+    //     };
 
-        std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
+    //     std::unique_ptr<Pimpl, PimplDeleter> m_pimpl{};
 
-    public:
-        RoomRenderer(const services::RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager);
-        ~RoomRenderer();
-        RoomRenderer(RoomRenderer&& move) noexcept;
-        RoomRenderer& operator=(RoomRenderer&& move) noexcept;
+    // public:
+    //     RoomRenderer(const services::RoomManager& room_manager, dxgl::UboBindingManager& ubo_manager);
+    //     ~RoomRenderer();
+    //     RoomRenderer(RoomRenderer&& move) noexcept;
+    //     RoomRenderer& operator=(RoomRenderer&& move) noexcept;
 
-        void Render(DrawQueues& draws) const;
-    };
+    //     void Render(DrawQueues& draws) const;
+    // };
 }
