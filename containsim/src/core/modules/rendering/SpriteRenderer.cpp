@@ -142,7 +142,7 @@ namespace {
 }
 
 void rendering::SpriteRendererSystems(flecs::world& world) {
-    auto& ubos = world.get_mut<dxgl::UboBindingManager>();
+    const auto& ubos = world.get<dxgl::UboBindingManager>();
 
     world.component<SpriteRendererSystemData>();
     auto& sr_data = world.ensure<SpriteRendererSystemData>();

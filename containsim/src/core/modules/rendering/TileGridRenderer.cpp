@@ -1,8 +1,14 @@
 #include <modules/rendering/TileGridRenderer.hpp>
+#include <modules/rendering/DrawQueues.hpp>
 #include <common/Rendering.hpp>
+#include <common/Tile.hpp>
+#include <services/TileGrid.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
+#include <dxgl/Vbo.hpp>
+#include <dxgl/Draw.hpp>
+#include <dxgl/Ubo.hpp>
 
 #include <array>
 #include <fstream>
@@ -36,187 +42,187 @@ namespace {
         glm::ivec2 origin{};
         glm::ivec2 size{};
     };
-}
 
-class TileGridRenderer::Pimpl {
-public:
-    const services::TileGrid* tiles{};
-    magic_enum::containers::array<TileType, TileSpriteData> tile_sprites{};
+    struct TileGridRendererData {
+        magic_enum::containers::array<TileType, TileSpriteData> tile_sprites{};
 
-    // Draw data
-    mutable magic_enum::containers::array<TileLayer, std::optional<dxgl::Draw>> cached_draws{};
-    
-    mutable dxgl::Program program{};
-    dxgl::Vbo quad_vbo{};
-    dxgl::Texture spritesheet{};
-
-    Pimpl(const services::TileGrid& tiles, dxgl::UboBindingManager& ubo_manager) {
-        this->tiles = &tiles;
-        tiles.tile_update_signal.connect<&Pimpl::OnTileUpdate>(this);
+        // Draw data
+        mutable magic_enum::containers::array<TileLayer, std::optional<dxgl::Draw>> cached_draws{};
         
-        spritesheet = dxgl::LoadTextureFromFile("res/img/tiles.png");
-        spritesheet.SetFilterMode(dxgl::FilterMode::Nearest);
-        
-        program = dxgl::ProgramBuilder()
-            .Vert("shaders/sprite.vert")
-            .Frag("shaders/sprite.frag")
-            .Link();
+        mutable dxgl::Program program{};
+        dxgl::Vbo quad_vbo{};
+        dxgl::Texture spritesheet{};
 
-        dxgl::Uniform::Set(program, "spritesheet", 0);
-        
-        ubo_manager.BindUniformLocation(
-            static_cast<std::size_t>(UboLocs::Camera), 
-            program, 
-            "camera"
-        );
+        TileGridRendererData(const services::TileGrid& tiles, const dxgl::UboBindingManager& ubo_manager) {
+            tiles.tile_update_signal.connect<&TileGridRendererData::OnTileUpdate>(this);
+            
+            spritesheet = dxgl::LoadTextureFromFile("res/img/tiles.png");
+            spritesheet.SetFilterMode(dxgl::FilterMode::Nearest);
+            
+            program = dxgl::ProgramBuilder()
+                .Vert("shaders/sprite.vert")
+                .Frag("shaders/sprite.frag")
+                .Link();
 
-        quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
+            dxgl::Uniform::Set(program, "spritesheet", 0);
+            
+            ubo_manager.BindUniformLocation(
+                static_cast<std::size_t>(UboLocs::Camera), 
+                program, 
+                "camera"
+            );
 
-        LoadTileSpriteData();
-    }
+            quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
 
-    void LoadTileSpriteData() {
-        std::ifstream json_file("res/spritesheets.json");
-        nlohmann::json json_data = nlohmann::json::parse(json_file);
+            LoadTileSpriteData();
+        }
 
-        for (const auto& sheet_json : json_data["sheets"]) {
-            if (sheet_json["name"] == "tiles") {
-                for (const auto& sprite_json : sheet_json["sprites"]) {
-                    auto name = sprite_json["name"].template get<std::string>();
-                    TileType type{};
-                    
-                    if (auto casted = magic_enum::enum_cast<TileType>(name)) {
-                        type = casted.value();
-                    } else {
-                        throw std::runtime_error("Invalid TileType in JSON file: " + name);
+        void LoadTileSpriteData() {
+            std::ifstream json_file("res/spritesheets.json");
+            nlohmann::json json_data = nlohmann::json::parse(json_file);
+
+            for (const auto& sheet_json : json_data["sheets"]) {
+                if (sheet_json["name"] == "tiles") {
+                    for (const auto& sprite_json : sheet_json["sprites"]) {
+                        auto name = sprite_json["name"].template get<std::string>();
+                        TileType type{};
+                        
+                        if (auto casted = magic_enum::enum_cast<TileType>(name)) {
+                            type = casted.value();
+                        } else {
+                            throw std::runtime_error("Invalid TileType in JSON file: " + name);
+                        }
+
+                        auto& sprite_data = tile_sprites[type];
+                        
+                        sprite_data.origin = {
+                            sprite_json["x"].template get<int>(),
+                            sprite_json["y"].template get<int>()
+                        };
+
+                        sprite_data.size = {
+                            sprite_json["w"].template get<int>(),
+                            sprite_json["h"].template get<int>()
+                        };
                     }
-
-                    auto& sprite_data = tile_sprites[type];
-                    
-                    sprite_data.origin = {
-                        sprite_json["x"].template get<int>(),
-                        sprite_json["y"].template get<int>()
-                    };
-
-                    sprite_data.size = {
-                        sprite_json["w"].template get<int>(),
-                        sprite_json["h"].template get<int>()
-                    };
                 }
             }
         }
-    }
 
-    std::vector<PerInstanceData> BuildInstanceData(TileLayer layer) const {
-        std::vector<PerInstanceData> instances{};
+        std::vector<PerInstanceData> BuildInstanceData(const services::TileGrid& tiles, TileLayer layer) const {
+            std::vector<PerInstanceData> instances{};
 
-        const auto tile_world_size = tiles->GetTileWorldSize();
+            const auto tile_world_size = tiles.GetTileWorldSize();
 
-        // Build the instanced sprite data for each tile
-        for (const auto& col : tiles->GetUnderlyingGrid()[layer]) {
-            for (const Tile& tile : col) {
-                if (tile.data.type == TileType::Nothing)
-                    continue;
-                    
-                const glm::vec2 world_pos = (glm::vec2) tile.coord * tile_world_size;
+            // Build the instanced sprite data for each tile
+            for (const auto& col : tiles.GetUnderlyingGrid()[layer]) {
+                for (const Tile& tile : col) {
+                    if (tile.data.type == TileType::Nothing)
+                        continue;
+                        
+                    const glm::vec2 world_pos = (glm::vec2) tile.coord * tile_world_size;
 
-                auto world_mat = glm::mat3(1);
-                world_mat = glm::translate(world_mat, world_pos);
-                world_mat = glm::scale(world_mat, tile_world_size);
+                    auto world_mat = glm::mat3(1);
+                    world_mat = glm::translate(world_mat, world_pos);
+                    world_mat = glm::scale(world_mat, tile_world_size);
 
-                const auto& cutout = tile_sprites[tile.data.type];
-                const glm::vec2 tex_size = spritesheet.GetSize();
+                    const auto& cutout = tile_sprites[tile.data.type];
+                    const glm::vec2 tex_size = spritesheet.GetSize();
 
-                // Need to flip the Y coordinate for OpenGL
-                glm::vec2 pos_mod = { 
-                    cutout.origin.x,
-                    tex_size.y - (cutout.origin.y + cutout.size.y)
-                };
+                    // Need to flip the Y coordinate for OpenGL
+                    glm::vec2 pos_mod = { 
+                        cutout.origin.x,
+                        tex_size.y - (cutout.origin.y + cutout.size.y)
+                    };
 
-                auto tex_mat = glm::mat3(1);
-                tex_mat = glm::translate(tex_mat, pos_mod / tex_size);
-                tex_mat = glm::scale(tex_mat, (glm::vec2) cutout.size / tex_size);
+                    auto tex_mat = glm::mat3(1);
+                    tex_mat = glm::translate(tex_mat, pos_mod / tex_size);
+                    tex_mat = glm::scale(tex_mat, (glm::vec2) cutout.size / tex_size);
 
-                instances.push_back({
-                    .world = world_mat,
-                    .tex = tex_mat
-                });
+                    instances.push_back({
+                        .world = world_mat,
+                        .tex = tex_mat
+                    });
+                }
             }
+
+            return instances;
         }
 
-        return instances;
-    }
+        dxgl::Draw BuildDraw(const services::TileGrid& tiles, TileLayer layer) const {
+            auto instances = BuildInstanceData(tiles, layer);
 
-    dxgl::Draw BuildDraw(TileLayer layer) const {
-        auto instances = BuildInstanceData(layer);
+            // Make the draw to be queued using the generated instance data
+            dxgl::Draw draw{};
+            draw.program = program;
+            draw.prim_type = dxgl::PrimType::TriangleFan;
+            draw.num_indices = 4;
+            draw.num_instances = (uint32_t) instances.size();
+            draw.vao_storage.emplace();
+            draw.vbo_storage.emplace_back().Upload(instances, dxgl::BufferUsage::Static);
+            draw.textures.push_back(spritesheet);
 
-        // Make the draw to be queued using the generated instance data
-        dxgl::Draw draw{};
-        draw.program = program;
-        draw.prim_type = dxgl::PrimType::TriangleFan;
-        draw.num_indices = 4;
-        draw.num_instances = (uint32_t) instances.size();
-        draw.vao_storage.emplace();
-        draw.vbo_storage.emplace_back().Upload(instances, dxgl::BufferUsage::Static);
-        draw.textures.push_back(spritesheet);
+            using namespace dxgl;
 
-        using namespace dxgl;
-
-        VaoAttribBuilder()
-            .Group(AttribGroup()
-                .Vbo(quad_vbo)
-                .Attrib(Attribute()
-                    .Type(AttribType::Float)
-                    .Components(2)
-                    .Multiply(2)
+            VaoAttribBuilder()
+                .Group(AttribGroup()
+                    .Vbo(quad_vbo)
+                    .Attrib(Attribute()
+                        .Type(AttribType::Float)
+                        .Components(2)
+                        .Multiply(2)
+                    )
                 )
-            )
-            .Group(AttribGroup()
-                .Vbo(draw.vbo_storage.back())
-                .Attrib(Attribute()
-                    .Type(AttribType::Float)
-                    .Matrix(3, 3)
-                    .PerInstance()
+                .Group(AttribGroup()
+                    .Vbo(draw.vbo_storage.back())
+                    .Attrib(Attribute()
+                        .Type(AttribType::Float)
+                        .Matrix(3, 3)
+                        .PerInstance()
+                    )
+                    .Attrib(Attribute()
+                        .Type(AttribType::Float)
+                        .Matrix(3, 3)
+                        .PerInstance()
+                    )
                 )
-                .Attrib(Attribute()
-                    .Type(AttribType::Float)
-                    .Matrix(3, 3)
-                    .PerInstance()
-                )
-            )
-            .Apply(*draw.vao_storage);
+                .Apply(*draw.vao_storage);
 
-        return draw;
+            return draw;
+        }
+
+        void OnTileUpdate(const services::TileGrid&, const Tile& tile) {
+            cached_draws[tile.layer].reset();
+        }
+    };
+
+    void Render(const TileGridRendererData& data, const services::TileGrid& tiles, DrawQueues& draws) {
+        for (auto layer : magic_enum::enum_values<TileLayer>()) {
+            if (!data.cached_draws[layer].has_value())
+                data.cached_draws[layer] = data.BuildDraw(tiles, layer);
+
+            magic_enum::containers::array<TileLayer, RenderLayer> render_layer_map{};
+            render_layer_map[TileLayer::Subterranean] = RenderLayer::Floors;
+            render_layer_map[TileLayer::Ground] = RenderLayer::Floors;
+            render_layer_map[TileLayer::Walls] = RenderLayer::Objects;
+            render_layer_map[TileLayer::Ceiling] = RenderLayer::Ceilings;
+
+            draws.QueueViewedDraw(render_layer_map[layer], *data.cached_draws[layer]);
+        }
     }
-
-    void OnTileUpdate(const services::TileGrid&, const Tile& tile) {
-        cached_draws[tile.layer].reset();
-    }
-};
-
-void TileGridRenderer::PimplDeleter::operator()(Pimpl* p) const {
-    delete p;
 }
 
-TileGridRenderer::TileGridRenderer(const services::TileGrid& tiles, dxgl::UboBindingManager& ubo_manager)
-    : m_pimpl(new Pimpl(tiles, ubo_manager))
-{ }
+void rendering::TileGridRendererSystem(flecs::world& world) {
+    const auto& ubos = world.get<dxgl::UboBindingManager>();
+    const auto& tiles = world.get<services::TileGrid>();
 
-TileGridRenderer::TileGridRenderer(TileGridRenderer&& move) = default;
-TileGridRenderer::~TileGridRenderer() = default;
-TileGridRenderer& TileGridRenderer::operator=(TileGridRenderer&& move) = default;
+    world.component<TileGridRendererData>();
+    world.emplace<TileGridRendererData>(tiles, ubos);
 
-void TileGridRenderer::Render(DrawQueues& draws) const {
-    for (auto layer : magic_enum::enum_values<TileLayer>()) {
-        if (!m_pimpl->cached_draws[layer].has_value())
-            m_pimpl->cached_draws[layer] = m_pimpl->BuildDraw(layer);
-
-        magic_enum::containers::array<TileLayer, RenderLayer> render_layer_map{};
-        render_layer_map[TileLayer::Subterranean] = RenderLayer::Floors;
-        render_layer_map[TileLayer::Ground] = RenderLayer::Floors;
-        render_layer_map[TileLayer::Walls] = RenderLayer::Objects;
-        render_layer_map[TileLayer::Ceiling] = RenderLayer::Ceilings;
-
-        draws.QueueViewedDraw(render_layer_map[layer], *m_pimpl->cached_draws[layer]);
-    }
+    world.system<const TileGridRendererData, const services::TileGrid, DrawQueues>()
+        .term_at<TileGridRendererData>().singleton()
+        .term_at<services::TileGrid>().singleton()
+        .term_at<DrawQueues>().singleton()
+        .kind(flecs::OnStore)
+        .each(&Render);
 }

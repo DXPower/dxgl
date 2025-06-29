@@ -27,10 +27,7 @@ Rendering::Rendering(flecs::world& world) {
     world.emplace<Camera>(ubos);
 
     SpriteRendererSystems(world);
-
-    const auto& tile_grid = world.get<services::TileGrid>();
-    world.component<TileGridRenderer>().add(flecs::Sparse);
-    world.emplace<TileGridRenderer>(tile_grid, ubos);
+    TileGridRendererSystem(world);
 
     const auto& room_manager = world.get<services::RoomManager>();
     world.component<RoomRenderer>().add(flecs::Sparse);

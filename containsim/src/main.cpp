@@ -215,7 +215,6 @@ int main() {
         auto& ubos = world.get_mut<dxgl::UboBindingManager>();
         auto& draw_queues = world.get_mut<rendering::DrawQueues>();
 
-        auto& tile_grid_renderer = world.get_mut<rendering::TileGridRenderer>();
         auto& room_renderer = world.get_mut<rendering::RoomRenderer>();
         // auto& sprite_renderer = world.get_mut<rendering::SpriteRendererSystem>();
 
@@ -412,16 +411,15 @@ int main() {
 
             camera.MoveBy(input.camera_movement * camera_speed * delta_time);
 
-            world.progress();
-
             if (cycle_tiles) {
                 SetTiles();
                 cycle_tiles = false;
             }
+            
+            world.progress();
 
-            tile_grid_renderer.Render(draw_queues);
+
             room_renderer.Render(draw_queues);
-            // sprite_renderer.OnStore();
 
             draw_queues.RenderQueuedDraws();
             draw_queues.ClearQueuedDraws();
