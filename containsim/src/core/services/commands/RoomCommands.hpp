@@ -4,24 +4,26 @@
 #include <common/Room.hpp>
 #include <common/Tile.hpp>
 
-namespace services {
+namespace core {
     class RoomManager;
+}
 
+namespace services {
     namespace commands {
-        using RoomCommand = Command<RoomManager>;
+        using RoomCommand = Command<core::RoomManager>;
         using RoomCommandPtr = CommandPtr<RoomCommand>;
         
         struct MarkRoom : RoomCommand {
             RoomType type{};
             TileSelection tiles{};
 
-            void Execute(RoomManager& manager) const override;
+            void Execute(core::RoomManager& manager) const override;
         };
 
         struct UnmarkRoom : RoomCommand {
             TileSelection tiles{};
 
-            void Execute(RoomManager& manager) const override;
+            void Execute(core::RoomManager& manager) const override;
         };
     }
 }

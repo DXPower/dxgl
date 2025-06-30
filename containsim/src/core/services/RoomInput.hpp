@@ -13,7 +13,7 @@
 #include <services/Logging.hpp>
 
 #include <modules/rendering/Camera.hpp>
-#include <services/TileGrid.hpp>
+#include <modules/core/TileGrid.hpp>
 
 namespace services {
     class RoomInput 
@@ -42,11 +42,11 @@ namespace services {
         FSM_t m_fsm{};
         EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
-        const TileGrid* m_tiles{};
+        const core::TileGrid* m_tiles{};
         logging::Logger m_logger = logging::CreateLogger("RoomInput");
 
     public:
-        RoomInput(EventManager& em, const rendering::Camera& cam, const TileGrid& tiles);
+        RoomInput(EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
 
         void Consume(Action&& action) override;
 

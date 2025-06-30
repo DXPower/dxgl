@@ -1,14 +1,20 @@
 #include <systems/TilePrefabs.hpp>
 #include <common/Tile.hpp>
 #include <components/Transform.hpp>
-#include <modules/physics/Collider.hpp>
+#include <modules/physics/Physics.hpp>
+#include <modules/core/Core.hpp>
 
 using namespace components;
 
-void services::InitTilePrefabs(flecs::world& world, const GlobalConfig& config) {
+void services::InitTilePrefabs(flecs::world& world) {
+    world.import<core::Core>();
+    world.import<physics::Physics>();
+
+    const auto& tile_size = world.get<core::TileWorldSize>().value;
+
     world.prefab("cs:PrefabWall")
         .set(Transform{
-            .size = config.tile_size
+            .size = tile_size
         })
         .set(physics::Collider{
             .is_fixed = true

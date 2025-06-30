@@ -1,10 +1,10 @@
-#include <services/RoomManager.hpp>
+#include <modules/core/RoomManager.hpp>
 #include <boost/container/small_vector.hpp>
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_multiset_of.hpp>
 #include <limits>
 
-using namespace services;
+using namespace core;
 using boost::container::small_vector;
 
 RoomManager::RoomManager(TileGrid& tile_grid) : m_tile_grid(&tile_grid) {

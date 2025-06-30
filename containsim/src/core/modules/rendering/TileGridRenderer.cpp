@@ -2,7 +2,7 @@
 #include <modules/rendering/DrawQueues.hpp>
 #include <common/Rendering.hpp>
 #include <common/Tile.hpp>
-#include <services/TileGrid.hpp>
+#include <modules/core/TileGrid.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
@@ -12,7 +12,6 @@
 
 #include <array>
 #include <fstream>
-#include <vector>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <magic_enum/magic_enum_containers.hpp>
 #include <nlohmann/json.hpp>
@@ -53,7 +52,7 @@ namespace {
         dxgl::Vbo quad_vbo{};
         dxgl::Texture spritesheet{};
 
-        TileGridRendererData(const services::TileGrid& tiles, const dxgl::UboBindingManager& ubo_manager) {
+        TileGridRendererData(const core::TileGrid& tiles, const dxgl::UboBindingManager& ubo_manager) {
             tiles.tile_update_signal.connect<&TileGridRendererData::OnTileUpdate>(this);
             
             spritesheet = dxgl::LoadTextureFromFile("res/img/tiles.png");
@@ -109,7 +108,7 @@ namespace {
             }
         }
 
-        std::vector<PerInstanceData> BuildInstanceData(const services::TileGrid& tiles, TileLayer layer) const {
+        std::vector<PerInstanceData> BuildInstanceData(const core::TileGrid& tiles, TileLayer layer) const {
             std::vector<PerInstanceData> instances{};
 
             const auto tile_world_size = tiles.GetTileWorldSize();
@@ -149,7 +148,7 @@ namespace {
             return instances;
         }
 
-        dxgl::Draw BuildDraw(const services::TileGrid& tiles, TileLayer layer) const {
+        dxgl::Draw BuildDraw(const core::TileGrid& tiles, TileLayer layer) const {
             auto instances = BuildInstanceData(tiles, layer);
 
             // Make the draw to be queued using the generated instance data
@@ -191,12 +190,12 @@ namespace {
             return draw;
         }
 
-        void OnTileUpdate(const services::TileGrid&, const Tile& tile) {
+        void OnTileUpdate(const core::TileGrid&, const Tile& tile) {
             cached_draws[tile.layer].reset();
         }
     };
 
-    void Render(const TileGridRendererData& data, const services::TileGrid& tiles, DrawQueues& draws) {
+    void Render(const TileGridRendererData& data, const core::TileGrid& tiles, DrawQueues& draws) {
         for (auto layer : magic_enum::enum_values<TileLayer>()) {
             if (!data.cached_draws[layer].has_value())
                 data.cached_draws[layer] = data.BuildDraw(tiles, layer);
@@ -214,14 +213,14 @@ namespace {
 
 void rendering::TileGridRendererSystem(flecs::world& world) {
     const auto& ubos = world.get<dxgl::UboBindingManager>();
-    const auto& tiles = world.get<services::TileGrid>();
+    const auto& tiles = world.get<core::TileGrid>();
 
     world.component<TileGridRendererData>();
     world.emplace<TileGridRendererData>(tiles, ubos);
 
-    world.system<const TileGridRendererData, const services::TileGrid, DrawQueues>()
+    world.system<const TileGridRendererData, const core::TileGrid, DrawQueues>()
         .term_at<TileGridRendererData>().singleton()
-        .term_at<services::TileGrid>().singleton()
+        .term_at<core::TileGrid>().singleton()
         .term_at<DrawQueues>().singleton()
         .kind(flecs::OnStore)
         .each(&Render);

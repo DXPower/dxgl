@@ -1,4 +1,5 @@
 #include <modules/rendering/RoomRenderer.hpp>
+#include <modules/core/Core.hpp>
 #include <common/Rendering.hpp>
 
 #include <dxgl/Uniform.hpp>
@@ -20,14 +21,14 @@ namespace {
     };
 
     struct RoomRendererData {
-        const services::RoomManager* room_manager{};
+        const core::RoomManager* room_manager{};
 
         // Draw data
         mutable std::unordered_map<RoomId, std::optional<dxgl::Draw>> cached_draws{};
         
         mutable dxgl::Program program{};
 
-        RoomRendererData(const services::RoomManager& room_manager, const dxgl::UboBindingManager& ubo_manager) {
+        RoomRendererData(const core::RoomManager& room_manager, const dxgl::UboBindingManager& ubo_manager) {
             this->room_manager = &room_manager;
             room_manager.room_added_signal.connect<&RoomRendererData::OnRoomAdded>(this);     
             room_manager.room_modified_signal.connect<&RoomRendererData::OnRoomModified>(this);     
@@ -180,7 +181,8 @@ namespace {
 }
 
 void rendering::RoomRendererSystem(flecs::world& world) {
-    const auto& room_manager = world.get<services::RoomManager>();
+    world.import<core::Core>();
+    const auto& room_manager = world.get<core::RoomManager>();
     const auto& ubos = world.get<dxgl::UboBindingManager>();
 
     world.component<RoomRendererData>();

@@ -2,7 +2,7 @@
 
 #include <common/Room.hpp>
 #include <common/Tile.hpp>
-#include <services/TileGrid.hpp>
+#include <modules/core/TileGrid.hpp>
 #include <unordered_map>
 
 #include <services/commands/CommandChains.hpp>
@@ -10,8 +10,8 @@
 
 #include <nano/nano_signal_slot.hpp>
 
-namespace services {
-    class RoomManager : public commands::CommandConsumer<commands::RoomCommand> {
+namespace core {
+    class RoomManager : public services::commands::CommandConsumer<services::commands::RoomCommand> {
         std::unordered_map<RoomId, Room> m_rooms{};
         TileGrid* m_tile_grid{};
         RoomId m_next_id{1};
@@ -46,7 +46,7 @@ namespace services {
             return self.m_rooms.at(room_id);
         }
 
-        void Consume(commands::RoomCommandPtr&& cmd) override {
+        void Consume(services::commands::RoomCommandPtr&& cmd) override {
             cmd->Execute(*this);
         }
 

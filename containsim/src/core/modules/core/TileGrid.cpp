@@ -1,13 +1,15 @@
-#include <services/TileGrid.hpp>
+#include <modules/core/TileGrid.hpp>
+#include <modules/core/Configuration.hpp>
 #include <components/Transform.hpp>
 
-using namespace services;
+using namespace core;
 
-TileGrid::TileGrid(const GlobalConfig& config, flecs::world& world)
-    : m_grid_size(config.map_size),
-      m_tile_world_size(config.tile_size),
-      m_world(&world)
+TileGrid::TileGrid(flecs::world& world)
+    : m_world(&world)
 {
+    m_tile_world_size = world.get<core::TileWorldSize>().value;
+    m_grid_size = world.get<core::MapSize>().value;
+
     for (auto& layer : m_tiles) {
         layer.resize(boost::extents[m_grid_size.x][m_grid_size.y]);
     }
@@ -86,7 +88,7 @@ glm::vec2 TileGrid::TileCoordToWorldPos(TileCoord coord) const {
     return glm::vec2(coord) * m_tile_world_size;
 }
 
-TileCoordNeighbors services::GetTileCoordNeighbors(const TileGrid& grid, TileCoord coord) {
+TileCoordNeighbors core::GetTileCoordNeighbors(const TileGrid& grid, TileCoord coord) {
     TileCoordNeighbors neighbors{};
     auto grid_size = grid.GetGridSize();
 

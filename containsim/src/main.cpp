@@ -1,8 +1,6 @@
-#include <common/GlobalConfig.hpp>
 #include <dxgl/Texture.hpp>
 #include <exception>
 #include <iostream>
-#include <charconv>
 
 #include <flecs.h>
 #include <glad/glad.h>
@@ -16,9 +14,7 @@
 #include <services/ActionRouter.hpp>
 #include <services/BuildInput.hpp>
 #include <services/BuildManager.hpp>
-#include <services/RoomManager.hpp>
 #include <services/InputState.hpp>
-#include <services/TileGrid.hpp>
 #include <services/InputHandler.hpp>
 #include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
@@ -49,6 +45,7 @@
 #include <modules/rendering/SpriteRenderer.hpp>
 #include <modules/rendering/TileGridRenderer.hpp>
 #include <modules/rendering/RoomRenderer.hpp>
+#include <modules/core/Core.hpp>
 
 using namespace dxgl;
 
@@ -195,20 +192,10 @@ int main() {
         main_screen_buffer.Resize(initial_screen_size);
 
         flecs::world world{};
+        world.import<core::Core>();
+        auto& tile_grid = world.get_mut<core::TileGrid>();
 
-        GlobalConfig global_config{
-            .map_size = { 20, 10 }, // NOLINT
-            .tile_size = {100, 100} // NOLINT
-        };
-
-        services::InitTilePrefabs(world, global_config);
-        world.component<services::TileGrid>().add(flecs::Sparse);
-        world.emplace<services::TileGrid>(global_config, world);
-        auto& tile_grid = world.get_mut<services::TileGrid>();
-
-        world.component<services::RoomManager>().add(flecs::Sparse);
-        world.emplace<services::RoomManager>(tile_grid);
-        auto& room_manager = world.get_mut<services::RoomManager>();
+        services::InitTilePrefabs(world);
 
         world.import<rendering::Rendering>();
         auto& camera = world.get_mut<rendering::Camera>();
@@ -232,8 +219,8 @@ int main() {
                 TileType::Tile
             };
 
-            for (int x = 0; x < global_config.map_size.x; x++) {
-                for (int y = 0; y < global_config.map_size.y; y++) {
+            for (int x = 0; x < tile_grid.GetGridSize().x; x++) {
+                for (int y = 0; y < tile_grid.GetGridSize().y; y++) {
                     TileData data{};
                     data.type = types[(start + x + y) % types.size()]; // NOLINT
                     tile_grid.SetTile({x, y}, TileLayer::Ground, data);
@@ -275,11 +262,10 @@ int main() {
         services::BuildManager build_manager{tile_grid};
         chain::Connect(build_input.build_commands, build_manager);
 
-        chain::Connect(room_input.room_commands, room_manager);
+        chain::Connect(room_input.room_commands, world.get_mut<core::RoomManager>());
 
         GlobalActions global_actions{};
 
-        // chain::Connect(input_state.build_input_cmds, build_input);
         chain::Connect(input_state.idle_actions, global_actions);
         chain::Connect(input_state.build_actions, build_input);
         chain::Connect(build_input.uncaptured_actions, global_actions);

@@ -4,8 +4,8 @@
 
 using namespace services;
 
-BuildManager::BuildManager(/*GameState& game_state, */TileGrid& tile_grid)
-    : /*m_game_state(&game_state),*/ m_tile_grid(&tile_grid) { }
+BuildManager::BuildManager(core::TileGrid& tile_grid)
+    : m_tile_grid(&tile_grid) { }
 
 void BuildManager::PlaceTile(TileCoord coord, TileType type) {
     // TODO: Use a proper asset manager for this

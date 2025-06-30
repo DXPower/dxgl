@@ -1,7 +1,6 @@
 #pragma once
 
 #include <common/Tile.hpp>
-#include <common/GlobalConfig.hpp>
 
 #include <glm/vec2.hpp>
 #include <flecs.h>
@@ -10,8 +9,7 @@
 #include <magic_enum/magic_enum_containers.hpp>
 #include <optional>
 
-
-namespace services {
+namespace core {
     class RoomManager;
 
     class TileGrid {
@@ -23,7 +21,7 @@ namespace services {
     public:
         mutable Nano::Signal<void(const TileGrid&, const Tile&)> tile_update_signal{};
 
-        TileGrid(const GlobalConfig& config, flecs::world& world);
+        TileGrid(flecs::world& world);
 
         void SetTile(TileCoord coord, TileLayer layer, TileData data);
         const TileData& GetTile(TileCoord coord, TileLayer layer) const;
