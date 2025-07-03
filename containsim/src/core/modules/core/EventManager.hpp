@@ -8,7 +8,7 @@
 #include <typeinfo>
 #include <type_traits>
 
-namespace services {
+namespace core {
 namespace detail {
     struct EventSignalBase {
         virtual ~EventSignalBase() = default;
@@ -34,9 +34,15 @@ struct EventSignal<T> : detail::EventSignalBase {
 
 class EventManager {
     std::unordered_map<std::size_t, std::unique_ptr<detail::EventSignalBase>> m_signals{};
-    logging::Logger m_logger{logging::CreateLogger("EventManager")};
+    services::logging::Logger m_logger{services::logging::CreateLogger("EventManager")};
 
 public:
+    EventManager() = default;
+    EventManager(const EventManager&) = delete;
+    EventManager(EventManager&&) noexcept = default;
+    EventManager& operator=(const EventManager&) = delete;
+    EventManager& operator=(EventManager&&) = default;
+
     template<typename T>
     EventSignal<T>& RegisterSignal() {
         auto signal = std::make_unique<EventSignal<T>>();

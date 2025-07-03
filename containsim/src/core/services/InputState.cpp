@@ -7,7 +7,7 @@
 
 using namespace services;
 
-InputState::InputState(EventManager& em, BuildInput& build_input, RoomInput& room_input) : m_event_manager(&em) {
+InputState::InputState(core::EventManager& em, BuildInput& build_input, RoomInput& room_input) : m_event_manager(&em) {
     m_logger.set_level(spdlog::level::debug);
 
     StateIdle(m_fsm, StateId::IdleMode);

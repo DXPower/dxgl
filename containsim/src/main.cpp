@@ -32,7 +32,6 @@
 #include <services/ui/RmlEventManager.hpp>
 #include <services/ui/InputStateBinding.hpp>
 #include <services/ui/TilesBinding.hpp>
-#include <services/EventManager.hpp>
 #include <systems/CircleMover.hpp>
 #include <components/Actor.hpp>
 #include <components/Mobility.hpp>
@@ -165,7 +164,11 @@ int main() {
             throw std::runtime_error("Failed to load RmlUi font face");
         }
 
-        services::EventManager event_manager{};
+        flecs::world world{};
+        world.import<core::Core>();
+
+        auto& event_manager = world.get_mut<core::EventManager>();
+
         services::ui::InputStateBinding input_state_binding{
             services::InputStates::IdleMode,
             *rml_context,
@@ -191,8 +194,6 @@ int main() {
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(initial_screen_size);
 
-        flecs::world world{};
-        world.import<core::Core>();
         auto& tile_grid = world.get_mut<core::TileGrid>();
 
         services::InitTilePrefabs(world);

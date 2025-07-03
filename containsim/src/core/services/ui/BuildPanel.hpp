@@ -9,11 +9,11 @@ namespace services {
 namespace ui {
 
 class BuildPanel : public Panel {
-    EventManager* m_event_manager{};
+    core::EventManager* m_event_manager{};
     // commands::CommandProducer<commands::BuildInputCommand> build_input_cmds{};
 
 public:
-    BuildPanel(EventManager& em, Rml::ElementDocument& document)
+    BuildPanel(core::EventManager& em, Rml::ElementDocument& document)
         : Panel("build-panel", em, document), m_event_manager(&em) {
 
         em.GetOrRegisterSignal<ui_events::ElementEvent>()

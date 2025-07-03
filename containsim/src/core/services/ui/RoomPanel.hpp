@@ -7,14 +7,13 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-namespace services {
-namespace ui {
+namespace services::ui {
 
 class RoomPanel : public Panel {
-    EventManager* m_event_manager{};
+    core::EventManager* m_event_manager{};
 
 public:
-    RoomPanel(EventManager& em, Rml::ElementDocument& document)
+    RoomPanel(core::EventManager& em, Rml::ElementDocument& document)
         : Panel("room-panel", em, document), m_event_manager(&em) {
 
         em.GetOrRegisterSignal<ui_events::ElementEvent>()
@@ -62,5 +61,4 @@ public:
     }
 };
 
-}
 }

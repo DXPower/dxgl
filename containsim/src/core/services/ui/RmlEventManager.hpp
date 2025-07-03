@@ -4,7 +4,7 @@
 #include <RmlUi/Core/EventListenerInstancer.h>
 #include <RmlUi/Core/EventListener.h>
 #include <services/Logging.hpp>
-#include <services/EventManager.hpp>
+#include <modules/core/EventManager.hpp>
 
 #include <string>
 #include <span>
@@ -34,9 +34,9 @@ class RmlEventManager : public Rml::EventListenerInstancer {
     };
 
     logging::Logger m_logger{logging::CreateLogger("RmlEventManager")};
-    EventSignal<ui_events::ElementEvent>* m_element_event_signal{}; 
+    core::EventSignal<ui_events::ElementEvent>* m_element_event_signal{}; 
 public:
-    RmlEventManager(EventManager& em) {
+    RmlEventManager(core::EventManager& em) {
         m_element_event_signal = &em.GetOrRegisterSignal<ui_events::ElementEvent>();
     }
 

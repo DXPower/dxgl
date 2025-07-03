@@ -3,7 +3,7 @@
 #include <services/InputStateEvents.hpp>
 #include <services/BuildInputEvents.hpp>
 #include <services/RoomInputEvents.hpp>
-#include <services/EventManager.hpp>
+#include <modules/core/EventManager.hpp>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Context.h>
 #include <magic_enum/magic_enum.hpp>
@@ -43,7 +43,7 @@ class InputStateBinding {
     Rml::DataModelHandle m_model{};
 
 public:
-    InputStateBinding(InputStates initial_state, Rml::Context& context, EventManager& em) {
+    InputStateBinding(InputStates initial_state, Rml::Context& context, core::EventManager& em) {
         m_data.main_state = initial_state;
 
         Rml::DataModelConstructor constructor = context.CreateDataModel("input_state");

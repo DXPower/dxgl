@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/Room.hpp>
-#include <services/EventManager.hpp>
+#include <modules/core/EventManager.hpp>
 
 #include <common/ActionChain.hpp>
 #include <services/RoomInputEvents.hpp>
@@ -40,13 +40,13 @@ namespace services {
         using FSM_t = dxfsm::FSM<StateId, EventId>;
 
         FSM_t m_fsm{};
-        EventManager* m_event_manager{};
+        core::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
         logging::Logger m_logger = logging::CreateLogger("RoomInput");
 
     public:
-        RoomInput(EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
+        RoomInput(core::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
 
         void Consume(Action&& action) override;
 

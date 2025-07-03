@@ -7,7 +7,7 @@
 #include <services/commands/InputStateCommands.hpp>
 #include <services/commands/RoomInputCommands.hpp>
 #include <services/Logging.hpp>
-#include <services/EventManager.hpp>
+#include <modules/core/EventManager.hpp>
 #include <services/RoomInput.hpp>
 #include <dxfsm/dxfsm.hpp>
 
@@ -31,7 +31,7 @@ namespace services {
         using State_t = FSM_t::State_t;
         using Event_t = FSM_t::Event_t;
         FSM_t m_fsm{};
-        EventManager* m_event_manager{};
+        core::EventManager* m_event_manager{};
         ActionProducer* m_action_forward{};
 
         logging::Logger m_logger = logging::CreateLogger("InputState");
@@ -41,7 +41,7 @@ namespace services {
         ActionProducer room_actions{};
         ActionProducer idle_actions{};
 
-        InputState(EventManager& em, BuildInput& build_input, RoomInput& room_input);
+        InputState(core::EventManager& em, BuildInput& build_input, RoomInput& room_input);
 
         void ProcessCommand(const commands::InputStateCommand& cmd);
         void Consume(Action&& action) override;

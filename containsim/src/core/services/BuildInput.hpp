@@ -2,7 +2,7 @@
 
 // #include <services/commands/BuildInputCommands.hpp>
 #include <common/Tile.hpp>
-#include <services/EventManager.hpp>
+#include <modules/core/EventManager.hpp>
 
 #include <common/ActionChain.hpp>
 #include <services/BuildInputEvents.hpp>
@@ -42,13 +42,13 @@ namespace services {
         using FSM_t = dxfsm::FSM<StateId, EventId>;
 
         FSM_t m_fsm{};
-        EventManager* m_event_manager{};
+        core::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
         logging::Logger m_logger = logging::CreateLogger("BuildInput");
 
     public:
-        BuildInput(EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
+        BuildInput(core::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
 
         void Consume(Action&& action) override;
         // void Consume(commands::BuildInputCommandPtr&& command) override;
