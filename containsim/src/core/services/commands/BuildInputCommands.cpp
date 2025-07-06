@@ -1,8 +1,9 @@
 #include <services/commands/BuildInputCommands.hpp>
-#include <services/BuildInput.hpp>
+#include <modules/input/BuildInput.hpp>
 
 using namespace services;
 using namespace services::commands;
+using namespace input;
 
 void SelectTile::Execute(BuildInput& fsm) const {
     fsm.SelectTileToPlace(type);

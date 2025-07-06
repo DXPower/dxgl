@@ -1,8 +1,9 @@
 #include <services/commands/InputStateCommands.hpp>
-#include <services/InputState.hpp>
+#include <modules/input/InputState.hpp>
 
 using namespace services;
 using namespace commands;
+using namespace input;
 
 void InputStateEnterBuildMode::Execute(InputState& input_state) const {
     input_state.EnterBuildMode();

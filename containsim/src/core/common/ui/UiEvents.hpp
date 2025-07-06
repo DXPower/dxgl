@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string_view>
 #include <RmlUi/Core/Event.h>
+#include <string_view>
+#include <span>
 
 namespace ui_events {
     struct PanelEvent {

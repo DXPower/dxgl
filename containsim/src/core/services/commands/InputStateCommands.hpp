@@ -2,23 +2,25 @@
 
 #include <services/commands/Command.hpp>
 
-namespace services {
-    class InputState;
+namespace input {
+class InputState;
+}
 
+namespace services {
     namespace commands {
-        using InputStateCommand = Command<InputState>;
+        using InputStateCommand = Command<input::InputState>;
         using InputStateCommandPtr = CommandPtr<InputStateCommand>;
 
         struct InputStateEnterBuildMode : InputStateCommand {
-            void Execute(InputState& input_state) const override;
+            void Execute(input::InputState& input_state) const override;
         };
 
         struct InputStateEnterRoomMode : InputStateCommand {
-            void Execute(InputState& input_state) const override;
+            void Execute(input::InputState& input_state) const override;
         };
 
         struct InputStateExitMode : InputStateCommand {
-            void Execute(InputState& input_state) const override;
+            void Execute(input::InputState& input_state) const override;
         };
     }
 }

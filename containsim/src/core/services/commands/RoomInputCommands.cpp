@@ -1,8 +1,9 @@
 #include <services/commands/RoomInputCommands.hpp>
-#include <services/RoomInput.hpp>
+#include <modules/input/RoomInput.hpp>
 
 using namespace services;
 using namespace services::commands;
+using namespace input;
 
 void SelectRoomType::Execute(RoomInput& fsm) const {
     fsm.SelectRoomType(type);

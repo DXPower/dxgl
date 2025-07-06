@@ -11,33 +11,20 @@
 #include <dxgl/Ubo.hpp>
 
 #include <components/Transform.hpp>
-#include <services/ActionRouter.hpp>
-#include <services/BuildInput.hpp>
 #include <services/BuildManager.hpp>
-#include <services/InputState.hpp>
-#include <services/InputHandler.hpp>
-#include <services/BasicMouseTester.hpp>
 #include <services/Logging.hpp>
 #include <modules/rendering/Camera.hpp>
 #include <systems/TilePrefabs.hpp>
 #include <RmlUi/Core.h>
-#include <RmlUi_Backends/RmlUi_Backend.h>
-#include <RmlUi_Backends/RmlUi_Renderer_GL3.h>
-#include <RmlUi_Backends/RmlUi_Platform_GLFW.h>
 #include <RmlUi/Debugger.h>
-#include <services/UiActionReceiver.hpp>
-#include <services/ui/Panel.hpp>
-#include <services/ui/BuildPanel.hpp>
-#include <services/ui/RoomPanel.hpp>
-#include <services/ui/RmlEventManager.hpp>
-#include <services/ui/InputStateBinding.hpp>
-#include <services/ui/TilesBinding.hpp>
 #include <systems/CircleMover.hpp>
 #include <components/Actor.hpp>
 #include <components/Mobility.hpp>
 #include <common/DebugDraws.hpp>
 #include <spdlog/spdlog.h>
 
+#include <modules/application/Application.hpp>
+#include <modules/input/Input.hpp>
 #include <modules/physics/Physics.hpp>
 #include <modules/pathing/Pathing.hpp>
 #include <modules/rendering/Rendering.hpp>
@@ -45,6 +32,7 @@
 #include <modules/rendering/TileGridRenderer.hpp>
 #include <modules/rendering/RoomRenderer.hpp>
 #include <modules/core/Core.hpp>
+#include <modules/ui/Ui.hpp>
 
 using namespace dxgl;
 
@@ -112,87 +100,75 @@ int main() {
     namespace logging = services::logging;
     logging::SetCommonSink(logging::CreateConsoleSink());
 
-    constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
 
 #if CATCH_EXCEPTIONS == 1
     try {
 #endif        
-        Application::Init();
+        flecs::world world{};
 
-        Window main_window(dxtl::cstring_view("Containment Simulator"), initial_screen_size);
-        main_window.MakeCurrent();
-        
-        if (gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0) { // NOLINT
-            throw std::runtime_error("Failed to initialize GLAD");
-        }
+        world.import<application::Application>();
+        auto main_window_e = world.query<application::MainWindow>().first();
+        auto& main_window = main_window_e.get_mut<dxgl::Window>();
 
-        glViewport(0, 0, initial_screen_size.x, initial_screen_size.y);
+        // RenderInterface_GL3 rml_renderer{};
+        // SystemInterface_GLFW rml_system{};
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // Rml::SetRenderInterface(&rml_renderer);
+        // Rml::SetSystemInterface(&rml_system);
 
-        glEnable(GL_DEPTH_TEST);
+        // rml_renderer.SetViewport(initial_screen_size.x, initial_screen_size.y);
 
-        RenderInterface_GL3 rml_renderer{};
-        SystemInterface_GLFW rml_system{};
+        // Rml::Initialise();
 
-        Rml::SetRenderInterface(&rml_renderer);
-        Rml::SetSystemInterface(&rml_system);
+        // // services::UiActionReceiver ui_actions{main_window};
+        // // auto* rml_context = Rml::CreateContext(
+        // //     "main",
+        // //     Rml::Vector2i(initial_screen_size.x, initial_screen_size.y),
+        // //     nullptr,
+        // //     &ui_actions
+        // // ); 
 
-        rml_renderer.SetViewport(initial_screen_size.x, initial_screen_size.y);
+        // if (rml_context == nullptr) {
+        //     throw std::runtime_error("Failed to create RmlUi context");
+        // }
 
-        Rml::Initialise();
+        // rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
 
-        services::UiActionReceiver ui_actions{main_window};
-        auto* rml_context = Rml::CreateContext(
-            "main",
-            Rml::Vector2i(initial_screen_size.x, initial_screen_size.y),
-            nullptr,
-            &ui_actions
-        ); 
-
-        if (rml_context == nullptr) {
-            throw std::runtime_error("Failed to create RmlUi context");
-        }
-
-        rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
-
-        ui_actions.SetContext(*rml_context);
-        Rml::Debugger::Initialise(rml_context);
+        // ui_actions.SetContext(*rml_context);
+        // Rml::Debugger::Initialise(rml_context);
 
         if (!Rml::LoadFontFace("res/fonts/LatoLatin-Regular.ttf", true)) {
             throw std::runtime_error("Failed to load RmlUi font face");
         }
 
-        flecs::world world{};
         world.import<core::Core>();
 
-        auto& event_manager = world.get_mut<core::EventManager>();
+        auto& event_manager = world.get_mut<application::EventManager>();
 
-        services::ui::InputStateBinding input_state_binding{
-            services::InputStates::IdleMode,
-            *rml_context,
-            event_manager
-        };
-        services::ui::TilesBinding tiles_binding{*rml_context};
+        // services::ui::InputStateBinding input_state_binding{
+        //     services::InputStates::IdleMode,
+        //     *rml_context,
+        //     event_manager
+        // };
+        // services::ui::TilesBinding tiles_binding{*rml_context};
 
-        services::ui::RmlEventManager ui_event_manager{event_manager};
-        Rml::Factory::RegisterEventListenerInstancer(&ui_event_manager);
+        // services::ui::RmlEventManager ui_event_manager{event_manager};
+        // Rml::Factory::RegisterEventListenerInstancer(&ui_event_manager);
 
-        auto document = rml_context->LoadDocument("res/ui/game/test.rml");
+        // auto document = rml_context->LoadDocument("res/ui/game/test.rml");
 
-        if (document == nullptr) {
-            throw std::runtime_error("Failed to load RmlUi document");
-        }
+        // if (document == nullptr) {
+        //     throw std::runtime_error("Failed to load RmlUi document");
+        // }
 
-        document->Show();
+        // document->Show();
 
 
-        services::ui::BuildPanel build_panel{event_manager, *document};
-        services::ui::RoomPanel room_panel{event_manager, *document};
+        // services::ui::BuildPanel build_panel{event_manager, *document};
+        // services::ui::RoomPanel room_panel{event_manager, *document};
 
         Screenbuffer main_screen_buffer{};
-        main_screen_buffer.Resize(initial_screen_size);
+        main_screen_buffer.Resize(main_window.GetSize());
 
         auto& tile_grid = world.get_mut<core::TileGrid>();
 
@@ -203,7 +179,7 @@ int main() {
         auto& ubos = world.get_mut<dxgl::UboBindingManager>();
         auto& draw_queues = world.get_mut<rendering::DrawQueues>();
 
-        camera.UpdateViewportSize(initial_screen_size);
+        camera.UpdateViewportSize(main_window.GetSize());
 
         using namespace components;
         
@@ -233,32 +209,38 @@ int main() {
 
         SetTiles();
 
-        main_window.OnResize([&](glm::ivec2 size) {
-            main_screen_buffer.Resize(size);
-            camera.UpdateViewportSize(size);
-            rml_context->SetDimensions(Rml::Vector2i(size.x, size.y));
-            rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
-            rml_renderer.SetViewport(size.x, size.y);
-        });
+        assert(main_window_e.has<application::WindowSize>());
+        world.observer<const application::WindowSize>()
+            .term_at(0).src(main_window_e)
+            .event(flecs::OnSet)
+            .each([&](flecs::entity, const application::WindowSize& size) {
+                main_screen_buffer.Resize(size.value);
+            });
 
         double last_time{};
         constexpr float camera_speed = 350.f;
 
-        services::BasicMouseTester mouse_tester{main_window, *rml_context};
-        services::ActionRouter input_router{mouse_tester};
+        // services::BasicMouseTester mouse_tester{main_window, *rml_context};
+        // services::ActionRouter input_router{mouse_tester};
 
-        services::InputHandler game_input{main_window};
+        // services::InputHandler game_input{main_window};
 
-        chain::Connect(game_input.actions_out, ui_actions);
-        chain::Connect(ui_actions.uncaptured_actions, input_router);
+        // chain::Connect(game_input.actions_out, ui_actions);
+        // chain::Connect(ui_actions.uncaptured_actions, input_router);
 
-        services::BuildInput build_input{event_manager, camera, tile_grid};
-        services::RoomInput room_input{event_manager, camera, tile_grid};
-        services::InputState input_state{event_manager, build_input, room_input};
+        // services::BuildInput build_input{event_manager, camera, tile_grid};
+        // services::RoomInput room_input{event_manager, camera, tile_grid};
+        // services::InputState input_state{event_manager, build_input, room_input};
 
-        chain::Connect(input_router.game_action_receiver, input_state);
-        chain::Connect(input_router.offscreen_action_receiver, input_state);
-        chain::ConnectToNull(input_router.ui_action_receiver);
+        // chain::Connect(input_router.game_action_receiver, input_state);
+        // chain::Connect(input_router.offscreen_action_receiver, input_state);
+        // chain::ConnectToNull(input_router.ui_action_receiver);
+        world.import<input::Input>();
+        world.import<ui::Ui>();
+
+        auto& build_input = world.get_mut<input::BuildInput>();
+        auto& room_input = world.get_mut<input::RoomInput>();
+        auto& input_state = world.get_mut<input::InputState>();
 
         services::BuildManager build_manager{tile_grid};
         chain::Connect(build_input.build_commands, build_manager);
@@ -268,9 +250,7 @@ int main() {
         GlobalActions global_actions{};
 
         chain::Connect(input_state.idle_actions, global_actions);
-        chain::Connect(input_state.build_actions, build_input);
         chain::Connect(build_input.uncaptured_actions, global_actions);
-        chain::Connect(input_state.room_actions, room_input);
         chain::Connect(room_input.uncaptured_actions, global_actions);
 
         world.import<physics::Physics>();
@@ -360,6 +340,13 @@ int main() {
                 }
             });
 
+        auto* rml_context = world.query<application::RmlMainContext>()
+            .first().get<application::RmlContextHandle>().context;
+
+        auto& rml_renderer = dynamic_cast<RenderInterface_GL3&>(
+            world.get_mut<application::UiEnv>().GetRenderInterface()
+        );
+
         while (!main_window.ShouldClose()) {
             double current_time = Application::GetTime();
             double delta_time_d = current_time - last_time;
@@ -400,6 +387,7 @@ int main() {
                 cycle_tiles = false;
             }
             
+            assert(main_window_e.has<application::WindowSize>());
             world.progress();
 
 

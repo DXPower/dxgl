@@ -1,4 +1,5 @@
 #include <modules/rendering/Rendering.hpp>
+#include <modules/application/Application.hpp>
 
 #include <modules/rendering/SpriteRenderer.hpp>
 #include <modules/rendering/TileGridRenderer.hpp>
@@ -11,6 +12,8 @@
 using namespace rendering;
 
 Rendering::Rendering(flecs::world& world) {
+    world.import<application::Application>();
+
     world.component<RenderData>();
     world.component<Sprite>();
     world.component<SpriteRenderer>();
@@ -24,6 +27,15 @@ Rendering::Rendering(flecs::world& world) {
 
     world.component<Camera>().add(flecs::Sparse);
     world.emplace<Camera>(ubos);
+
+    // auto main_window_e = world.query<application::MainWindow>().first();
+    // world.observer<application::WindowSize>()
+    //     .term_at(0).src(main_window_e)
+    //     .event(flecs::OnSet)
+    //     .each([](flecs::entity e, const application::WindowSize& size) {
+    //         auto& camera = e.world().get_mut<Camera>();
+    //         camera.UpdateViewportSize(size.value);
+    //     });
 
     SpriteRendererSystems(world);
     TileGridRendererSystem(world);

@@ -11,7 +11,4 @@ Core::Core(flecs::world& world) {
 
     world.component<RoomManager>().add(flecs::Sparse);
     world.emplace<RoomManager>(world.get_mut<TileGrid>());
-
-    world.component<EventManager>().add(flecs::Sparse);
-    world.add<EventManager>();
 }
