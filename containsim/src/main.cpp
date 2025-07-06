@@ -161,9 +161,9 @@ int main() {
         SetTiles();
 
         world.observer<const application::WindowSize>()
-            // .term_at(0).src(main_window_e)
+            .term_at(0).src(main_window_e)
             .event(flecs::OnSet)
-            .each([&](flecs::entity, const application::WindowSize& size) {
+            .each([&](const application::WindowSize& size) {
                 main_screen_buffer.Resize(size.value);
             });
 

@@ -42,9 +42,9 @@ UiEnv::UiEnv(flecs::entity main_window_e) {
     }
     
     world.observer<WindowSize>()
-        // .term_at(0).src(main_window_e)
+        .term_at(0).src(main_window_e)
         .event(flecs::OnSet)
-        .each([rml_context_e, &main_window, this](flecs::entity, const WindowSize& size) {
+        .each([rml_context_e, &main_window, this](const WindowSize& size) {
             auto& rml_context_handle = rml_context_e.get_mut<RmlContextHandle>();
             rml_context_handle.context->SetDimensions(Rml::Vector2i(size.value.x, size.value.y));
             rml_context_handle.context->SetDensityIndependentPixelRatio(main_window.GetScale().x);

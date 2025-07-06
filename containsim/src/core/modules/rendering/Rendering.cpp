@@ -30,10 +30,10 @@ Rendering::Rendering(flecs::world& world) {
 
     auto main_window_e = world.query<application::MainWindow>().first();
     world.observer<application::WindowSize>()
-        // .term_at(0).src(main_window_e)
+        .term_at(0).src(main_window_e)
         .event(flecs::OnSet)
-        .each([](flecs::entity e, const application::WindowSize& size) {
-            auto& camera = e.world().get_mut<Camera>();
+        .each([](flecs::iter& it, size_t, const application::WindowSize& size) {
+            auto& camera = it.world().get_mut<Camera>();
             camera.UpdateViewportSize(size.value);
         });
 
