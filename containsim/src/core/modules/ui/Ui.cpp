@@ -45,9 +45,6 @@ Ui::Ui(flecs::world& world) {
 
     document->Show();
 
-    // ui::BuildPanel build_panel{event_manager, *document};
-    // ui::RoomPanel room_panel{event_manager, *document};
-
     // TODO: Componentize the Panels
     world.component<BuildPanel>().add(flecs::Sparse);
     world.emplace<BuildPanel>(event_manager);

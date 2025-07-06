@@ -41,20 +41,14 @@ UiEnv::UiEnv(flecs::entity main_window_e) {
         throw std::runtime_error("Failed to load RmlUi font face");
     }
     
-    // world.get_mut<EventManager>().GetSignal<WindowSizeChangedEvent>().signal.connect()[&, this](glm::ivec2 size) {
-    //     rml_context->SetDimensions(Rml::Vector2i(size.x, size.y));
-    //     rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
-    //     m_rml_renderer.SetViewport(size.x, size.y);
-    // });
-    
-    // world.observer<WindowSize>()
-    //     .term_at(0).src(main_window_e)
-    //     .event(flecs::OnSet)
-    //     .each([rml_context_e, &main_window, this](flecs::entity, const WindowSize& size) {
-    //         auto& rml_context_handle = rml_context_e.get_mut<RmlContextHandle>();
-    //         rml_context_handle.context->SetDimensions(Rml::Vector2i(size.value.x, size.value.y));
-    //         rml_context_handle.context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
+    world.observer<WindowSize>()
+        // .term_at(0).src(main_window_e)
+        .event(flecs::OnSet)
+        .each([rml_context_e, &main_window, this](flecs::entity, const WindowSize& size) {
+            auto& rml_context_handle = rml_context_e.get_mut<RmlContextHandle>();
+            rml_context_handle.context->SetDimensions(Rml::Vector2i(size.value.x, size.value.y));
+            rml_context_handle.context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
 
-    //         m_rml_renderer.SetViewport(size.value.x, size.value.y);
-    //     });
+            m_rml_renderer.SetViewport(size.value.x, size.value.y);
+        });
 }

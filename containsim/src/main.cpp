@@ -110,33 +110,6 @@ int main() {
         auto main_window_e = world.query<application::MainWindow>().first();
         auto& main_window = main_window_e.get_mut<dxgl::Window>();
 
-        // RenderInterface_GL3 rml_renderer{};
-        // SystemInterface_GLFW rml_system{};
-
-        // Rml::SetRenderInterface(&rml_renderer);
-        // Rml::SetSystemInterface(&rml_system);
-
-        // rml_renderer.SetViewport(initial_screen_size.x, initial_screen_size.y);
-
-        // Rml::Initialise();
-
-        // // services::UiActionReceiver ui_actions{main_window};
-        // // auto* rml_context = Rml::CreateContext(
-        // //     "main",
-        // //     Rml::Vector2i(initial_screen_size.x, initial_screen_size.y),
-        // //     nullptr,
-        // //     &ui_actions
-        // // ); 
-
-        // if (rml_context == nullptr) {
-        //     throw std::runtime_error("Failed to create RmlUi context");
-        // }
-
-        // rml_context->SetDensityIndependentPixelRatio(main_window.GetScale().x);
-
-        // ui_actions.SetContext(*rml_context);
-        // Rml::Debugger::Initialise(rml_context);
-
         if (!Rml::LoadFontFace("res/fonts/LatoLatin-Regular.ttf", true)) {
             throw std::runtime_error("Failed to load RmlUi font face");
         }
@@ -144,28 +117,6 @@ int main() {
         world.import<core::Core>();
 
         auto& event_manager = world.get_mut<application::EventManager>();
-
-        // services::ui::InputStateBinding input_state_binding{
-        //     services::InputStates::IdleMode,
-        //     *rml_context,
-        //     event_manager
-        // };
-        // services::ui::TilesBinding tiles_binding{*rml_context};
-
-        // services::ui::RmlEventManager ui_event_manager{event_manager};
-        // Rml::Factory::RegisterEventListenerInstancer(&ui_event_manager);
-
-        // auto document = rml_context->LoadDocument("res/ui/game/test.rml");
-
-        // if (document == nullptr) {
-        //     throw std::runtime_error("Failed to load RmlUi document");
-        // }
-
-        // document->Show();
-
-
-        // services::ui::BuildPanel build_panel{event_manager, *document};
-        // services::ui::RoomPanel room_panel{event_manager, *document};
 
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(main_window.GetSize());
@@ -209,9 +160,8 @@ int main() {
 
         SetTiles();
 
-        assert(main_window_e.has<application::WindowSize>());
         world.observer<const application::WindowSize>()
-            .term_at(0).src(main_window_e)
+            // .term_at(0).src(main_window_e)
             .event(flecs::OnSet)
             .each([&](flecs::entity, const application::WindowSize& size) {
                 main_screen_buffer.Resize(size.value);
@@ -220,21 +170,6 @@ int main() {
         double last_time{};
         constexpr float camera_speed = 350.f;
 
-        // services::BasicMouseTester mouse_tester{main_window, *rml_context};
-        // services::ActionRouter input_router{mouse_tester};
-
-        // services::InputHandler game_input{main_window};
-
-        // chain::Connect(game_input.actions_out, ui_actions);
-        // chain::Connect(ui_actions.uncaptured_actions, input_router);
-
-        // services::BuildInput build_input{event_manager, camera, tile_grid};
-        // services::RoomInput room_input{event_manager, camera, tile_grid};
-        // services::InputState input_state{event_manager, build_input, room_input};
-
-        // chain::Connect(input_router.game_action_receiver, input_state);
-        // chain::Connect(input_router.offscreen_action_receiver, input_state);
-        // chain::ConnectToNull(input_router.ui_action_receiver);
         world.import<input::Input>();
         world.import<ui::Ui>();
 

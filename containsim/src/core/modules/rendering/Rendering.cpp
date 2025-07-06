@@ -28,14 +28,14 @@ Rendering::Rendering(flecs::world& world) {
     world.component<Camera>().add(flecs::Sparse);
     world.emplace<Camera>(ubos);
 
-    // auto main_window_e = world.query<application::MainWindow>().first();
-    // world.observer<application::WindowSize>()
-    //     .term_at(0).src(main_window_e)
-    //     .event(flecs::OnSet)
-    //     .each([](flecs::entity e, const application::WindowSize& size) {
-    //         auto& camera = e.world().get_mut<Camera>();
-    //         camera.UpdateViewportSize(size.value);
-    //     });
+    auto main_window_e = world.query<application::MainWindow>().first();
+    world.observer<application::WindowSize>()
+        // .term_at(0).src(main_window_e)
+        .event(flecs::OnSet)
+        .each([](flecs::entity e, const application::WindowSize& size) {
+            auto& camera = e.world().get_mut<Camera>();
+            camera.UpdateViewportSize(size.value);
+        });
 
     SpriteRendererSystems(world);
     TileGridRendererSystem(world);

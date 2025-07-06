@@ -50,8 +50,6 @@ Application::Application(flecs::world& world) {
 
     InitGlad(initial_screen_size);
 
-
-
     world.component<UiEnv>().add(flecs::Sparse);
     world.emplace<UiEnv>(main_window_e);
 }
