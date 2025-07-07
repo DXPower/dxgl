@@ -8,8 +8,12 @@ namespace {
     Sink common_sink{};
 }
 
-Logger logging::CreateLogger(std::string_view name) {
-    return Logger(std::string(name), common_sink);
+Logger logging::CreateLogger(std::string name) {
+    return Logger(std::move(name), common_sink);
+}
+
+SharedLogger logging::CreateSharedLogger(std::string name) {
+    return std::make_shared<Logger>(std::move(name), common_sink);
 }
 
 void logging::SetCommonSink(Sink sink) {

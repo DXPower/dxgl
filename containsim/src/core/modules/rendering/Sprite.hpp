@@ -5,7 +5,7 @@
 
 namespace rendering {
     struct Sprite {
-        dxgl::TextureRef spritesheet{};
+        dxgl::TextureView spritesheet{};
         Rect cutout{};
     };
 

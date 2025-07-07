@@ -32,6 +32,7 @@
 #include <modules/rendering/RoomRenderer.hpp>
 #include <modules/core/Core.hpp>
 #include <modules/ui/Ui.hpp>
+#include <modules/experiment/Experiment.hpp>
 
 using namespace dxgl;
 
@@ -39,17 +40,12 @@ struct InputResults {
     glm::vec2 camera_movement{};
 };
 
-static bool cycle_tiles = false;
 static bool toggle_debugger = false;
 static std::optional<glm::vec2> target_pos{};
 
 struct GlobalActions : ActionConsumer {
     void Consume(Action&& action) override {
         const KeyPress* press = std::get_if<KeyPress>(&action.data);
-        if (press != nullptr && press->IsDownKey(GLFW_KEY_E)) {
-            cycle_tiles = true;
-        }
-
         if (press != nullptr && press->IsDownKey(GLFW_KEY_F8)) {
             toggle_debugger = true;
         }
@@ -98,6 +94,10 @@ static void Clear() {
 int main() {
     logging::SetCommonSink(logging::CreateConsoleSink());
 
+    auto logger = logging::CreateLogger("main");
+    logger.info("Hello, world!");
+    logger.set_level(spdlog::level::debug);
+
 #if CATCH_EXCEPTIONS == 1
     try {
 #endif        
@@ -113,12 +113,10 @@ int main() {
 
         world.import<core::Core>();
 
-        auto& event_manager = world.get_mut<application::EventManager>();
-
         Screenbuffer main_screen_buffer{};
         main_screen_buffer.Resize(main_window.GetSize());
 
-        auto& tile_grid = world.get_mut<core::TileGrid>();
+        // auto& tile_grid = world.get_mut<core::TileGrid>();
 
         services::InitTilePrefabs(world);
 
@@ -132,30 +130,6 @@ int main() {
         using namespace components;
         
         DebugDraws::Init(ubos, draw_queues);
-
-        auto logger = logging::CreateLogger("main");
-        logger.info("Hello, world!");
-        logger.set_level(spdlog::level::debug);
-
-        auto SetTiles = [&, start = 0]() mutable {
-            constexpr static std::array types = {
-                TileType::Grass,
-                TileType::Dirt,
-                TileType::Tile
-            };
-
-            for (int x = 0; x < tile_grid.GetGridSize().x; x++) {
-                for (int y = 0; y < tile_grid.GetGridSize().y; y++) {
-                    TileData data{};
-                    data.type = types[(start + x + y) % types.size()]; // NOLINT
-                    tile_grid.SetTile({x, y}, TileLayer::Ground, data);
-                }
-            }
-            
-            start++;
-        };
-
-        SetTiles();
 
         world.observer<const application::WindowSize>()
             .term_at(0).src(main_window_e)
@@ -182,90 +156,10 @@ int main() {
 
         world.import<physics::Physics>();
         world.import<pathing::Pathing>();
+        world.import<experiment::Experiment>();
 
-        struct PlayerTest { };
-
-        // Populate world actors
-        dxgl::Texture gardner_sheet = dxgl::LoadTextureFromFile("res/img/gardner.png");
-        auto test_actor = world.entity();
-        test_actor.set<components::Actor>(components::Actor{.id = 1});
-        test_actor.add<PlayerTest>();
-        test_actor.set<pathing::PathMover>(pathing::PathMover{});
-        test_actor.set(components::Transform{
-            .position = {400, 400},
-            .size = {95, 95},
-        });
-        test_actor.set(rendering::Sprite{
-            .spritesheet = gardner_sheet,
-            .cutout = {
-                .position = {0, 0},
-                .size = {64, 64}
-            }
-        });
-        test_actor.set(rendering::RenderData{
-            .layer = RenderLayer::Objects
-        });
-        test_actor.add<rendering::SpriteRenderer>();
-        test_actor.set<components::Mobility>(components::Mobility{.speed = 350.f});
-        test_actor.set(physics::Collider{
-            .is_listening = true
-        });
-        test_actor.set(physics::SquareCollider{
-            .relative_size = {.9f, .95f}
-        });
-        
-        for (int i = 0; i < 2; i++) {
-            auto other_actor = world.entity();
-            other_actor.set<components::Actor>(components::Actor{.id = 2 + (unsigned int)i});
-            other_actor.set(components::Transform{
-                .position = {100 + (105 * i), 100},
-                .size = {200, 200},
-            });
-            other_actor.set(rendering::Sprite{
-                .spritesheet = gardner_sheet,
-                .cutout = {
-                    .position = {0, 64},
-                    .size = {64, 64}
-                }
-            });
-            other_actor.set(rendering::RenderData{
-                .layer = RenderLayer::Objects
-            });
-            other_actor.add<rendering::SpriteRenderer>();
-            other_actor.set(physics::Collider{
-                .is_trigger = true,
-                .is_listening = false
-            });
-            other_actor.set(physics::SquareCollider{
-                .relative_size = {.5f, .9f}
-            });
-        }
-
-        world.system<physics::CollisionBegan, PlayerTest>("PlayerCollisionBegan")
-            .term_at(0).second(flecs::Wildcard)
-            .kind(flecs::OnUpdate)
-            .each([&](flecs::iter& it, size_t, physics::CollisionBegan, PlayerTest) {
-                logger.info("Player collided with something!");
-                auto other = it.pair(0).second();
-
-                if (other.has<components::Actor>()) {
-                    const auto& other_actor = other.get<components::Actor>();
-                    logger.info("Player collided with actor {}", other_actor.id);
-                }
-            });
-
-        world.system<physics::CollisionEnded, PlayerTest>("PlayerCollisionEnded")
-            .term_at(0).second(flecs::Wildcard)
-            .kind(flecs::OnUpdate)
-            .each([&](flecs::iter& it, size_t, physics::CollisionEnded, PlayerTest) {
-                logger.info("Player stopped colliding with something!");
-                auto other = it.pair(0).second();
-
-                if (other.has<components::Actor>()) {
-                    const auto& other_actor = other.get<components::Actor>();
-                    logger.info("Player stopped colliding with actor {}", other_actor.id);
-                }
-            });
+        auto test_actor = world.lookup("experiment::Experiment::TestActor");
+        assert(test_actor.is_valid());
 
         auto* rml_context = world.query<application::RmlMainContext>()
             .first().get<application::RmlContextHandle>().context;
@@ -309,11 +203,6 @@ int main() {
 
             camera.MoveBy(input.camera_movement * camera_speed * delta_time);
 
-            if (cycle_tiles) {
-                SetTiles();
-                cycle_tiles = false;
-            }
-            
             assert(main_window_e.has<application::WindowSize>());
             world.progress();
 

@@ -1,5 +1,6 @@
 add_subdirectory(application)
 add_subdirectory(core)
+add_subdirectory(experiment)
 add_subdirectory(input)
 add_subdirectory(pathing)
 add_subdirectory(physics)
