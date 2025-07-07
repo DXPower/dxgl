@@ -5,8 +5,8 @@
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/BuildCommands.hpp>
 
-namespace services {
-    class BuildManager : public commands::CommandConsumer<commands::BuildCommand> {
+namespace core {
+    class BuildManager : public services::commands::CommandConsumer<services::commands::BuildCommand> {
         core::TileGrid* m_tile_grid{};
 
     public:
@@ -15,6 +15,6 @@ namespace services {
         void PlaceTile(TileCoord coord, TileType type);
         void DeleteTopmostTile(TileCoord coord, TileLayer stop_at);
 
-        void Consume(commands::BuildCommandPtr&& cmd) override;
+        void Consume(services::commands::BuildCommandPtr&& cmd) override;
     };
 }

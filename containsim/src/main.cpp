@@ -11,7 +11,6 @@
 #include <dxgl/Ubo.hpp>
 
 #include <components/Transform.hpp>
-#include <services/BuildManager.hpp>
 #include <services/Logging.hpp>
 #include <modules/rendering/Camera.hpp>
 #include <systems/TilePrefabs.hpp>
@@ -176,11 +175,6 @@ int main() {
         auto& build_input = world.get_mut<input::BuildInput>();
         auto& room_input = world.get_mut<input::RoomInput>();
         auto& input_state = world.get_mut<input::InputState>();
-
-        services::BuildManager build_manager{tile_grid};
-        chain::Connect(build_input.build_commands, build_manager);
-
-        chain::Connect(room_input.room_commands, world.get_mut<core::RoomManager>());
 
         GlobalActions global_actions{};
 

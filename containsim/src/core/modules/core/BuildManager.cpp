@@ -1,8 +1,10 @@
-#include <services/BuildManager.hpp>
+#include <modules/core/BuildManager.hpp>
 #include <magic_enum/magic_enum.hpp>
+
 #include <ranges>
 
 using namespace services;
+using namespace core;
 
 BuildManager::BuildManager(core::TileGrid& tile_grid)
     : m_tile_grid(&tile_grid) { }

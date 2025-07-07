@@ -40,10 +40,10 @@ Application::Application(flecs::world& world) {
     constexpr bool start_fullscreen = true;
 
     if (start_fullscreen) {
-        main_window_e.set<dxgl::Window>({dxtl::cstring_view("Containment Simulator"), dxgl::Window::Fullscreen{}});
+        main_window_e.emplace<dxgl::Window>(dxtl::cstring_view("Containment Simulator"), dxgl::Window::Fullscreen{});
     } else {
         constexpr glm::ivec2 initial_windowed_size = {1000, 800};
-        main_window_e.set<dxgl::Window>({dxtl::cstring_view("Containment Simulator"), initial_windowed_size});
+        main_window_e.emplace<dxgl::Window>(dxtl::cstring_view("Containment Simulator"), initial_windowed_size);
     }
 
     const auto initial_screen_size = main_window_e.get<dxgl::Window>().GetSize();

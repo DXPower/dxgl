@@ -3,11 +3,14 @@
 #include <services/commands/Command.hpp>
 #include <common/Tile.hpp>
 
-namespace services {
+namespace core {
     class BuildManager;
+}
+
+namespace services {
 
     namespace commands {
-        using BuildCommand = Command<BuildManager>;
+        using BuildCommand = Command<core::BuildManager>;
         using BuildCommandPtr = CommandPtr<BuildCommand>;
         
         struct PlaceTiles : BuildCommand {
@@ -15,13 +18,13 @@ namespace services {
             TileCoord from{};
             TileCoord to{};
 
-            void Execute(BuildManager& manager) const override;
+            void Execute(core::BuildManager& manager) const override;
         };
 
         struct DeleteTiles : BuildCommand {
             TileCoord from{};
             TileCoord to{};
-            void Execute(BuildManager& manager) const override;
+            void Execute(core::BuildManager& manager) const override;
         };
     }
 }

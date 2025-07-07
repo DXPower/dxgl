@@ -1,7 +1,9 @@
 #include <services/commands/BuildCommands.hpp>
-#include <services/BuildManager.hpp>
+#include <modules/core/BuildManager.hpp>
 
 #include <algorithm>
+
+using namespace core;
 
 namespace services{
 namespace commands {
