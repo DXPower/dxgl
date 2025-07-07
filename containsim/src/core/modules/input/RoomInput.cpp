@@ -1,5 +1,5 @@
 #include <modules/input/RoomInput.hpp>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 
 #include <magic_enum/magic_enum.hpp>
 #include <GLFW/glfw3.h>

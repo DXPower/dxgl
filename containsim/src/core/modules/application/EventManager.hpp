@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nano/nano_signal_slot.hpp>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 
 #include <concepts>
 #include <string_view>
@@ -34,7 +34,7 @@ struct EventSignal<T> : detail::EventSignalBase {
 
 class EventManager {
     std::unordered_map<std::size_t, std::unique_ptr<detail::EventSignalBase>> m_signals{};
-    services::logging::Logger m_logger{services::logging::CreateLogger("EventManager")};
+    logging::Logger m_logger{logging::CreateLogger("EventManager")};
 
 public:
     EventManager() = default;

@@ -1,6 +1,6 @@
 #include <catch2/catch_session.hpp>
 
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 
 int main( int argc, char* argv[] ) {
     using namespace services;

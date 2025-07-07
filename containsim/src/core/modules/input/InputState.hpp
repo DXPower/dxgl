@@ -6,7 +6,7 @@
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/InputStateCommands.hpp>
 #include <services/commands/RoomInputCommands.hpp>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 #include <modules/application/EventManager.hpp>
 #include <modules/input/RoomInput.hpp>
 #include <dxfsm/dxfsm.hpp>
@@ -34,7 +34,7 @@ namespace input {
         application::EventManager* m_event_manager{};
         ActionProducer* m_action_forward{};
 
-        services::logging::Logger m_logger = services::logging::CreateLogger("InputState");
+        logging::Logger m_logger = logging::CreateLogger("InputState");
 
     public:
         ActionProducer build_actions{};

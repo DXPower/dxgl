@@ -1,8 +1,7 @@
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-using namespace services;
 using namespace logging;
 
 namespace {
@@ -10,7 +9,7 @@ namespace {
 }
 
 Logger logging::CreateLogger(std::string_view name) {
-    return spdlog::logger(std::string(name), common_sink);
+    return Logger(std::string(name), common_sink);
 }
 
 void logging::SetCommonSink(Sink sink) {

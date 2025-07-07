@@ -10,7 +10,7 @@
 #include <services/commands/RoomCommands.hpp>
 
 #include <dxfsm/dxfsm.hpp>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 
 #include <modules/rendering/Camera.hpp>
 #include <modules/core/TileGrid.hpp>
@@ -43,7 +43,7 @@ namespace input {
         application::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
-        services::logging::Logger m_logger = services::logging::CreateLogger("RoomInput");
+        logging::Logger m_logger = logging::CreateLogger("RoomInput");
 
     public:
         RoomInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);

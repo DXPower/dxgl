@@ -3,7 +3,7 @@
 #include <common/ui/UiEvents.hpp>
 #include <RmlUi/Core/EventListenerInstancer.h>
 #include <RmlUi/Core/EventListener.h>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 #include <modules/application/EventManager.hpp>
 
 #include <string>
@@ -32,7 +32,7 @@ class RmlEventManager : public Rml::EventListenerInstancer {
         }
     };
 
-    services::logging::Logger m_logger{services::logging::CreateLogger("RmlEventManager")};
+    logging::Logger m_logger{logging::CreateLogger("RmlEventManager")};
     application::EventSignal<ui_events::ElementEvent>* m_element_event_signal{}; 
 public:
     RmlEventManager(application::EventManager& em) {

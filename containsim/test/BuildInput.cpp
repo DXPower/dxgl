@@ -2,7 +2,7 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <services/BuildInput.hpp>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 
 #include <glfw/glfw3.h>
 

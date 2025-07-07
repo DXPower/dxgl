@@ -32,6 +32,7 @@ Checks: '
   modernize-*,
     -modernize-use-trailing-return-type,
     -modernize-use-nodiscard,
+    -modernize-return-braced-init-list,
   performance-*,
     -performance-avoid-endl,
     -performance-move-const-arg,

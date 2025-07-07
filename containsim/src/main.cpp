@@ -11,7 +11,7 @@
 #include <dxgl/Ubo.hpp>
 
 #include <components/Transform.hpp>
-#include <services/Logging.hpp>
+#include <common/Logging.hpp>
 #include <modules/rendering/Camera.hpp>
 #include <systems/TilePrefabs.hpp>
 #include <RmlUi/Core.h>
@@ -96,9 +96,7 @@ static void Clear() {
 #define CATCH_EXCEPTIONS 1
 
 int main() {
-    namespace logging = services::logging;
     logging::SetCommonSink(logging::CreateConsoleSink());
-
 
 #if CATCH_EXCEPTIONS == 1
     try {
@@ -135,7 +133,7 @@ int main() {
         
         DebugDraws::Init(ubos, draw_queues);
 
-        auto logger = services::logging::CreateLogger("main");
+        auto logger = logging::CreateLogger("main");
         logger.info("Hello, world!");
         logger.set_level(spdlog::level::debug);
 

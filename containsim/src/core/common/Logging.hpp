@@ -5,7 +5,7 @@
 #include <spdlog/sinks/sink.h>
 #include <spdlog/logger.h>
 
-namespace services::logging {
+namespace logging {
     using Sink = std::shared_ptr<spdlog::sinks::sink>;
     using Logger = spdlog::logger;
 
