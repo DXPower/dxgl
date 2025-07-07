@@ -45,7 +45,25 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* s
 }
 
 Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
-    throw std::runtime_error("Unimplemented");
+    auto* primary_monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primary_monitor);
+
+    m_glfw_window.reset(
+        glfwCreateWindow(
+            mode->width,
+            mode->height,
+            "Containment Simulator",
+            primary_monitor,
+            nullptr
+        )
+    );
+
+    if (m_glfw_window == nullptr) {
+        throw std::runtime_error("Failed to create GLFW window");
+    }
+
+    glfwSetFramebufferSizeCallback(GetGlfwWindow(), OnWindowResizeImpl);
+    glfwSetWindowUserPointer(GetGlfwWindow(), this);
 }
 
 Window::Window(Window&& move) noexcept

@@ -34,12 +34,20 @@ Application::Application(flecs::world& world) {
     dxgl::Application::Init();
 
     // Make the main window entity
-    constexpr glm::ivec2 initial_screen_size = { 1000, 800 };
-
     auto main_window_e = world.entity()
-        .emplace<dxgl::Window>(dxtl::cstring_view("Containment Simulator"), initial_screen_size)
-        .set<WindowSize>({initial_screen_size})
         .add<MainWindow>();
+
+    constexpr bool start_fullscreen = true;
+
+    if (start_fullscreen) {
+        main_window_e.set<dxgl::Window>({dxtl::cstring_view("Containment Simulator"), dxgl::Window::Fullscreen{}});
+    } else {
+        constexpr glm::ivec2 initial_windowed_size = {1000, 800};
+        main_window_e.set<dxgl::Window>({dxtl::cstring_view("Containment Simulator"), initial_windowed_size});
+    }
+
+    const auto initial_screen_size = main_window_e.get<dxgl::Window>().GetSize();
+    main_window_e.set<WindowSize>({initial_screen_size});
 
     auto& main_window = main_window_e.get_mut<dxgl::Window>();
     main_window.MakeCurrent();
