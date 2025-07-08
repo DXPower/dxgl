@@ -20,12 +20,15 @@ namespace dxgl {
         std::function<OnWindowResizeFunc> m_resize_func{};
     public:
         struct Fullscreen { };
+        struct BorderlessWindow { };
 
         Window(dxtl::cstring_view title, glm::ivec2 window_size);
         Window(dxtl::cstring_view title, Fullscreen);
+        Window(dxtl::cstring_view title, BorderlessWindow);
     protected:
         Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share);
         Window(dxtl::cstring_view title, Fullscreen, const Window* share);
+        Window(dxtl::cstring_view title, BorderlessWindow, const Window* share);
 
     public:
         Window(const Window& copy) = delete;

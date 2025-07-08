@@ -19,8 +19,6 @@ Experiment::Experiment(flecs::world& world) {
     world.import<rendering::Rendering>();
     world.import<pathing::Pathing>();
 
-    world.module<Experiment>("Experiment");
-
     auto logger = logging::CreateSharedLogger("Experiment");
 
     const auto& tile_grid = world.get<core::TileGrid>();
@@ -44,35 +42,32 @@ Experiment::Experiment(flecs::world& world) {
     const auto& gardner_sheet = gardner_sheet_e.get<dxgl::Texture>();
 
     // Populate world actors
-    auto test_actor = world.entity().set_name("TestActor");
-
-    logger->info("TestActor path: {}", test_actor.path().c_str());
-
-    test_actor.set<components::Actor>(components::Actor{.id = 1});
-    test_actor.add<PlayerTest>();
-    test_actor.set<pathing::PathMover>(pathing::PathMover{});
-    test_actor.set(components::Transform{
-        .position = {400, 400},
-        .size = {95, 95},
-    });
-    test_actor.set(rendering::Sprite{
-        .spritesheet = gardner_sheet,
-        .cutout = {
-            .position = {0, 0},
-            .size = {64, 64}
-        }
-    });
-    test_actor.set(rendering::RenderData{
-        .layer = RenderLayer::Objects
-    });
-    test_actor.add<rendering::SpriteRenderer>();
-    test_actor.set<components::Mobility>(components::Mobility{.speed = 350.f});
-    test_actor.set(physics::Collider{
-        .is_listening = true
-    });
-    test_actor.set(physics::SquareCollider{
-        .relative_size = {.9f, .95f}
-    });
+    auto test_actor = world.entity().set_name("TestActor")
+        .set<components::Actor>(components::Actor{.id = 1})
+        .add<PlayerTest>()
+        .set<pathing::PathMover>(pathing::PathMover{})
+        .set(components::Transform{
+            .position = {400, 400},
+            .size = {95, 95},
+        })
+        .set(rendering::Sprite{
+            .spritesheet = gardner_sheet,
+            .cutout = {
+                .position = {0, 0},
+                .size = {64, 64}
+            }
+        })
+        .set(rendering::RenderData{
+            .layer = RenderLayer::Objects
+        })
+        .add<rendering::SpriteRenderer>()
+        .set<components::Mobility>(components::Mobility{.speed = 350.f})
+        .set(physics::Collider{
+            .is_listening = true
+        })
+        .set(physics::SquareCollider{
+            .relative_size = {.9f, .95f}
+        });
     
     for (int i = 0; i < 2; i++) {
         auto other_actor = world.entity();

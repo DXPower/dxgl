@@ -25,6 +25,9 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size)
 Window::Window(dxtl::cstring_view title, Fullscreen)
     : Window(title, Fullscreen{}, nullptr) { }
 
+Window::Window(dxtl::cstring_view title, BorderlessWindow) 
+    : Window(title, BorderlessWindow{}, nullptr) { }
+
 Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* share) {
     m_glfw_window.reset(
         glfwCreateWindow(
@@ -32,7 +35,7 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* s
             window_size.y,
             title.c_str(),
             nullptr,
-            share ? share->GetGlfwWindow() : nullptr
+            share != nullptr ? share->GetGlfwWindow() : nullptr
         )
     );
 
@@ -44,7 +47,7 @@ Window::Window(dxtl::cstring_view title, glm::ivec2 window_size, const Window* s
     glfwSetWindowUserPointer(GetGlfwWindow(), this);
 }
 
-Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
+Window::Window(dxtl::cstring_view title, Fullscreen, const Window* share) {
     auto* primary_monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primary_monitor);
 
@@ -52,9 +55,9 @@ Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
         glfwCreateWindow(
             mode->width,
             mode->height,
-            "Containment Simulator",
+            title.c_str(),
             primary_monitor,
-            nullptr
+            share != nullptr ? share->GetGlfwWindow() : nullptr
         )
     );
 
@@ -64,6 +67,39 @@ Window::Window(dxtl::cstring_view, Fullscreen, const Window*) {
 
     glfwSetFramebufferSizeCallback(GetGlfwWindow(), OnWindowResizeImpl);
     glfwSetWindowUserPointer(GetGlfwWindow(), this);
+}
+
+Window::Window(dxtl::cstring_view title, BorderlessWindow, const Window* share) {
+    auto* primary_monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primary_monitor);
+     
+    glfwSwapInterval(-1); // Adaptive sync
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    glfwWindowHint(GLFW_POSITION_X, 0);
+    glfwWindowHint(GLFW_POSITION_Y, 0);
+
+    m_glfw_window.reset(
+        glfwCreateWindow(
+            mode->width,
+            mode->height,
+            title.c_str(),
+            nullptr,
+            share != nullptr ? share->GetGlfwWindow() : nullptr
+        )
+    );
+
+    if (m_glfw_window == nullptr) {
+        throw std::runtime_error("Failed to create GLFW window");
+    }
+
+    glfwSetWindowAttrib(GetGlfwWindow(), GLFW_DECORATED, GLFW_FALSE);
+    glfwSetWindowSize(GetGlfwWindow(), mode->width, mode->height);
+    glfwSetFramebufferSizeCallback(GetGlfwWindow(), OnWindowResizeImpl);
+    glfwSetWindowUserPointer(GetGlfwWindow(), this);
+
 }
 
 Window::Window(Window&& move) noexcept

@@ -168,13 +168,15 @@ int main() {
             world.get_mut<application::UiEnv>().GetRenderInterface()
         );
 
+        float last_delta_time = 0.0f;
         while (!main_window.ShouldClose()) {
             double current_time = Application::GetTime();
             double delta_time_d = current_time - last_time;
             
-            if (delta_time_d < 1./60) {
-                if (delta_time_d < 0.005) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            constexpr auto fps_60 = 1.0 / 60.0;
+            if (last_delta_time != 0 && delta_time_d < (fps_60 - last_delta_time)) {
+                if (delta_time_d < (fps_60 / 4)) {
+                    std::this_thread::sleep_for(std::chrono::microseconds((long long)((fps_60 - delta_time_d) / 2) * 1000));
                 }
 
                 continue;
@@ -182,7 +184,8 @@ int main() {
             
             last_time = current_time;
             float delta_time = static_cast<float>(delta_time_d);
-
+            last_delta_time = delta_time;
+            
             main_screen_buffer.Use();
             Clear();
             glDisable(GL_DEPTH_TEST);
