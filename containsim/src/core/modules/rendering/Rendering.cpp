@@ -29,6 +29,11 @@ Rendering::Rendering(flecs::world& world) {
     world.emplace<Camera>(ubos);
 
     auto main_window_e = world.query<application::MainWindow>().first();
+
+    auto& camera = world.get_mut<Camera>();
+    camera.UpdateViewportSize(main_window_e.get<dxgl::Window>().GetSize());
+
+
     world.observer<application::WindowSize>()
         .term_at(0).src(main_window_e)
         .event(flecs::OnSet)

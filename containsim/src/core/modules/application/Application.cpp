@@ -17,6 +17,8 @@ void InitGlad(glm::ivec2 screen_size) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST);
+    
+    glfwSwapInterval(-1); // Adaptive sync
 }
 
 }

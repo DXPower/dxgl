@@ -4,20 +4,59 @@
 #include <modules/physics/Physics.hpp>
 #include <modules/rendering/Rendering.hpp>
 #include <modules/pathing/Pathing.hpp>
+#include <modules/input/Input.hpp>
 
 #include <components/Actor.hpp>
 #include <components/Transform.hpp>
 #include <components/Mobility.hpp>
 
 #include <common/Logging.hpp>
+#include <common/ActionChain.hpp>
+
+#include <GLFW/glfw3.h>
 
 using namespace experiment;
+
+namespace {
+// bool toggle_debugger = false;
+// std::optional<glm::vec2> target_pos{};
+
+// if (toggle_debugger) {
+//     toggle_debugger = false;
+//     Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
+// }
+
+struct GlobalActions : ActionConsumer {
+    flecs::entity target{};
+    const rendering::Camera* cam{};
+
+    GlobalActions(flecs::entity target, const rendering::Camera& cam) : target(target), cam(&cam) { }
+
+    void Consume(Action&& action) override {
+        // const KeyPress* press = std::get_if<KeyPress>(&action.data);
+        // if (press != nullptr && press->IsDownKey(GLFW_KEY_F8)) {
+        //     toggle_debugger = true;
+        // }
+
+        const MouseClick* click = std::get_if<MouseClick>(&action.data);
+        if (click != nullptr && click->button == 0 && click->dir == ButtonDir::Up) {
+            // target_pos = click->pos;
+            const auto cam_view = cam->GetViewMatrix();
+            const auto world_pos = glm::inverse(cam_view) * glm::vec4(click->pos, 1, 1);
+
+            target.set(pathing::DestinationIntent{.position = world_pos});
+            target.add<pathing::StaleDestination>();
+        }
+    }
+};
+}
 
 Experiment::Experiment(flecs::world& world) {
     world.import<core::Core>();
     world.import<physics::Physics>();
     world.import<rendering::Rendering>();
     world.import<pathing::Pathing>();
+    world.import<input::Input>();
 
     auto logger = logging::CreateSharedLogger("Experiment");
 
@@ -121,4 +160,18 @@ Experiment::Experiment(flecs::world& world) {
                 logger->info("Player stopped colliding with actor {}", other_actor.id);
             }
         });
+
+    const auto& camera = world.get<rendering::Camera>();
+
+    world.component<GlobalActions>().add(flecs::Sparse);
+    world.emplace<GlobalActions>(test_actor, camera);
+    auto& global_actions = world.get_mut<GlobalActions>();
+
+    auto& build_input = world.get_mut<input::BuildInput>();
+    auto& room_input = world.get_mut<input::RoomInput>();
+    auto& input_state = world.get_mut<input::InputState>();
+    
+    chain::Connect(input_state.idle_actions, global_actions);
+    chain::Connect(build_input.uncaptured_actions, global_actions);
+    chain::Connect(room_input.uncaptured_actions, global_actions);
 }
