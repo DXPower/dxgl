@@ -2,7 +2,10 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 
 add_executable(containsim)
 
-target_sources(containsim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+target_sources(containsim PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/DeltaTimer.cpp
+)
 target_link_libraries(containsim PUBLIC containsim_core)
 target_compile_options(containsim PRIVATE -Wno-unused-parameter)
 

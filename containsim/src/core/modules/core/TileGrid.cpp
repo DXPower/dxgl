@@ -49,6 +49,8 @@ void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
                 throw std::runtime_error("Prefab not found: " + *meta.prefab_name);
             }
 
+            assert(prefab.has<components::Transform>());
+
             tile.entity = m_world->entity()
                 .is_a(prefab)
                 .set<TileCoord>(coord);

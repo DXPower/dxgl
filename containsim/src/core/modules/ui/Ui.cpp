@@ -7,6 +7,7 @@
 
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <dxgl/Screenbuffer.hpp>
 
 using namespace ui;
 
@@ -51,4 +52,27 @@ Ui::Ui(flecs::world& world) {
 
     world.component<RoomPanel>().add(flecs::Sparse);;
     world.emplace<RoomPanel>(event_manager);
+
+    // UI render phase, which comes after the world is rendered
+    // (This is why this system is in the UI module, not the application module)
+    flecs::entity world_render_e = world.lookup("rendering::Rendering::WorldRenderPhase");
+    flecs::entity ui_render_e = world.entity("UiRenderPhase")
+        .add(flecs::Phase)
+        .add(flecs::DependsOn, world_render_e);
+
+    // Mark the final presentation as dependent on this phase
+    world.lookup("application::Application::FinalPresentPhase")
+        .add(flecs::DependsOn, ui_render_e);
+
+    // May need custom pipeline if we plan to have multiple UI contexts
+    world.system<application::UiEnv, application::RmlContextHandle>("RenderUi")
+        .term_at<application::UiEnv>().singleton()
+        .kind(ui_render_e)
+        .each([](application::UiEnv& ui_env, const application::RmlContextHandle& context_handle) {
+            dxgl::Screenbuffer::Unuse();
+
+            ui_env.GetRenderInterface().BeginFrame();
+            context_handle.context->Render();
+            ui_env.GetRenderInterface().EndFrame();
+        });
 }

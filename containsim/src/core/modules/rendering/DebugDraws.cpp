@@ -1,35 +1,30 @@
-#include <common/DebugDraws.hpp>
+#include <modules/rendering/DebugDraws.hpp>
 #include <common/Rendering.hpp>
 #include <dxgl/Vao.hpp>
 #include <dxgl/Shader.hpp>
 #include <dxgl/Uniform.hpp>
 
+using namespace rendering;
 using namespace dxgl;
 
-namespace {
-Program program{};
-}
-
-void DebugDraws::Init(UboBindingManager& ubos, rendering::DrawQueues& queues) {
-    m_queues = &queues;
-
-    program = ProgramBuilder()
+DebugDraws::DebugDraws(UboBindingManager& ubos) {
+    m_debug_program = ProgramBuilder()
         .Vert("shaders/debug.vert")
         .Frag("shaders/debug.frag")
         .Link();
     
     ubos.BindUniformLocation(
         static_cast<std::size_t>(UboLocs::Camera), 
-        program, 
+        m_debug_program, 
         "camera"
     );
 }
 
-void DebugDraws::MakeWorldDraw(std::span<const glm::vec2> points, glm::vec4 color, PrimType prim_type) {
+Draw DebugDraws::MakeWorldDraw(std::span<const glm::vec2> points, glm::vec4 color, PrimType prim_type) {
     using namespace dxgl;
     
     Draw draw{};
-    draw.program = program;
+    draw.program = m_debug_program;
     draw.num_indices = (uint32_t) points.size();
     draw.prim_type = prim_type;
     draw.options.wireframe = true;
@@ -49,5 +44,5 @@ void DebugDraws::MakeWorldDraw(std::span<const glm::vec2> points, glm::vec4 colo
         )
         .Apply(draw.vao_storage.emplace(), draw.vbo_storage.back());
 
-    m_queues->QueueOwnedDraw(RenderLayer::Debug, std::move(draw));
+    return draw;
 }

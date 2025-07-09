@@ -84,7 +84,7 @@ Window::Window(dxtl::cstring_view title, BorderlessWindow, const Window* share) 
     glfwWindowHint(GLFW_POSITION_X, 0);
     glfwWindowHint(GLFW_POSITION_Y, 0);
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
+    
     m_glfw_window.reset(
         glfwCreateWindow(
             mode->width,

@@ -2,8 +2,7 @@
 
 #include <modules/physics/Collider.hpp>
 #include <components/Transform.hpp>
-
-#include <common/DebugDraws.hpp>
+#include <array>
 
 using namespace physics;
 using namespace components;
@@ -27,8 +26,6 @@ auto SquareColliderSystem(flecs::world& world) {
                 {a_col_extents.min.x, a_col_extents.max.y},
                 a_col_extents.min
             };
-
-            DebugDraws::MakeWorldDraw(points, glm::vec4(0, 1, 0, 1), dxgl::PrimType::LineStrip);
 
             square_colliders.each([&](flecs::entity be, const Collider& bc, const SquareCollider& bsq, const Transform& bt) {
                 // Skip collisions that have been checked already,

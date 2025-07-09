@@ -5,13 +5,15 @@
 #include <dxgl/Ubo.hpp>
 #include <glm/vec4.hpp>
 
+namespace rendering {
 class DebugDraws {
-    inline static rendering::DrawQueues* m_queues{};
-
+    dxgl::Program m_debug_program{};
+    
 public:
-    static void Init(dxgl::UboBindingManager& ubos, rendering::DrawQueues& queues);
+    DebugDraws(dxgl::UboBindingManager& ubos);
 
     // Creates a draw but does not fill in prim type or options.
     // Points should be provided in world space.
-    static void MakeWorldDraw(std::span<const glm::vec2> points, glm::vec4 color, dxgl::PrimType prim_type);
+    dxgl::Draw MakeWorldDraw(std::span<const glm::vec2> points, glm::vec4 color, dxgl::PrimType prim_type);
 };
+}

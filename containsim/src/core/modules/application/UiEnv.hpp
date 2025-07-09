@@ -38,8 +38,8 @@ namespace application {
     public:
         UiEnv(flecs::entity main_window_e);
 
-        Rml::RenderInterface& GetRenderInterface() { return m_rml_renderer; }
-        const Rml::RenderInterface& GetRenderInterface() const { return m_rml_renderer; }
+        RenderInterface_GL3& GetRenderInterface() { return m_rml_renderer; }
+        const RenderInterface_GL3& GetRenderInterface() const { return m_rml_renderer; }
 
         bool IsTextInputActive() const {
             return m_text_input_handler.m_text_input_active;

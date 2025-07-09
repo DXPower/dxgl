@@ -62,4 +62,12 @@ Application::Application(flecs::world& world) {
 
     world.component<UiEnv>().add(flecs::Sparse);
     world.emplace<UiEnv>(main_window_e);
+
+    auto final_present_e = world.entity("FinalPresentPhase")
+        .add(flecs::Phase);
+
+    world.system<dxgl::Window>("SwapBuffers")
+        .each([](dxgl::Window& window) {
+            window.SwapBuffers();
+        });
 }

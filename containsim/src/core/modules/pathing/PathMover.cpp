@@ -2,7 +2,6 @@
 #include <modules/pathing/Pathing.hpp>
 #include <components/Transform.hpp>
 #include <components/Mobility.hpp>
-#include <common/DebugDraws.hpp>
 
 #include <glm/gtx/norm.hpp>
 
@@ -20,8 +19,6 @@ void pathing::PathMoverSystem(flecs::world& world) {
             const auto& target = path.points[mover.cur_node_idx];
             const auto delta = target - transform.position;
             const auto distance2 = glm::length2(delta);
-
-            DebugDraws::MakeWorldDraw(path.points, {1.f, 0.f, 0.f, 1.f}, dxgl::PrimType::LineStrip);
 
             if (distance2 <= (mobility.speed * mobility.speed * it.delta_time() * it.delta_time())) {
                 transform.position = target;

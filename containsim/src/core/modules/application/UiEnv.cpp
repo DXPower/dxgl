@@ -51,4 +51,11 @@ UiEnv::UiEnv(flecs::entity main_window_e) {
 
             m_rml_renderer.SetViewport(size.value.x, size.value.y);
         });
+
+    // Update all contexts after the game world has updated
+    world.system<const RmlContextHandle>("UpdateRmlContext")
+        .kind(flecs::PostUpdate)
+        .each([](const RmlContextHandle& context_handle) {
+            context_handle.context->Update();
+        });
 }
