@@ -1,6 +1,6 @@
 #include <modules/rendering/RoomRenderer.hpp>
+#include <modules/rendering/UboLocs.hpp>
 #include <modules/core/Core.hpp>
-#include <common/Rendering.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
@@ -12,6 +12,7 @@
 #include <nlohmann/json.hpp>
 
 using namespace rendering;
+using namespace core;
 
 namespace {
     struct VertexData {

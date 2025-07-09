@@ -1,5 +1,5 @@
 #include <modules/rendering/DebugDraws.hpp>
-#include <common/Rendering.hpp>
+#include <modules/rendering/UboLocs.hpp>
 #include <dxgl/Vao.hpp>
 #include <dxgl/Shader.hpp>
 #include <dxgl/Uniform.hpp>

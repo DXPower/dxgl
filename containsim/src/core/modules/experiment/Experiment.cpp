@@ -6,9 +6,9 @@
 #include <modules/pathing/Pathing.hpp>
 #include <modules/input/Input.hpp>
 
-#include <components/Actor.hpp>
-#include <components/Transform.hpp>
-#include <components/Mobility.hpp>
+#include <modules/core/Actor.hpp>
+#include <modules/core/Transform.hpp>
+#include <modules/core/Mobility.hpp>
 
 #include <common/Logging.hpp>
 #include <common/ActionChain.hpp>
@@ -16,6 +16,8 @@
 #include <GLFW/glfw3.h>
 
 using namespace experiment;
+using namespace core;
+using namespace rendering;
 
 namespace {
 // bool toggle_debugger = false;
@@ -82,10 +84,10 @@ Experiment::Experiment(flecs::world& world) {
 
     // Populate world actors
     auto test_actor = world.entity().set_name("TestActor")
-        .set<components::Actor>(components::Actor{.id = 1})
+        .set<core::Actor>(core::Actor{.id = 1})
         .add<PlayerTest>()
         .set<pathing::PathMover>(pathing::PathMover{})
-        .set(components::Transform{
+        .set(core::Transform{
             .position = {400, 400},
             .size = {95, 95},
         })
@@ -100,7 +102,7 @@ Experiment::Experiment(flecs::world& world) {
             .layer = RenderLayer::Objects
         })
         .add<rendering::SpriteRenderer>()
-        .set<components::Mobility>(components::Mobility{.speed = 350.f})
+        .set<core::Mobility>(core::Mobility{.speed = 350.f})
         .set(physics::Collider{
             .is_listening = true
         })
@@ -110,8 +112,8 @@ Experiment::Experiment(flecs::world& world) {
     
     for (int i = 0; i < 2; i++) {
         auto other_actor = world.entity();
-        other_actor.set<components::Actor>(components::Actor{.id = 2 + (unsigned int)i});
-        other_actor.set(components::Transform{
+        other_actor.set<core::Actor>(core::Actor{.id = 2 + (unsigned int)i});
+        other_actor.set(core::Transform{
             .position = {100 + (105 * i), 100},
             .size = {200, 200},
         });
@@ -142,8 +144,8 @@ Experiment::Experiment(flecs::world& world) {
             logger->info("Player collided with something!");
             auto other = it.pair(0).second();
 
-            if (other.has<components::Actor>()) {
-                const auto& other_actor = other.get<components::Actor>();
+            if (other.has<core::Actor>()) {
+                const auto& other_actor = other.get<core::Actor>();
                 logger->info("Player collided with actor {}", other_actor.id);
             }
         });
@@ -155,8 +157,8 @@ Experiment::Experiment(flecs::world& world) {
             logger->info("Player stopped colliding with something!");
             auto other = it.pair(0).second();
 
-            if (other.has<components::Actor>()) {
-                const auto& other_actor = other.get<components::Actor>();
+            if (other.has<core::Actor>()) {
+                const auto& other_actor = other.get<core::Actor>();
                 logger->info("Player stopped colliding with actor {}", other_actor.id);
             }
         });

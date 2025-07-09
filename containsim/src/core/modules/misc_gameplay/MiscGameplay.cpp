@@ -4,14 +4,14 @@
 #include <modules/core/Core.hpp>
 #include <modules/physics/Physics.hpp>
 
-#include <components/Transform.hpp>
+#include <modules/core/Transform.hpp>
 
 #include <GLFW/glfw3.h>
 
 #include <common/Logging.hpp>
 
 using namespace misc_gameplay;
-using namespace components;
+using namespace core;
 
 namespace {
 struct InputResults {
@@ -51,7 +51,7 @@ void InitTilePrefabs(flecs::world& world) {
     const auto& tile_size = world.get<core::TileWorldSize>().value;
 
     auto prefab = world.prefab("cs:PrefabWall")
-        .set(components::Transform{
+        .set(core::Transform{
             .size = tile_size
         })
         .set(physics::Collider{

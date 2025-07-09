@@ -1,11 +1,12 @@
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 
-#include <algorithm>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <magic_enum/magic_enum.hpp>
 
-std::map<TileType, TileMeta> LoadTileMetas() {
+using namespace core;
+
+std::map<TileType, TileMeta> core::LoadTileMetas() {
     std::map<TileType, TileMeta> metas{};
 
     std::ifstream json_file("res/spritesheets.json");

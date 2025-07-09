@@ -1,7 +1,7 @@
 #pragma once
 
-#include <common/TileCoord.hpp>
-#include <common/Room.hpp>
+#include <modules/core/TileCoord.hpp>
+#include <modules/core/Room.hpp>
 #include <glm/vec2.hpp>
 #include <flecs.h>
 #include <string>
@@ -9,6 +9,7 @@
 #include <optional>
 #include <generator>
 
+namespace core {
 enum class TileType {
     Nothing,
     Grass,
@@ -58,3 +59,4 @@ struct TileSelection {
     bool Contains(const TileCoord& coord) const;
     std::generator<TileCoord> Iterate() const;
 };
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Rendering.hpp>
+#include <modules/rendering/RenderLayer.hpp>
 
 namespace rendering {
     struct RenderData {

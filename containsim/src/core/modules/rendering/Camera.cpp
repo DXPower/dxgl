@@ -1,6 +1,5 @@
 #include <modules/rendering/Camera.hpp>
-
-#include <common/Rendering.hpp>
+#include <modules/rendering/UboLocs.hpp>
 
 #include <boost/describe/class.hpp>
 #include <glm/ext/matrix_clip_space.hpp>

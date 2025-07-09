@@ -1,10 +1,11 @@
 #pragma once
 
-#include <common/TileCoord.hpp>
+#include <modules/core/TileCoord.hpp>
 #include <span>
 #include <unordered_set>
-    #include <glm/gtx/hash.hpp>
+#include <glm/gtx/hash.hpp>
 
+namespace core {
 enum class RoomType {
     ContainmentCell,
     Deliveries,
@@ -47,3 +48,4 @@ struct RoomRemoved {
 struct RoomModified {
     const Room* room{};
 };
+}

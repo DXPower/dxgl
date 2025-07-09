@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Room.hpp>
+#include <modules/core/Room.hpp>
 #include <modules/application/EventManager.hpp>
 
 #include <common/ActionChain.hpp>
@@ -50,7 +50,7 @@ namespace input {
 
         void Consume(Action&& action) override;
 
-        void SelectRoomType(RoomType room);
+        void SelectRoomType(core::RoomType room);
         void SelectRoomClear();
         void ExitMode();
 
@@ -64,6 +64,6 @@ namespace input {
 
         void ProcessRoomInputCommand(const services::commands::RoomInputCommand& cmd);
 
-        std::optional<TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
+        std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
     };
 }

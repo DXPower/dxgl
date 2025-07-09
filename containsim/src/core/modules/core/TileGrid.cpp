@@ -1,6 +1,6 @@
 #include <modules/core/TileGrid.hpp>
 #include <modules/core/Configuration.hpp>
-#include <components/Transform.hpp>
+#include <modules/core/Transform.hpp>
 
 using namespace core;
 
@@ -49,13 +49,13 @@ void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
                 throw std::runtime_error("Prefab not found: " + *meta.prefab_name);
             }
 
-            assert(prefab.has<components::Transform>());
+            assert(prefab.has<Transform>());
 
             tile.entity = m_world->entity()
                 .is_a(prefab)
                 .set<TileCoord>(coord);
 
-            tile.entity.get_mut<components::Transform>().position = TileCoordToWorldPos(coord);
+            tile.entity.get_mut<Transform>().position = TileCoordToWorldPos(coord);
         }
 
         tile_update_signal.fire(*this, tile);

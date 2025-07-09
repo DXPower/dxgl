@@ -1,10 +1,10 @@
 #include <systems/TilePrefabs.hpp>
-#include <common/Tile.hpp>
-#include <components/Transform.hpp>
+#include <modules/core/Tile.hpp>
+#include <modules/core/Transform.hpp>
 #include <modules/physics/Physics.hpp>
 #include <modules/core/Core.hpp>
 
-using namespace components;
+using namespace core;
 
 void services::InitTilePrefabs(flecs::world& world) {
     world.import<core::Core>();

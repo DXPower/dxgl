@@ -1,7 +1,7 @@
 #include <modules/rendering/TileGridRenderer.hpp>
 #include <modules/rendering/DrawQueues.hpp>
-#include <common/Rendering.hpp>
-#include <common/Tile.hpp>
+#include <modules/rendering/UboLocs.hpp>
+#include <modules/core/Tile.hpp>
 #include <modules/core/TileGrid.hpp>
 
 #include <dxgl/Uniform.hpp>
@@ -17,6 +17,7 @@
 #include <nlohmann/json.hpp>
 
 using namespace rendering;
+using namespace core;
 
 namespace {
     struct PerInstanceData {

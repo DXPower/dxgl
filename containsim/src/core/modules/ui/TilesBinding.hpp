@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <magic_enum/magic_enum.hpp>
@@ -11,13 +11,15 @@ namespace ui {
 
 class TilesBinding {
     struct Data {
-        std::vector<TileMeta> metas{};
+        std::vector<core::TileMeta> metas{};
     } m_data{};
 
     Rml::DataModelHandle m_model{};
 
 public:
     TilesBinding(Rml::Context& context) {
+        using namespace core;
+
         m_data.metas = LoadTileMetas() | std::views::values | std::ranges::to<std::vector>();
 
         Rml::DataModelConstructor constructor = context.CreateDataModel("tiles");

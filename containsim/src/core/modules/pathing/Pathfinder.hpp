@@ -18,6 +18,6 @@ namespace pathing {
         void PreUpdate(flecs::world& world) const;
 
     private:
-        std::vector<TileCoord> AStar(const TileCoord& start, const TileCoord& end) const;
+        std::vector<core::TileCoord> AStar(const core::TileCoord& start, const core::TileCoord& end) const;
     };
 }

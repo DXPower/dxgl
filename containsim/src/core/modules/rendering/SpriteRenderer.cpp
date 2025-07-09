@@ -10,7 +10,8 @@
 #include <modules/rendering/Sprite.hpp>
 #include <modules/rendering/DrawQueues.hpp>
 #include <modules/rendering/RenderData.hpp>
-#include <components/Transform.hpp>
+#include <modules/rendering/UboLocs.hpp>
+#include <modules/core/Transform.hpp>
 
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/mat3x3.hpp>
@@ -68,7 +69,7 @@ namespace {
 
     void PreStore(
         const SpriteRenderer&,
-        const components::Transform& transform,
+        const core::Transform& transform,
         const RenderData& rdata, 
         const Sprite& sprite,
         SpriteRendererSystemData& sr_data
@@ -155,7 +156,7 @@ void rendering::SpriteRendererSystems(flecs::world& world) {
     dxgl::Uniform::Set(sr_data.program, "spritesheet", 0);
     
     ubos.BindUniformLocation(
-        static_cast<std::size_t>(UboLocs::Camera), 
+        static_cast<std::size_t>(rendering::UboLocs::Camera), 
         sr_data.program, 
         "camera"
     );
@@ -163,7 +164,7 @@ void rendering::SpriteRendererSystems(flecs::world& world) {
     sr_data.quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
 
     // Register systems
-    using components::Transform;
+    using core::Transform;
     world.system<const SpriteRenderer, const Transform, const RenderData, const Sprite, SpriteRendererSystemData>("SpriteRendererPreStore")
         .term_at<SpriteRendererSystemData>().singleton()
         .kind(flecs::PreStore)

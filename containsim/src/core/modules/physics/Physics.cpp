@@ -1,11 +1,11 @@
 #include <modules/physics/Physics.hpp>
 
 #include <modules/physics/Collider.hpp>
-#include <components/Transform.hpp>
+#include <modules/core/Transform.hpp>
 #include <array>
 
 using namespace physics;
-using namespace components;
+using namespace core;
 
 namespace {
 auto SquareColliderSystem(flecs::world& world) {

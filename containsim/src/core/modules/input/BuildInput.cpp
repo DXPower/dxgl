@@ -10,6 +10,7 @@
 using namespace services;
 using namespace commands;
 using namespace input;
+using namespace core;
 
 namespace {
     struct SelectWorldTile {

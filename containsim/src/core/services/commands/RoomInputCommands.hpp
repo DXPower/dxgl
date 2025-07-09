@@ -1,7 +1,7 @@
 #pragma once
 
 #include <services/commands/Command.hpp>
-#include <common/Room.hpp>
+#include <modules/core/Room.hpp>
 
 namespace input {
 class RoomInput;
@@ -14,7 +14,7 @@ namespace services {
         using RoomInputCommandPtr = CommandPtr<RoomInputCommand>;
 
         struct SelectRoomType : RoomInputCommand {
-            RoomType type{};
+            core::RoomType type{};
             
             void Execute(input::RoomInput& fsm) const override;
         };

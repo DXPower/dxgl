@@ -6,6 +6,10 @@ Core::Core(flecs::world& world) {
     // Register core configurations
     core::RegisterCoreConfigurations(world);
 
+    world.component<Actor>();
+    world.component<Transform>();
+    world.component<Mobility>();
+
     world.component<TileGrid>().add(flecs::Sparse);
     world.emplace<TileGrid>(world);
 

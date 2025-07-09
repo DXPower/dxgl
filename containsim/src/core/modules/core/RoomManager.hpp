@@ -1,7 +1,7 @@
 #pragma once
 
-#include <common/Room.hpp>
-#include <common/Tile.hpp>
+#include <modules/core/Room.hpp>
+#include <modules/core/Tile.hpp>
 #include <modules/core/TileGrid.hpp>
 #include <unordered_map>
 

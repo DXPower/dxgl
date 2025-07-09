@@ -1,7 +1,7 @@
 #pragma once
 
-#include <components/CircleMover.hpp>
-#include <components/Transform.hpp>
+#include <modules/core/CircleMover.hpp>
+#include <modules/core/Transform.hpp>
 
 #include <flecs.h>
 
@@ -10,8 +10,8 @@
 namespace systems {
     inline void CircleMover(flecs::iter& it, 
         size_t,
-        components::CircleMover& mover,
-        components::Transform& transform) {
+        core::CircleMover& mover,
+        core::Transform& transform) {
         
         glm::vec2 new_pos = mover.center + mover.radius * glm::vec2(
             std::cos(mover.time),

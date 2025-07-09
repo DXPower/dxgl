@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 #include <modules/core/TileGrid.hpp>
 #include <services/commands/CommandChains.hpp>
 #include <services/commands/BuildCommands.hpp>

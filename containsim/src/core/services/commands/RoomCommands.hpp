@@ -1,8 +1,8 @@
 #pragma once
 
 #include <services/commands/Command.hpp>
-#include <common/Room.hpp>
-#include <common/Tile.hpp>
+#include <modules/core/Room.hpp>
+#include <modules/core/Tile.hpp>
 
 namespace core {
     class RoomManager;
@@ -14,14 +14,14 @@ namespace services {
         using RoomCommandPtr = CommandPtr<RoomCommand>;
         
         struct MarkRoom : RoomCommand {
-            RoomType type{};
-            TileSelection tiles{};
+            core::RoomType type{};
+            core::TileSelection tiles{};
 
             void Execute(core::RoomManager& manager) const override;
         };
 
         struct UnmarkRoom : RoomCommand {
-            TileSelection tiles{};
+            core::TileSelection tiles{};
 
             void Execute(core::RoomManager& manager) const override;
         };

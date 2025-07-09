@@ -1,13 +1,13 @@
 #include <modules/pathing/Pathfinder.hpp>
 #include <modules/pathing/PathingComponents.hpp>
-#include <components/Transform.hpp>
+#include <modules/core/Transform.hpp>
 #include <glm/gtx/hash.hpp>
 #include <queue>
 #include <unordered_set>
 #include <numbers>
 
 using namespace pathing;
-using namespace components;
+using namespace core;
 
 PathPoints Pathfinder::FindPath(const glm::vec2& start, const glm::vec2& end) const {
     auto start_tile = m_tile_grid->WorldPosToTileCoord(start);

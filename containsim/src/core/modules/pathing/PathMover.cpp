@@ -1,16 +1,16 @@
 #include <modules/pathing/PathMover.hpp>
 #include <modules/pathing/Pathing.hpp>
-#include <components/Transform.hpp>
-#include <components/Mobility.hpp>
+#include <modules/core/Transform.hpp>
+#include <modules/core/Mobility.hpp>
 
 #include <glm/gtx/norm.hpp>
 
 using namespace pathing;
 
 void pathing::PathMoverSystem(flecs::world& world) {
-    world.system<Path, PathMover, const components::Mobility, components::Transform>("PathMover")
+    world.system<Path, PathMover, const core::Mobility, core::Transform>("PathMover")
         .kind(flecs::OnUpdate)
-        .each([](flecs::iter& it, size_t row, Path& path, PathMover& mover, const components::Mobility& mobility, components::Transform& transform) {
+        .each([](flecs::iter& it, size_t row, Path& path, PathMover& mover, const core::Mobility& mobility, core::Transform& transform) {
             if (mover.cur_node_idx >= path.points.size()) {
                 it.entity(row).remove<Path>();
                 return;

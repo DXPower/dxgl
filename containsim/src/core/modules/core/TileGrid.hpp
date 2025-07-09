@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 
 #include <glm/vec2.hpp>
 #include <flecs.h>

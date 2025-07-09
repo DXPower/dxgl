@@ -1,7 +1,7 @@
 #pragma once
 
 #include <services/commands/Command.hpp>
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 
 namespace input {
     class BuildInput;
@@ -13,7 +13,7 @@ namespace services {
         using BuildInputCommandPtr = CommandPtr<BuildInputCommand>;
 
         struct SelectTile : BuildInputCommand {
-            TileType type{};
+            core::TileType type{};
             
             void Execute(input::BuildInput& fsm) const override;
         };

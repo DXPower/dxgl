@@ -4,6 +4,7 @@
 #include <boost/container/small_vector.hpp>
 #include <optional>
 
+namespace core {
 using TileCoord = glm::ivec2;
 
 struct TileCoordNeighbors {
@@ -16,3 +17,4 @@ struct TileCoordNeighbors {
 };
 
 TileCoordNeighbors GetBoundlessTileCoordNeighbors(TileCoord coord);
+}

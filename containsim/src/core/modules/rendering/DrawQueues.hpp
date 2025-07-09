@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Rendering.hpp>
+#include <modules/rendering/RenderLayer.hpp>
 #include <dxgl/Draw.hpp>
 
 #include <magic_enum/magic_enum_containers.hpp>

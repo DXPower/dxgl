@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <modules/rendering/Rendering.hpp>
 #include <modules/application/Application.hpp>
+#include <modules/core/Core.hpp>
 
 #include <modules/rendering/SpriteRenderer.hpp>
 #include <modules/rendering/TileGridRenderer.hpp>
@@ -9,7 +10,6 @@
 #include <modules/rendering/Camera.hpp>
 #include <modules/rendering/DebugDraws.hpp>
 
-#include <components/Transform.hpp>
 #include <dxgl/Ubo.hpp>
 
 using namespace rendering;
@@ -26,6 +26,7 @@ void PrepareForNextFrame(dxgl::Screenbuffer& main_screen_buffer) {
 
 Rendering::Rendering(flecs::world& world) {
     world.import<application::Application>();
+    world.import<core::Core>();
 
     world.component<RenderData>();
     world.component<Sprite>();

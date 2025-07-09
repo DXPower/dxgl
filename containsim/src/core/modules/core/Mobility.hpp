@@ -1,6 +1,6 @@
 #pragma once
 
-namespace components {
+namespace core {
     struct Mobility {
         float speed{};
     };

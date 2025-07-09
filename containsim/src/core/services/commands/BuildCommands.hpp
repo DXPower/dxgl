@@ -1,7 +1,7 @@
 #pragma once
 
 #include <services/commands/Command.hpp>
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 
 namespace core {
     class BuildManager;
@@ -14,16 +14,16 @@ namespace services {
         using BuildCommandPtr = CommandPtr<BuildCommand>;
         
         struct PlaceTiles : BuildCommand {
-            TileType type{};
-            TileCoord from{};
-            TileCoord to{};
+            core::TileType type{};
+            core::TileCoord from{};
+            core::TileCoord to{};
 
             void Execute(core::BuildManager& manager) const override;
         };
 
         struct DeleteTiles : BuildCommand {
-            TileCoord from{};
-            TileCoord to{};
+            core::TileCoord from{};
+            core::TileCoord to{};
             void Execute(core::BuildManager& manager) const override;
         };
     }

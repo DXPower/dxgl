@@ -10,6 +10,7 @@
 using namespace services;
 using namespace commands;
 using namespace input;
+using namespace core;
 
 RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles)
     : m_event_manager(&em), m_camera(&cam), m_tiles(&tiles) {

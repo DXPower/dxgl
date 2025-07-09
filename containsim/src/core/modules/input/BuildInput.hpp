@@ -1,7 +1,7 @@
 #pragma once
 
 // #include <services/commands/BuildInputCommands.hpp>
-#include <common/Tile.hpp>
+#include <modules/core/Tile.hpp>
 #include <modules/application/EventManager.hpp>
 
 #include <common/ActionChain.hpp>
@@ -53,7 +53,7 @@ namespace input {
         void Consume(Action&& action) override;
 
         void EnterDeleteMode();
-        void SelectTileToPlace(TileType tile);
+        void SelectTileToPlace(core::TileType tile);
         void ExitMode();
 
         auto GetFsm() -> FSM_t& { return m_fsm; }
@@ -69,6 +69,6 @@ namespace input {
 
         void ProcessBuiltInputCommand(const services::commands::BuildInputCommand& cmd);
 
-        std::optional<TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
+        std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
     };
 }

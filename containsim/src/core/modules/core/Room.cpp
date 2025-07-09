@@ -1,9 +1,11 @@
-#include <common/Room.hpp>
-#include <common/Tile.hpp>
+#include <modules/core/Room.hpp>
+#include <modules/core/Tile.hpp>
 
 #include <format>
 #include <stdexcept>
 #include <magic_enum/magic_enum.hpp>
+
+using namespace core;
 
 Room::Room(RoomId id, RoomType type) : m_id(id), m_type(type) {}
 

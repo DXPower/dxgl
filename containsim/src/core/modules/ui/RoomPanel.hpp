@@ -37,7 +37,7 @@ public:
                 throw std::runtime_error("SelectRoomType requires 1 argument");
 
             m_logger.info("Sending SelectRoomType: {}", args[1]);
-            auto room_type = magic_enum::enum_cast<RoomType>(std::stoi(args[1]));
+            auto room_type = magic_enum::enum_cast<core::RoomType>(std::stoi(args[1]));
 
             if (!room_type.has_value()) {
                 throw std::runtime_error(std::format("Invalid argument for SelectRoomType: {}", args[1]));

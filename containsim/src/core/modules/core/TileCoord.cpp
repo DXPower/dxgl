@@ -1,6 +1,8 @@
-#include <common/TileCoord.hpp>
+#include <modules/core/TileCoord.hpp>
 
-TileCoordNeighbors GetBoundlessTileCoordNeighbors(TileCoord coord) {
+using namespace core;
+
+TileCoordNeighbors core::GetBoundlessTileCoordNeighbors(TileCoord coord) {
     TileCoordNeighbors neighbors{};
 
     neighbors.west = {coord.x - 1, coord.y};
