@@ -6,7 +6,6 @@
 #include <common/ActionChain.hpp>
 #include <common/RoomInputEvents.hpp>
 #include <services/commands/CommandChains.hpp>
-#include <services/commands/RoomInputCommands.hpp>
 #include <services/commands/RoomCommands.hpp>
 
 #include <dxfsm/dxfsm.hpp>
@@ -16,6 +15,8 @@
 #include <modules/core/TileGrid.hpp>
 
 namespace input {
+    struct RoomInputCommand;
+
     class RoomInput 
         : public ActionConsumer
     {
@@ -62,8 +63,12 @@ namespace input {
         State_t StateIdle(FSM_t& fsm, StateId);
         State_t StateDemarcation(FSM_t& fsm, StateId);
 
-        void ProcessRoomInputCommand(const services::commands::RoomInputCommand& cmd);
+        void ProcessRoomInputCommand(const RoomInputCommand& cmd);
 
         std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
+    };
+
+    struct RoomInputCommand {
+        std::function<void(RoomInput&)> execute;
     };
 }

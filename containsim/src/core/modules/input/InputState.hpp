@@ -2,10 +2,7 @@
 
 #include <common/ActionChain.hpp>
 #include <common/InputStateEvents.hpp>
-#include <services/commands/BuildInputCommands.hpp>
 #include <services/commands/CommandChains.hpp>
-#include <services/commands/InputStateCommands.hpp>
-#include <services/commands/RoomInputCommands.hpp>
 #include <common/Logging.hpp>
 #include <modules/application/EventManager.hpp>
 #include <modules/input/RoomInput.hpp>
@@ -13,6 +10,7 @@
 
 namespace input {
     class BuildInput;
+    struct InputStateCommand;
 
     class InputState 
         : public ActionConsumer {
@@ -43,7 +41,6 @@ namespace input {
 
         InputState(application::EventManager& em, BuildInput& build_input, RoomInput& room_input);
 
-        void ProcessCommand(const services::commands::InputStateCommand& cmd);
         void Consume(Action&& action) override;
 
         void EnterBuildMode();
@@ -58,5 +55,11 @@ namespace input {
         State_t StatePauseMenu(FSM_t& fsm, StateId);
         State_t StateBuildActive(FSM_t& fsm, StateId); 
         State_t StateRoomActive(FSM_t& fsm, StateId);
+
+        void ProcessCommand(const InputStateCommand& cmd);
+    };
+
+    struct InputStateCommand {
+        std::function<void(InputState&)> execute;
     };
 }

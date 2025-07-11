@@ -28,7 +28,7 @@ RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam
     m_fsm.AddTransition(IdleMode, SelectRoomType, DemarcationMode);
     m_fsm.AddTransition(IdleMode, SelectRoomClear, DemarcationMode);
 
-    em.GetOrRegisterSignal<commands::RoomInputCommand>()
+    em.GetOrRegisterSignal<RoomInputCommand>()
         .signal.connect<&RoomInput::ProcessRoomInputCommand>(this);
 
     m_fsm.SetTransitionObserver([this](const FSM_t&, std::optional<State_t> from, State_t to, const Event_t& ev) {
@@ -165,8 +165,8 @@ void RoomInput::ExitMode() {
     m_fsm.InsertEvent(EventId::ExitMode);
 }
 
-void RoomInput::ProcessRoomInputCommand(const commands::RoomInputCommand& cmd) {
-    cmd.Execute(*this);
+void RoomInput::ProcessRoomInputCommand(const RoomInputCommand& cmd) {
+    cmd.execute(*this);
 }
 
 std::optional<TileCoord> RoomInput::ScreenToTilePos(glm::vec2 screen_pos) const {

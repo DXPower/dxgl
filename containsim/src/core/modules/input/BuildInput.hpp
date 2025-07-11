@@ -1,22 +1,22 @@
 #pragma once
 
-// #include <services/commands/BuildInputCommands.hpp>
 #include <modules/core/Tile.hpp>
 #include <modules/application/EventManager.hpp>
+#include <modules/rendering/Camera.hpp>
+#include <modules/core/TileGrid.hpp>
+#include <services/commands/BuildCommands.hpp>
+#include <services/commands/CommandChains.hpp>
 
 #include <common/ActionChain.hpp>
 #include <common/BuildInputEvents.hpp>
-#include <services/commands/CommandChains.hpp>
-#include <services/commands/BuildInputCommands.hpp>
-#include <services/commands/BuildCommands.hpp>
 
-#include <dxfsm/dxfsm.hpp>
 #include <common/Logging.hpp>
 
-#include <modules/rendering/Camera.hpp>
-#include <modules/core/TileGrid.hpp>
+#include <dxfsm/dxfsm.hpp>
 
 namespace input {
+    struct BuildInputCommand;
+
     class BuildInput 
         : public ActionConsumer
     {
@@ -67,8 +67,12 @@ namespace input {
         State_t StateWorldTileSelected(FSM_t& fsm, StateId);
         State_t StateDelete(FSM_t& fsm, StateId);
 
-        void ProcessBuiltInputCommand(const services::commands::BuildInputCommand& cmd);
+        void ProcessBuiltInputCommand(const BuildInputCommand& cmd);
 
         std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
+    };
+
+    struct BuildInputCommand {
+        std::function<void(BuildInput&)> execute{};
     };
 }

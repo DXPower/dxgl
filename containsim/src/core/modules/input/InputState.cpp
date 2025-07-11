@@ -1,6 +1,5 @@
 #include <modules/input/InputState.hpp>
 #include <modules/input/BuildInput.hpp>
-#include <services/commands/BuildInputCommands.hpp>
 #include <GLFW/glfw3.h>
 #include <magic_enum/magic_enum.hpp>
 
@@ -58,13 +57,16 @@ InputState::InputState(application::EventManager& em, BuildInput& build_input, R
             .signal.fire(InputStateChanged{to.Id()});
 
         if (from.has_value() && from->Id() == StateId::BuildActive) {
-            services::commands::ResetBuildInput cmd{};
-            m_event_manager->GetSignal<services::commands::BuildInputCommand>()
-                .signal.fire(cmd);
+            m_event_manager->GetSignal<BuildInputCommand>()
+                .signal.fire(BuildInputCommand{
+                    .execute = [](BuildInput& fsm) {
+                        fsm.GetFsm().SetCurrentState(BuildInput::StateId::IdleMode);
+                    }
+                });
         }
     });
 
-    em.RegisterSignal<services::commands::InputStateCommand>()
+    em.RegisterSignal<InputStateCommand>()
         .signal.connect<&InputState::ProcessCommand>(this);
 }
 
@@ -147,8 +149,8 @@ auto InputState::StateRoomActive(FSM_t& fsm, StateId) -> State_t {
     }
 }
 
-void InputState::ProcessCommand(const services::commands::InputStateCommand& cmd) {
-    cmd.Execute(*this);
+void InputState::ProcessCommand(const InputStateCommand& cmd) {
+    cmd.execute(*this);
 }
 
 void InputState::Consume(Action&& action) {

@@ -20,17 +20,7 @@ protected:
 public:
     Panel(std::string name)
         : m_name(std::move(name)), m_logger(logging::CreateLogger("Panel" + m_name)) {
-        // em.GetOrRegisterSignal<PanelCommand>()
-        //     .signal.connect<&Panel::ProcessPanelEvent>(this);
     }
-
-private:
-    // void ProcessPanelEvent(const PanelCommand& cmd) {
-    //     if (cmd.name != m_name)
-    //         return;
-
-    //     cmd.Execute(*this);
-    // }
 };
 
 }

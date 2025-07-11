@@ -7,10 +7,9 @@
 #include <dxfsm/dxfsm.hpp>
 #include <glm/matrix.hpp>
 
-using namespace services;
-using namespace commands;
 using namespace input;
 using namespace core;
+using namespace services;
 
 namespace {
     struct SelectWorldTile {
@@ -55,7 +54,7 @@ BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& c
     // SelectWorldTile
     m_fsm.AddTransition(IdleMode, SelectWorldTile, WorldTileSelectedMode);
 
-    em.GetOrRegisterSignal<commands::BuildInputCommand>()
+    em.GetOrRegisterSignal<BuildInputCommand>()
         .signal.connect<&BuildInput::ProcessBuiltInputCommand>(this);
 
     m_fsm.SetTransitionObserver([this](const FSM_t&, std::optional<State_t> from, State_t to, const Event_t& ev) {
@@ -271,8 +270,8 @@ void BuildInput::ExitMode() {
     m_fsm.InsertEvent(EventId::ExitMode);
 }
 
-void BuildInput::ProcessBuiltInputCommand(const commands::BuildInputCommand& cmd) {
-    cmd.Execute(*this);
+void BuildInput::ProcessBuiltInputCommand(const BuildInputCommand& cmd) {
+    cmd.execute(*this);
 }
 
 std::optional<TileCoord> BuildInput::ScreenToTilePos(glm::vec2 screen_pos) const {

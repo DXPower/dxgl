@@ -2,8 +2,8 @@
 
 #include <common/ui/UiEvents.hpp>
 #include <modules/ui/Panel.hpp>
-#include <services/commands/RoomInputCommands.hpp>
-#include <services/commands/InputStateCommands.hpp>
+#include <modules/input/InputState.hpp>
+#include <modules/input/RoomInput.hpp>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -29,9 +29,12 @@ public:
         if (args[0] == "SelectRoomClear") {
             m_logger.info("Sending SelectRoomClear");
 
-            services::commands::SelectRoomClear cmd{};
-            m_event_manager->GetSignal<services::commands::RoomInputCommand>()
-                .signal.fire(cmd);
+            m_event_manager->GetSignal<input::RoomInputCommand>()
+                .signal.fire(input::RoomInputCommand{
+                    .execute = [](input::RoomInput& ri) {
+                        ri.SelectRoomClear();
+                    }
+                });
         } else if (args[0] == "SelectRoomType") {
             if (args.size() != 2)
                 throw std::runtime_error("SelectRoomType requires 1 argument");
@@ -43,20 +46,30 @@ public:
                 throw std::runtime_error(std::format("Invalid argument for SelectRoomType: {}", args[1]));
             }
 
-            services::commands::SelectRoomType cmd{};
-            cmd.type = *room_type;
-            m_event_manager->GetSignal<services::commands::RoomInputCommand>()
-                .signal.fire(cmd);
+            m_event_manager->GetSignal<input::RoomInputCommand>()
+                .signal.fire(input::RoomInputCommand{
+                    .execute = [room_type = room_type.value()](input::RoomInput& ri) {
+                        ri.SelectRoomType(room_type);
+                    }
+                });
         } else if (args[0] == "EnterRoomMode") {
             m_logger.info("Sending EnterRoomMode");
 
-            m_event_manager->GetSignal<services::commands::InputStateCommand>()
-                .signal.fire(services::commands::InputStateEnterRoomMode{});
+            m_event_manager->GetSignal<input::InputStateCommand>()
+                .signal.fire(input::InputStateCommand{
+                    .execute = [](input::InputState& is) {
+                        is.EnterRoomMode();
+                    }
+                });
         } else if (args[0] == "ExitRoomMode") {
             m_logger.info("Sending ExitRoomMode");
 
-            m_event_manager->GetSignal<services::commands::InputStateCommand>()
-                .signal.fire(services::commands::InputStateExitMode{});
+            m_event_manager->GetSignal<input::InputStateCommand>()
+                .signal.fire(input::InputStateCommand{
+                    .execute = [](input::InputState& is) {
+                        is.ExitMode();
+                    }
+                });
         }
     }
 };

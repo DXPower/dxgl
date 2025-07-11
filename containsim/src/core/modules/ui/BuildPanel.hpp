@@ -1,9 +1,10 @@
 #pragma once
 
+#include <modules/input/BuildInput.hpp>
+#include <modules/input/InputState.hpp>
+
 #include <common/ui/UiEvents.hpp>
 #include <modules/ui/Panel.hpp>
-#include <services/commands/BuildInputCommands.hpp>
-#include <services/commands/InputStateCommands.hpp>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -37,50 +38,31 @@ public:
                 throw std::runtime_error(std::format("Invalid argument for SelectTileToPlace: {}", args[1]));
             }
 
-            services::commands::SelectTile cmd{};
-            cmd.type = *tile_type;
-            m_event_manager->GetSignal<services::commands::BuildInputCommand>()
-                .signal.fire(cmd);
+            m_event_manager->GetSignal<input::BuildInputCommand>()
+                .signal.fire(input::BuildInputCommand{
+                    .execute = [tile_type = tile_type.value()](input::BuildInput& fsm) {
+                        fsm.SelectTileToPlace(tile_type);
+                    }
+                });
         } else if (args[0] == "EnterBuildMode") {
-            // build_input_cmds.Send(std::make_unique<commands::EnterBuildMode>());
             m_logger.info("Sending EnterBuildMode");
 
-            m_event_manager->GetSignal<services::commands::InputStateCommand>()
-                .signal.fire(services::commands::InputStateEnterBuildMode{});
+            m_event_manager->GetSignal<input::InputStateCommand>()
+                .signal.fire(input::InputStateCommand{
+                    .execute = [](input::InputState& is) {
+                        is.EnterBuildMode();
+                    }
+                });
         } else if (args[0] == "ExitBuildMode") {
-            // build_input_cmds.Send(std::make_unique<commands::ExitBuildMode>());
-            // m_event_manager->GetSignal<commands::InputStateCommand>()
-            //     .signal.fire(commands::InputStateExitMode{});
             m_logger.info("Sending ExitBuildMode");
 
-            m_event_manager->GetSignal<services::commands::InputStateCommand>()
-                .signal.fire(services::commands::InputStateExitMode{});
+            m_event_manager->GetSignal<input::InputStateCommand>()
+                .signal.fire(input::InputStateCommand{
+                    .execute = [](input::InputState& is) {
+                        is.ExitMode();
+                    }
+                });
         }
-        // if (args[0] == "SelectTileToPlace") {
-        //     if (args.size() != 2)
-        //         throw std::runtime_error("SelectTileToPlace requires 1 argument");
-
-        //     auto cmd = std::make_unique<commands::SelectTile>();
-        //     cmd->type = (TileType)std::stoi(args[1]);
-        //     build_input_cmds.Send(std::move(cmd));
-        //     m_logger.info("SelectTileToPlace: {}", args[1]);
-
-        //     return EventProc::Consumed;
-        // } else if (args[0] == "EnterBuildMode") {
-        //     // build_input_cmds.Send(std::make_unique<commands::EnterBuildMode>());
-        //     m_logger.info("UI sending EnterBuildMode");
-        //     m_event_manager->GetSignal<commands::InputStateCommand>()
-        //         .signal.fire(commands::InputStateEnterBuildMode{});
-
-        //     return EventProc::Consumed;
-        // } else if (args[0] == "ExitBuildMode") {
-        //     // build_input_cmds.Send(std::make_unique<commands::ExitBuildMode>());
-        //     // m_event_manager->GetSignal<commands::InputStateCommand>()
-        //     //     .signal.fire(commands::InputStateExitMode{});
-        //     m_logger.info("ExitBuildMode");
-
-        //     return EventProc::Consumed;
-        // }
     }
 };
 
