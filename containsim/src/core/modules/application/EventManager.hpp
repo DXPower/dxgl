@@ -84,6 +84,11 @@ public:
     }
 
     template<typename T>
+    void FireSignal(const T& e) {
+        GetSignal<T>().signal.fire(e);
+    }
+
+    template<typename T>
     void RemoveSignal() {
         m_signals.erase(typeid(EventSignal<T>).hash_code());
     }

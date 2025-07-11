@@ -2,12 +2,20 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_multiset_of.hpp>
-#include <limits>
 
 using namespace core;
 using boost::container::small_vector;
 
-RoomManager::RoomManager(TileGrid& tile_grid) : m_tile_grid(&tile_grid) {
+RoomManager::RoomManager(TileGrid& tile_grid, application::EventManager& em) 
+    : m_tile_grid(&tile_grid)
+    , m_event_manager(&em) {
+
+    em.GetOrRegisterSignal<RoomCommand>()
+        .signal.connect<&RoomManager::ProcessCommand>(this);
+
+    em.RegisterSignal<RoomAdded>();
+    em.RegisterSignal<RoomRemoved>();
+    em.RegisterSignal<RoomModified>();
 }
 
 namespace {
@@ -138,6 +146,9 @@ RegionResults CalculateSplits(
 void RoomManager::MarkTilesAsRoom(const TileSelection& tiles, RoomType type) {
     auto merges = CalculateMerges(*this, tiles, type);
 
+    auto& room_added_signal = m_event_manager->GetSignal<RoomAdded>().signal;
+    auto& room_removed_signal = m_event_manager->GetSignal<RoomRemoved>().signal;
+
     for (auto& region : merges.regions) {
         // Two cases:
         // 1. No rooms to merge - create a new room with the unmerged tiles
@@ -201,6 +212,9 @@ void RoomManager::UnmarkTiles(const TileSelection& tiles) {
     std::unordered_set<RoomId> visited_rooms{};
     auto splits = CalculateSplits(*this, tiles, visited_rooms);
 
+    auto& room_added_signal = m_event_manager->GetSignal<RoomAdded>().signal;
+    auto& room_removed_signal = m_event_manager->GetSignal<RoomRemoved>().signal;
+
     // Clear the room in the tile selection
     for (const TileCoord& coord : tiles.Iterate()) {
         m_tile_grid->SetRoomAt(coord, NoRoom);
@@ -233,4 +247,8 @@ void RoomManager::UnmarkTiles(const TileSelection& tiles) {
         m_rooms.erase(room_id);
         room_removed_signal.fire(RoomRemoved{.id = room_id});
     }
+}
+
+void RoomManager::ProcessCommand(const RoomCommand& cmd) {
+    cmd.execute(*this);
 }

@@ -50,7 +50,4 @@ Input::Input(flecs::world& world) {
 
     chain::Connect(input_state.build_actions, build_input);
     chain::Connect(input_state.room_actions, room_input);
-
-    chain::Connect(build_input.build_commands, world.get_mut<core::BuildManager>());
-    chain::Connect(room_input.room_commands, world.get_mut<core::RoomManager>());
 }

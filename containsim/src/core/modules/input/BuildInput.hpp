@@ -4,8 +4,6 @@
 #include <modules/application/EventManager.hpp>
 #include <modules/rendering/Camera.hpp>
 #include <modules/core/TileGrid.hpp>
-#include <services/commands/BuildCommands.hpp>
-#include <services/commands/CommandChains.hpp>
 
 #include <common/ActionChain.hpp>
 #include <common/BuildInputEvents.hpp>
@@ -34,7 +32,6 @@ namespace input {
         };
         
         ActionProducer uncaptured_actions{};
-        services::commands::CommandProducer<services::commands::BuildCommand> build_commands{};
 
     private:
         using State_t = dxfsm::State<StateId>;

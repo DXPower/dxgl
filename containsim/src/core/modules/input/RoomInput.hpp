@@ -5,8 +5,6 @@
 
 #include <common/ActionChain.hpp>
 #include <common/RoomInputEvents.hpp>
-#include <services/commands/CommandChains.hpp>
-#include <services/commands/RoomCommands.hpp>
 
 #include <dxfsm/dxfsm.hpp>
 #include <common/Logging.hpp>
@@ -33,7 +31,6 @@ namespace input {
         };
         
         ActionProducer uncaptured_actions{};
-        services::commands::CommandProducer<services::commands::RoomCommand> room_commands{};
 
     private:
         using State_t = dxfsm::State<StateId>;

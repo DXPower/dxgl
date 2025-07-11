@@ -1,6 +1,7 @@
 #include <modules/rendering/RoomRenderer.hpp>
 #include <modules/rendering/UboLocs.hpp>
 #include <modules/core/Core.hpp>
+#include <modules/application/EventManager.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
@@ -29,11 +30,15 @@ namespace {
         
         mutable dxgl::Program program{};
 
-        RoomRendererData(const core::RoomManager& room_manager, const dxgl::UboBindingManager& ubo_manager) {
+        RoomRendererData(const core::RoomManager& room_manager, const dxgl::UboBindingManager& ubo_manager, application::EventManager& em) {
             this->room_manager = &room_manager;
-            room_manager.room_added_signal.connect<&RoomRendererData::OnRoomAdded>(this);     
-            room_manager.room_modified_signal.connect<&RoomRendererData::OnRoomModified>(this);     
-            room_manager.room_removed_signal.connect<&RoomRendererData::OnRoomRemoved>(this);     
+
+            em.GetOrRegisterSignal<RoomAdded>()
+                .signal.connect<&RoomRendererData::OnRoomAdded>(this);
+            em.GetOrRegisterSignal<RoomModified>()
+                .signal.connect<&RoomRendererData::OnRoomModified>(this);
+            em.GetOrRegisterSignal<RoomRemoved>()
+                .signal.connect<&RoomRendererData::OnRoomRemoved>(this);
 
             program = dxgl::ProgramBuilder()
                 .Vert("shaders/room.vert")
@@ -183,11 +188,13 @@ namespace {
 
 void rendering::RoomRendererSystem(flecs::world& world) {
     world.import<core::Core>();
+
     const auto& room_manager = world.get<core::RoomManager>();
     const auto& ubos = world.get<dxgl::UboBindingManager>();
+    auto& event_manager = world.get_mut<application::EventManager>();
 
     world.component<RoomRendererData>();
-    world.emplace<RoomRendererData>(room_manager, ubos);
+    world.emplace<RoomRendererData>(room_manager, ubos, event_manager);
 
     world.system<const RoomRendererData, DrawQueues>()
         .term_at<RoomRendererData>().singleton()

@@ -3,11 +3,14 @@
 
 #include <ranges>
 
-using namespace services;
 using namespace core;
 
-BuildManager::BuildManager(core::TileGrid& tile_grid)
-    : m_tile_grid(&tile_grid) { }
+BuildManager::BuildManager(core::TileGrid& tile_grid, application::EventManager& em)
+    : m_tile_grid(&tile_grid) {
+    
+    em.GetOrRegisterSignal<BuildCommand>()
+        .signal.connect<&BuildManager::ProcessCommand>(this);
+}
 
 void BuildManager::PlaceTile(TileCoord coord, TileType type) {
     // TODO: Use a proper asset manager for this
@@ -34,6 +37,6 @@ void BuildManager::DeleteTopmostTile(TileCoord coord, TileLayer stop_at) {
     }
 }
 
-void BuildManager::Consume(commands::BuildCommandPtr&& cmd) {
-    cmd->Execute(*this);
+void BuildManager::ProcessCommand(const BuildCommand& cmd) {
+    cmd.execute(*this);
 }

@@ -1,4 +1,5 @@
 #include <modules/input/RoomInput.hpp>
+#include <modules/core/RoomManager.hpp>
 #include <common/Logging.hpp>
 
 #include <magic_enum/magic_enum.hpp>
@@ -7,8 +8,6 @@
 #include <dxfsm/dxfsm.hpp>
 #include <glm/matrix.hpp>
 
-using namespace services;
-using namespace commands;
 using namespace input;
 using namespace core;
 
@@ -101,18 +100,17 @@ auto RoomInput::StateDemarcation(FSM_t& fsm, StateId) -> State_t {
 
                 if (tile_pos.has_value()) {
                     if (selected_room.has_value()) {
-                        auto cmd = commands::MakeCommandPtr<commands::MarkRoom>();
-                        cmd->tiles.start = drag_start;
-                        cmd->tiles.end = *tile_pos;
-                        cmd->type = *selected_room;
-                        
-                        room_commands.Send(std::move(cmd));
+                        m_event_manager->FireSignal(RoomCommand{
+                            .execute = [drag_start = drag_start, drag_end = *tile_pos, type = *selected_room](RoomManager& rm) {
+                                rm.MarkTilesAsRoom(TileSelection{drag_start, drag_end}, type);
+                            }
+                        });
                     } else {
-                        auto cmd = commands::MakeCommandPtr<commands::UnmarkRoom>();
-                        cmd->tiles.start = drag_start;
-                        cmd->tiles.end = *tile_pos;
-                        
-                        room_commands.Send(std::move(cmd));
+                        m_event_manager->FireSignal(RoomCommand{
+                            .execute = [drag_start = drag_start, drag_end = *tile_pos](RoomManager& rm) {
+                                rm.UnmarkTiles(TileSelection{drag_start, drag_end});
+                            }
+                        });
                     }
                 }
 

@@ -3,26 +3,22 @@
 #include <modules/core/Room.hpp>
 #include <modules/core/Tile.hpp>
 #include <modules/core/TileGrid.hpp>
-#include <unordered_map>
-
-#include <services/commands/CommandChains.hpp>
-#include <services/commands/RoomCommands.hpp>
+#include <modules/application/EventManager.hpp>
 
 #include <nano/nano_signal_slot.hpp>
+#include <unordered_map>
 
 namespace core {
-    class RoomManager : public services::commands::CommandConsumer<services::commands::RoomCommand> {
+    struct RoomCommand;
+    
+    class RoomManager {
         std::unordered_map<RoomId, Room> m_rooms{};
         TileGrid* m_tile_grid{};
+        application::EventManager* m_event_manager{};
         RoomId m_next_id{1};
 
     public:
-        // TODO: use event manager
-        mutable Nano::Signal<void(const RoomAdded&)> room_added_signal{};
-        mutable Nano::Signal<void(const RoomRemoved&)> room_removed_signal{};
-        mutable Nano::Signal<void(const RoomModified&)> room_modified_signal{};
-
-        RoomManager(TileGrid& tile_grid);
+        RoomManager(TileGrid& tile_grid, application::EventManager& em);
 
         void MarkTilesAsRoom(const TileSelection& tiles, RoomType type);
         void UnmarkTiles(const TileSelection& tiles);
@@ -46,10 +42,6 @@ namespace core {
             return self.m_rooms.at(room_id);
         }
 
-        void Consume(services::commands::RoomCommandPtr&& cmd) override {
-            cmd->Execute(*this);
-        }
-
         const auto& GetRooms() const {
             return m_rooms;
         }
@@ -57,5 +49,12 @@ namespace core {
         const auto& GetTileGrid() const {
             return *m_tile_grid;
         }
+
+    private:
+        void ProcessCommand(const RoomCommand& cmd);
+    };
+
+    struct RoomCommand {
+        std::function<void(RoomManager&)> execute;
     };
 }

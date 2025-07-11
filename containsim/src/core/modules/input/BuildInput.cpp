@@ -1,4 +1,5 @@
 #include <modules/input/BuildInput.hpp>
+#include <modules/core/BuildManager.hpp>
 #include <common/Logging.hpp>
 
 #include <magic_enum/magic_enum.hpp>
@@ -9,7 +10,6 @@
 
 using namespace input;
 using namespace core;
-using namespace services;
 
 namespace {
     struct SelectWorldTile {
@@ -127,12 +127,17 @@ auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
                     const auto tile_pos = ScreenToTilePos(click.pos);
 
                     if (tile_pos.has_value()) {
-                        auto cmd = commands::MakeCommandPtr<commands::PlaceTiles>();
-                        cmd->from = drag_start;
-                        cmd->to = *tile_pos;
-                        cmd->type = selected_tile;
-                        
-                        build_commands.Send(std::move(cmd));
+                        m_event_manager->FireSignal(BuildCommand{
+                            .execute = [drag_start, drag_end = *tile_pos, type = selected_tile](BuildManager& bm) {
+                                if (drag_start == drag_end) {
+                                    bm.PlaceTile(drag_start, type);
+                                } else {
+                                    for (auto cord : TileSelection{drag_start, drag_end}.Iterate()) {
+                                        bm.PlaceTile(cord, type);
+                                    }
+                                }
+                            }
+                        });
                     }
                 }
 
@@ -216,10 +221,11 @@ auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t {
 
                 const auto tile_pos = ScreenToTilePos(click.pos);
                 if (tile_pos.has_value()) {
-                    auto cmd = commands::MakeCommandPtr<commands::DeleteTiles>();
-                    cmd->from = *tile_pos;
-                    cmd->to = *tile_pos;
-                    build_commands.Send(std::move(cmd));
+                    m_event_manager->FireSignal(BuildCommand{
+                        .execute = [tile_pos = *tile_pos](BuildManager& bm) {
+                            bm.DeleteTopmostTile(tile_pos, TileLayer::Walls);
+                        }
+                    });
                 }
             }
         } else if (event == EventId::KeyPress) {

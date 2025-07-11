@@ -2,7 +2,6 @@
 
 #include <common/ActionChain.hpp>
 #include <common/InputStateEvents.hpp>
-#include <services/commands/CommandChains.hpp>
 #include <common/Logging.hpp>
 #include <modules/application/EventManager.hpp>
 #include <modules/input/RoomInput.hpp>
