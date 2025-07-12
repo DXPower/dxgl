@@ -7,16 +7,15 @@
 
 #include <common/ActionChain.hpp>
 #include <common/BuildInputEvents.hpp>
-
+#include <common/EventCommandable.hpp>
 #include <common/Logging.hpp>
 
 #include <dxfsm/dxfsm.hpp>
 
 namespace input {
-    struct BuildInputCommand;
-
     class BuildInput 
         : public ActionConsumer
+        , public EventCommandable<BuildInput>
     {
     public:
         using StateId = BuildInputStates;
@@ -64,12 +63,8 @@ namespace input {
         State_t StateWorldTileSelected(FSM_t& fsm, StateId);
         State_t StateDelete(FSM_t& fsm, StateId);
 
-        void ProcessBuiltInputCommand(const BuildInputCommand& cmd);
-
         std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
     };
 
-    struct BuildInputCommand {
-        std::function<void(BuildInput&)> execute{};
-    };
+    using BuildInputCommand = Command<BuildInput>;
 }

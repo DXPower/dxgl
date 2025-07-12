@@ -6,10 +6,8 @@
 using namespace core;
 
 BuildManager::BuildManager(core::TileGrid& tile_grid, application::EventManager& em)
-    : m_tile_grid(&tile_grid) {
-    
-    em.GetOrRegisterSignal<BuildCommand>()
-        .signal.connect<&BuildManager::ProcessCommand>(this);
+    : EventCommandable(em)
+    , m_tile_grid(&tile_grid) {
 }
 
 void BuildManager::PlaceTile(TileCoord coord, TileType type) {
@@ -35,8 +33,4 @@ void BuildManager::DeleteTopmostTile(TileCoord coord, TileLayer stop_at) {
         if (layer == stop_at)
             return;
     }
-}
-
-void BuildManager::ProcessCommand(const BuildCommand& cmd) {
-    cmd.execute(*this);
 }

@@ -5,7 +5,9 @@
 
 using namespace input;
 
-InputState::InputState(application::EventManager& em, BuildInput& build_input, RoomInput& room_input) : m_event_manager(&em) {
+InputState::InputState(application::EventManager& em, BuildInput& build_input, RoomInput& room_input)
+    : EventCommandable(em)
+    , m_event_manager(&em) {
     m_logger.set_level(spdlog::level::debug);
 
     StateIdle(m_fsm, StateId::IdleMode);
@@ -58,16 +60,11 @@ InputState::InputState(application::EventManager& em, BuildInput& build_input, R
 
         if (from.has_value() && from->Id() == StateId::BuildActive) {
             m_event_manager->GetSignal<BuildInputCommand>()
-                .signal.fire(BuildInputCommand{
-                    .execute = [](BuildInput& fsm) {
+                .signal.fire([](BuildInput& fsm) {
                         fsm.GetFsm().SetCurrentState(BuildInput::StateId::IdleMode);
-                    }
-                });
+                    });
         }
     });
-
-    em.RegisterSignal<InputStateCommand>()
-        .signal.connect<&InputState::ProcessCommand>(this);
 }
 
 auto InputState::StateIdle(FSM_t& fsm, StateId) -> State_t {
@@ -147,10 +144,6 @@ auto InputState::StateRoomActive(FSM_t& fsm, StateId) -> State_t {
 
         event.Clear();
     }
-}
-
-void InputState::ProcessCommand(const InputStateCommand& cmd) {
-    cmd.execute(*this);
 }
 
 void InputState::Consume(Action&& action) {

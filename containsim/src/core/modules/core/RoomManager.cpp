@@ -7,11 +7,9 @@ using namespace core;
 using boost::container::small_vector;
 
 RoomManager::RoomManager(TileGrid& tile_grid, application::EventManager& em) 
-    : m_tile_grid(&tile_grid)
+    : EventCommandable(em)
+    , m_tile_grid(&tile_grid)
     , m_event_manager(&em) {
-
-    em.GetOrRegisterSignal<RoomCommand>()
-        .signal.connect<&RoomManager::ProcessCommand>(this);
 
     em.RegisterSignal<RoomAdded>();
     em.RegisterSignal<RoomRemoved>();
@@ -247,8 +245,4 @@ void RoomManager::UnmarkTiles(const TileSelection& tiles) {
         m_rooms.erase(room_id);
         room_removed_signal.fire(RoomRemoved{.id = room_id});
     }
-}
-
-void RoomManager::ProcessCommand(const RoomCommand& cmd) {
-    cmd.execute(*this);
 }

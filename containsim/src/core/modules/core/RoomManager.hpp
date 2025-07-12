@@ -4,14 +4,13 @@
 #include <modules/core/Tile.hpp>
 #include <modules/core/TileGrid.hpp>
 #include <modules/application/EventManager.hpp>
+#include <common/EventCommandable.hpp>
 
 #include <nano/nano_signal_slot.hpp>
 #include <unordered_map>
 
 namespace core {
-    struct RoomCommand;
-    
-    class RoomManager {
+    class RoomManager : public EventCommandable<RoomManager> {
         std::unordered_map<RoomId, Room> m_rooms{};
         TileGrid* m_tile_grid{};
         application::EventManager* m_event_manager{};
@@ -49,12 +48,7 @@ namespace core {
         const auto& GetTileGrid() const {
             return *m_tile_grid;
         }
-
-    private:
-        void ProcessCommand(const RoomCommand& cmd);
     };
 
-    struct RoomCommand {
-        std::function<void(RoomManager&)> execute;
-    };
+    using RoomCommand = Command<RoomManager>;
 }

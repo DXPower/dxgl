@@ -5,14 +5,15 @@
 #include <common/Logging.hpp>
 #include <modules/application/EventManager.hpp>
 #include <modules/input/RoomInput.hpp>
+#include <common/EventCommandable.hpp>
 #include <dxfsm/dxfsm.hpp>
 
 namespace input {
     class BuildInput;
-    struct InputStateCommand;
 
     class InputState 
-        : public ActionConsumer {
+        : public ActionConsumer
+        , public EventCommandable<InputState> {
     
         using StateId = InputStates;
 
@@ -54,11 +55,7 @@ namespace input {
         State_t StatePauseMenu(FSM_t& fsm, StateId);
         State_t StateBuildActive(FSM_t& fsm, StateId); 
         State_t StateRoomActive(FSM_t& fsm, StateId);
-
-        void ProcessCommand(const InputStateCommand& cmd);
     };
 
-    struct InputStateCommand {
-        std::function<void(InputState&)> execute;
-    };
+    using InputStateCommand = Command<InputState>;
 }

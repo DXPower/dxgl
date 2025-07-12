@@ -39,29 +39,23 @@ public:
             }
 
             m_event_manager->GetSignal<input::BuildInputCommand>()
-                .signal.fire(input::BuildInputCommand{
-                    .execute = [tile_type = tile_type.value()](input::BuildInput& fsm) {
+                .signal.fire([tile_type = tile_type.value()](input::BuildInput& fsm) {
                         fsm.SelectTileToPlace(tile_type);
-                    }
-                });
+                    });
         } else if (args[0] == "EnterBuildMode") {
             m_logger.info("Sending EnterBuildMode");
 
             m_event_manager->GetSignal<input::InputStateCommand>()
-                .signal.fire(input::InputStateCommand{
-                    .execute = [](input::InputState& is) {
+                .signal.fire([](input::InputState& is) {
                         is.EnterBuildMode();
-                    }
-                });
+                    });
         } else if (args[0] == "ExitBuildMode") {
             m_logger.info("Sending ExitBuildMode");
 
             m_event_manager->GetSignal<input::InputStateCommand>()
-                .signal.fire(input::InputStateCommand{
-                    .execute = [](input::InputState& is) {
+                .signal.fire([](input::InputState& is) {
                         is.ExitMode();
-                    }
-                });
+                    });
         }
     }
 };

@@ -12,7 +12,8 @@ using namespace input;
 using namespace core;
 
 RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles)
-    : m_event_manager(&em), m_camera(&cam), m_tiles(&tiles) {
+    : EventCommandable<RoomInput>(em)
+    , m_event_manager(&em), m_camera(&cam), m_tiles(&tiles) {
     m_logger.set_level(spdlog::level::debug);
     
     using enum StateId;
@@ -26,9 +27,6 @@ RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam
     m_fsm.AddTransition(DemarcationMode, ExitMode, IdleMode);
     m_fsm.AddTransition(IdleMode, SelectRoomType, DemarcationMode);
     m_fsm.AddTransition(IdleMode, SelectRoomClear, DemarcationMode);
-
-    em.GetOrRegisterSignal<RoomInputCommand>()
-        .signal.connect<&RoomInput::ProcessRoomInputCommand>(this);
 
     m_fsm.SetTransitionObserver([this](const FSM_t&, std::optional<State_t> from, State_t to, const Event_t& ev) {
         std::string ev_str = !ev.Empty() ? std::format(" Event: {}", magic_enum::enum_name(ev.GetId())) : "";
@@ -100,17 +98,13 @@ auto RoomInput::StateDemarcation(FSM_t& fsm, StateId) -> State_t {
 
                 if (tile_pos.has_value()) {
                     if (selected_room.has_value()) {
-                        m_event_manager->FireSignal(RoomCommand{
-                            .execute = [drag_start = drag_start, drag_end = *tile_pos, type = *selected_room](RoomManager& rm) {
+                        m_event_manager->FireSignal<RoomCommand>([drag_start = drag_start, drag_end = *tile_pos, type = *selected_room](RoomManager& rm) {
                                 rm.MarkTilesAsRoom(TileSelection{drag_start, drag_end}, type);
-                            }
-                        });
+                            });
                     } else {
-                        m_event_manager->FireSignal(RoomCommand{
-                            .execute = [drag_start = drag_start, drag_end = *tile_pos](RoomManager& rm) {
+                        m_event_manager->FireSignal<RoomCommand>([drag_start = drag_start, drag_end = *tile_pos](RoomManager& rm) {
                                 rm.UnmarkTiles(TileSelection{drag_start, drag_end});
-                            }
-                        });
+                            });
                     }
                 }
 
@@ -161,10 +155,6 @@ void RoomInput::SelectRoomClear() {
 
 void RoomInput::ExitMode() {
     m_fsm.InsertEvent(EventId::ExitMode);
-}
-
-void RoomInput::ProcessRoomInputCommand(const RoomInputCommand& cmd) {
-    cmd.execute(*this);
 }
 
 std::optional<TileCoord> RoomInput::ScreenToTilePos(glm::vec2 screen_pos) const {

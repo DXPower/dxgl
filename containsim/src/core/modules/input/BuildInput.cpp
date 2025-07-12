@@ -19,7 +19,8 @@ namespace {
 
 
 BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles)
-    : m_event_manager(&em), m_camera(&cam), m_tiles(&tiles) {
+    : EventCommandable(em)
+    , m_event_manager(&em), m_camera(&cam), m_tiles(&tiles) {
     m_logger.set_level(spdlog::level::debug);
     
     using enum StateId;
@@ -53,9 +54,6 @@ BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& c
     
     // SelectWorldTile
     m_fsm.AddTransition(IdleMode, SelectWorldTile, WorldTileSelectedMode);
-
-    em.GetOrRegisterSignal<BuildInputCommand>()
-        .signal.connect<&BuildInput::ProcessBuiltInputCommand>(this);
 
     m_fsm.SetTransitionObserver([this](const FSM_t&, std::optional<State_t> from, State_t to, const Event_t& ev) {
         std::string ev_str = !ev.Empty() ? std::format(" Event: {}", magic_enum::enum_name(ev.GetId())) : "";
@@ -127,14 +125,12 @@ auto BuildInput::StatePlaceTile(FSM_t& fsm, StateId) -> State_t {
                     const auto tile_pos = ScreenToTilePos(click.pos);
 
                     if (tile_pos.has_value()) {
-                        m_event_manager->FireSignal(BuildCommand{
-                            .execute = [drag_start, drag_end = *tile_pos, type = selected_tile](BuildManager& bm) {
-                                if (drag_start == drag_end) {
-                                    bm.PlaceTile(drag_start, type);
-                                } else {
-                                    for (auto cord : TileSelection{drag_start, drag_end}.Iterate()) {
-                                        bm.PlaceTile(cord, type);
-                                    }
+                        m_event_manager->FireSignal<BuildCommand>([drag_start, drag_end = *tile_pos, type = selected_tile](BuildManager& bm) {
+                            if (drag_start == drag_end) {
+                                bm.PlaceTile(drag_start, type);
+                            } else {
+                                for (auto cord : TileSelection{drag_start, drag_end}.Iterate()) {
+                                    bm.PlaceTile(cord, type);
                                 }
                             }
                         });
@@ -221,10 +217,8 @@ auto BuildInput::StateDelete(FSM_t& fsm, StateId) -> State_t {
 
                 const auto tile_pos = ScreenToTilePos(click.pos);
                 if (tile_pos.has_value()) {
-                    m_event_manager->FireSignal(BuildCommand{
-                        .execute = [tile_pos = *tile_pos](BuildManager& bm) {
-                            bm.DeleteTopmostTile(tile_pos, TileLayer::Walls);
-                        }
+                    m_event_manager->FireSignal<BuildCommand>([tile_pos = *tile_pos](BuildManager& bm) {
+                        bm.DeleteTopmostTile(tile_pos, TileLayer::Walls);
                     });
                 }
             }
@@ -274,10 +268,6 @@ void BuildInput::SelectTileToPlace(TileType tile) {
 
 void BuildInput::ExitMode() {
     m_fsm.InsertEvent(EventId::ExitMode);
-}
-
-void BuildInput::ProcessBuiltInputCommand(const BuildInputCommand& cmd) {
-    cmd.execute(*this);
 }
 
 std::optional<TileCoord> BuildInput::ScreenToTilePos(glm::vec2 screen_pos) const {
