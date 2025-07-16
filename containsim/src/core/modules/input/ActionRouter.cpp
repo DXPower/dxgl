@@ -5,8 +5,9 @@
 
 using namespace input;
 
-ActionRouter::ActionRouter(const dxgl::Window& window)
+ActionRouter::ActionRouter(const dxgl::Window& window, MeceFsm& actions_out)
     : m_mouse_tester(window)
+    , m_actions_out(&actions_out)
 { }
 
 void ActionRouter::Consume(Action&& action) {
@@ -50,9 +51,22 @@ void ActionRouter::Consume(Action&& action) {
             m_click_start = route;
     }
 
-    if (routes[InputLayer::Game])
-        game_action_receiver.Send(std::move(action));
+    if (routes[InputLayer::Game] || routes[InputLayer::Offscreen]) {
+        auto* sub_fsm = m_actions_out->GetActiveSubFsm();
 
-    if (routes[InputLayer::Offscreen])
-        offscreen_action_receiver.Send(std::move(action));
+        if (sub_fsm == nullptr) {
+            global_action_producer.Send(std::move(action));
+            return;
+        }
+
+        const auto& events = sub_fsm->GetEventInfo().GetIds();
+        auto action_id_it = events.right.find("Action");
+
+        if (action_id_it == events.right.end()) {
+            m_logger.warn("Expected to send this Action somewhere, but {} can't accept it", sub_fsm->GetName());
+            return;
+        }
+
+        sub_fsm->GetFsm().InsertEvent(action_id_it->second, std::move(action));
+    }
 }

@@ -26,6 +26,7 @@ Checks: '
     -cppcoreguidelines-rvalue-reference-param-not-moved,
     -cppcoreguidelines-avoid-do-while,
     -cppcoreguidelines-pro-type-union-access,
+    -cppcoreguidelines-missing-std-forward,
   misc-*,
     -misc-non-private-member-variables-in-classes,
     -misc-no-recursion,

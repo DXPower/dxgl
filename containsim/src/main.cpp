@@ -19,7 +19,9 @@
 #define CATCH_EXCEPTIONS
 
 int main() {
+    logging::SetDefaultLevel(logging::Level::debug);
     logging::SetCommonSink(logging::CreateConsoleSink());
+
     auto logger = logging::CreateLogger("main");
 
 #ifdef CATCH_EXCEPTIONS

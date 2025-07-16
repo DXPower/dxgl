@@ -9,61 +9,52 @@
 #include <common/BuildInputEvents.hpp>
 #include <common/EventCommandable.hpp>
 #include <common/Logging.hpp>
+#include <common/MeceFsm.hpp>
 
 #include <dxfsm/dxfsm.hpp>
 
 namespace input {
-    class BuildInput 
-        : public ActionConsumer
-        , public EventCommandable<BuildInput>
+    class BuildInput final
+        : public EventCommandable<BuildInput>
+        , public MeceSubFsm
     {
     public:
-        using StateId = BuildInputStates;
-        
-        enum class EventId {
-            Entry,
-            ExitMode,
-            BeginDeleting,
-            SelectTileToPlace,
-            SelectWorldTile,
-            Click,
-            KeyPress
+        struct StateId {
+            inline static int PlaceTileMode{};
+            inline static int DeleteMode{};
+
+            StateId() = delete;
+        };
+
+        struct EventId {
+            inline static int ExitMode{};
+            inline static int BeginDeleting{};
+            inline static int SelectTileToPlace{};
+            inline static int SelectWorldTile{};
+            inline static int Action{};
+
+            EventId() = delete;
         };
         
         ActionProducer uncaptured_actions{};
-
-    private:
-        using State_t = dxfsm::State<StateId>;
-        using Event_t = dxfsm::Event<EventId>;
-        using FSM_t = dxfsm::FSM<StateId, EventId>;
-
-        FSM_t m_fsm{};
         application::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
-        logging::Logger m_logger = logging::CreateLogger("BuildInput");
 
-    public:
         BuildInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
-
-        void Consume(Action&& action) override;
 
         void EnterDeleteMode();
         void SelectTileToPlace(core::TileType tile);
         void ExitMode();
 
-        auto GetFsm() -> FSM_t& { return m_fsm; }
-        auto GetFsm() const -> const FSM_t& { return m_fsm; }
-
-        StateId GetState() const { return m_fsm.GetCurrentState()->Id(); };
-
     private:
-        State_t StateIdle(FSM_t& fsm, StateId);
-        State_t StatePlaceTile(FSM_t& fsm, StateId);
-        State_t StateWorldTileSelected(FSM_t& fsm, StateId);
-        State_t StateDelete(FSM_t& fsm, StateId);
+        State StateIdle(FSM& fsm, int) override;
+        State StatePlaceTile(FSM& fsm, int);
+        State StateDelete(FSM& fsm, int);
 
         std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
+
+        void OnStateChanged(const FSM&, std::optional<State>, State to, const Event&) override;
     };
 
     using BuildInputCommand = Command<BuildInput>;

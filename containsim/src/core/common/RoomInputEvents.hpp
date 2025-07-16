@@ -1,6 +1,7 @@
 #pragma once
 
 enum class RoomInputStates {
+    InactiveMode,
     IdleMode,
     DemarcationMode,
 };

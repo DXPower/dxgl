@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/ui/UiEvents.hpp>
+#include <modules/ui/UiEvents.hpp>
 #include <RmlUi/Core/EventListenerInstancer.h>
 #include <RmlUi/Core/EventListener.h>
 #include <common/Logging.hpp>

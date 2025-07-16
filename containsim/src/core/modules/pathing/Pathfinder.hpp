@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Paths.hpp>
+#include <modules/pathing/Paths.hpp>
 #include <modules/core/TileGrid.hpp>
 
 #include <flecs.h>

@@ -8,12 +8,12 @@
     <div id="ui-contianer">
         <div id="bottom-bar" data-model="input_state">
             <div>
-                <button onclick="bc EnterBuildMode" data-class-hidden="main_state == 'BuildActive'">Build</button>
-                <button onclick="bc ExitBuildMode" data-class-hidden="main_state != 'BuildActive'">Exit Build</button>
-                <button onclick="bc EnterRoomMode" data-class-hidden="main_state == 'RoomActive'">Room</button>
-                <button onclick="bc ExitRoomMode" data-class-hidden="main_state != 'RoomActive'">Exit Room</button>
+                <button onclick="bc EnterBuildMode" data-class-hidden="build_state != 'InactiveMode'">Build</button>
+                <button onclick="bc ExitBuildMode" data-class-hidden="build_state == 'InactiveMode'">Exit Build</button>
+                <button onclick="bc EnterRoomMode" data-class-hidden="room_state != 'InactiveMode'">Room</button>
+                <button onclick="bc ExitRoomMode" data-class-hidden="room_state == 'InactiveMode'">Exit Room</button>
             </div>
-            <div id="build-panel" class="panel" data-class-hidden="main_state != 'BuildActive'">
+            <div id="build-panel" class="panel" data-class-hidden="build_state == 'InactiveMode'">
                 <p>Mode: 
                     <span data-class-hidden="build_state != 'IdleMode'">Idle</span>
                     <span data-class-hidden="build_state != 'PlaceTileMode'">Place Tile</span>
@@ -29,7 +29,7 @@
                     </div>
                 </div>
             </div>
-            <div id="room-panel" class="panel" data-class-hidden="main_state != 'RoomActive'">
+            <div id="room-panel" class="panel" data-class-hidden="room_state == 'InactiveMode'">
                 <p>Mode: 
                     <span data-class-hidden="room_state != 'IdleMode'">Idle</span>
                     <span data-class-hidden="room_state != 'DemarcationMode'">Demarcation</span>

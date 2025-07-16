@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/Paths.hpp>
+#include <modules/pathing/Paths.hpp>
 
 namespace pathing {
     struct DestinationIntent {

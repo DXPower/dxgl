@@ -3,7 +3,7 @@
 #include <modules/input/BuildInput.hpp>
 #include <modules/input/InputState.hpp>
 
-#include <common/ui/UiEvents.hpp>
+#include <modules/ui/UiEvents.hpp>
 #include <modules/ui/Panel.hpp>
 
 #include <magic_enum/magic_enum.hpp>
@@ -45,17 +45,15 @@ public:
         } else if (args[0] == "EnterBuildMode") {
             m_logger.info("Sending EnterBuildMode");
 
-            m_event_manager->GetSignal<input::InputStateCommand>()
-                .signal.fire([](input::InputState& is) {
-                        is.EnterBuildMode();
-                    });
+            m_event_manager->FireSignal<input::BuildInputCommand>([](input::BuildInput& bi) {
+                bi.MakeActive();
+            });
         } else if (args[0] == "ExitBuildMode") {
             m_logger.info("Sending ExitBuildMode");
 
-            m_event_manager->GetSignal<input::InputStateCommand>()
-                .signal.fire([](input::InputState& is) {
-                        is.ExitMode();
-                    });
+            m_event_manager->FireSignal<input::BuildInputCommand>([](input::BuildInput& bi) {
+                bi.MakeInactive();
+            });
         }
     }
 };

@@ -30,9 +30,14 @@ namespace {
 
 struct GlobalActions : ActionConsumer {
     flecs::entity target{};
+    MeceFsm* input_state{};
     const rendering::Camera* cam{};
 
-    GlobalActions(flecs::entity target, const rendering::Camera& cam) : target(target), cam(&cam) { }
+    GlobalActions(flecs::entity target, const rendering::Camera& cam)
+        : target(target), cam(&cam) {
+        input_state = &target.world().lookup("input::Input::InputState")
+            .get_mut<MeceFsm>();
+    }
 
     void Consume(Action&& action) override {
         // const KeyPress* press = std::get_if<KeyPress>(&action.data);
@@ -48,6 +53,20 @@ struct GlobalActions : ActionConsumer {
 
             target.set(pathing::DestinationIntent{.position = world_pos});
             target.add<pathing::StaleDestination>();
+        }
+
+        const KeyPress* key = std::get_if<KeyPress>(&action.data);
+        if (key != nullptr && key->dir == ButtonDir::Down) {
+            switch (key->key) {
+                case GLFW_KEY_B:
+                    input_state->GetSubFsm("BuildInput")->MakeActive();
+                    break;
+                case GLFW_KEY_R:
+                    input_state->GetSubFsm("RoomInput")->MakeActive();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 };
@@ -169,11 +188,15 @@ Experiment::Experiment(flecs::world& world) {
     world.emplace<GlobalActions>(test_actor, camera);
     auto& global_actions = world.get_mut<GlobalActions>();
 
-    auto& build_input = world.get_mut<input::BuildInput>();
-    auto& room_input = world.get_mut<input::RoomInput>();
-    auto& input_state = world.get_mut<input::InputState>();
+    auto& action_router = world.get_mut<input::ActionRouter>();
+
+    chain::Connect(action_router.global_action_producer, global_actions);
     
-    chain::Connect(input_state.idle_actions, global_actions);
-    chain::Connect(build_input.uncaptured_actions, global_actions);
-    chain::Connect(room_input.uncaptured_actions, global_actions);
+    // auto& build_input = world.get_mut<input::BuildInput>();
+    // auto& room_input = world.get_mut<input::RoomInput>();
+    // auto& input_state = world.get_mut<input::InputState>();
+    
+    // chain::Connect(input_state.idle_actions, global_actions);
+    // chain::Connect(build_input.uncaptured_actions, global_actions);
+    // chain::Connect(room_input.uncaptured_actions, global_actions);
 }

@@ -12,55 +12,46 @@
 
 #include <modules/rendering/Camera.hpp>
 #include <modules/core/TileGrid.hpp>
+#include <common/MeceFsm.hpp>
 
 namespace input {
-    class RoomInput 
-        : public ActionConsumer
-        , public EventCommandable<RoomInput>
+    class RoomInput final 
+        : public EventCommandable<RoomInput>
+        , public MeceSubFsm
     {
     public:
-        using StateId = RoomInputStates;
-        
-        enum class EventId {
-            Entry,
-            ExitMode,
-            SelectRoomType,
-            SelectRoomClear,
-            Click,
-            KeyPress
+        struct StateId {
+            inline static int Demarcation{};
+        };
+
+        struct EventId {
+            inline static int ExitMode{};
+            inline static int SelectRoomType{};
+            inline static int SelectRoomClear{};
+            inline static int Action{};
         };
         
         ActionProducer uncaptured_actions{};
 
     private:
-        using State_t = dxfsm::State<StateId>;
-        using Event_t = dxfsm::Event<EventId>;
-        using FSM_t = dxfsm::FSM<StateId, EventId>;
-
-        FSM_t m_fsm{};
         application::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
-        logging::Logger m_logger = logging::CreateLogger("RoomInput");
 
     public:
         RoomInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
-
-        void Consume(Action&& action) override;
 
         void SelectRoomType(core::RoomType room);
         void SelectRoomClear();
         void ExitMode();
 
-        auto& GetFsm(this auto&& self) { return self.m_fsm;}
-
-        StateId GetState() const { return m_fsm.GetCurrentState()->Id(); };
-
     private:
-        State_t StateIdle(FSM_t& fsm, StateId);
-        State_t StateDemarcation(FSM_t& fsm, StateId);
+        State StateIdle(FSM& fsm, int) override;
+        State StateDemarcation(FSM& fsm, int);
 
         std::optional<core::TileCoord> ScreenToTilePos(glm::vec2 screen_pos) const;
+        
+        void OnStateChanged(const FSM&, std::optional<State>, State to, const Event&) override;
     };
 
     using RoomInputCommand = Command<RoomInput>;

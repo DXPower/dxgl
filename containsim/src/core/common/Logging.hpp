@@ -10,6 +10,7 @@ namespace logging {
     using Sink = std::shared_ptr<spdlog::sinks::sink>;
     using Logger = spdlog::logger;
     using SharedLogger = std::shared_ptr<spdlog::logger>;
+    using Level = spdlog::level::level_enum;
 
     Logger CreateLogger(std::string name);
     SharedLogger CreateSharedLogger(std::string name);
@@ -18,4 +19,6 @@ namespace logging {
     Sink GetCommonSink();
 
     Sink CreateConsoleSink();
+
+    void SetDefaultLevel(Level level);
 }

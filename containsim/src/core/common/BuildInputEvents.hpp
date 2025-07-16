@@ -1,6 +1,7 @@
 #pragma once
 
 enum class BuildInputStates {
+    InactiveMode,
     IdleMode,
     PlaceTileMode,
     WorldTileSelectedMode,
