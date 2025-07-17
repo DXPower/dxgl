@@ -43,8 +43,6 @@ BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& c
     // PlaceTile --------^
     // Delete ----------^
 
-    
-    AddExitTransitionsToAllStates();
     fsm.AddTransition(place_tile.Id(), EventId::ExitMode, MeceSubStates::Idle);
     fsm.AddTransition(delete_mode.Id(), EventId::ExitMode, MeceSubStates::Idle);
     fsm.AddTransition(MeceSubStates::Idle, EventId::ExitMode, MeceSubStates::Inactive);
@@ -56,8 +54,10 @@ BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& c
 
     // SelectTileToPlace
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectTileToPlace, place_tile.Id());
-    // fsm.AddTransition(world_tile_selected.Id(), SelectTileToPlace, PlaceTileMode);
     fsm.AddTransition(delete_mode.Id(), EventId::SelectTileToPlace, place_tile.Id());
+
+    m_drag_helper = std::make_unique<DragHelper>(*this, StateId::PlaceTileMode, "PlaceTileDrag");
+    AddExitTransitionsToAllStates();
 }
 
 auto BuildInput::StateIdle(FSM& fsm, int self) -> State {
@@ -94,15 +94,30 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
     Event event{};
     TileType selected_tile{};
 
-    TileCoord drag_start{};
-    bool drag_valid = false;
-
     while (true) {
         co_await fsm.EmitAndReceive(event);
 
         if (event == EventId::SelectTileToPlace) {
             selected_tile = event.Get<TileType>();
             m_logger.info("Selected tile: {}", static_cast<int>(selected_tile));
+        } else if (event == m_drag_helper->GetDragCompletedId()) {
+            const auto& drag_data = event.Get<DragData>();
+            const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
+            const auto end_tile = ScreenToTilePos(drag_data.end.pos);
+
+            if (start_tile.has_value() && end_tile.has_value()) {
+                const TileSelection sel{*start_tile, *end_tile};
+
+                m_event_manager->FireSignal<BuildCommand>([sel, type = selected_tile](BuildManager& bm) {
+                    if (sel.start == sel.end) {
+                        bm.PlaceTile(sel.start, type);
+                    } else {
+                        for (auto cord : sel.Iterate()) {
+                            bm.PlaceTile(cord, type);
+                        }
+                    }
+                });
+            }
         } else if (event == EventId::Action) {
             const auto& action = event.Get<Action>();
             const auto* click = std::get_if<MouseClick>(&action.data);
@@ -110,33 +125,8 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
 
             if (click != nullptr) {
                 if (click->button == 0 && click->dir == ButtonDir::Down) {
-                    const auto tile_pos = ScreenToTilePos(click->pos);
-
-                    if (tile_pos.has_value()) {
-                        drag_start = *tile_pos;
-                        drag_valid = true;
-                    } else {
-                        drag_valid = false;
-                    }
-                } else if (click->button == 0 && click->dir == ButtonDir::Up) {
-                    if (drag_valid) {
-                        const auto tile_pos = ScreenToTilePos(click->pos);
-
-                        if (tile_pos.has_value()) {
-                            m_event_manager->FireSignal<BuildCommand>([drag_start, drag_end = *tile_pos, type = selected_tile](BuildManager& bm) {
-                                if (drag_start == drag_end) {
-                                    bm.PlaceTile(drag_start, type);
-                                } else {
-                                    for (auto cord : TileSelection{drag_start, drag_end}.Iterate()) {
-                                        bm.PlaceTile(cord, type);
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    drag_valid = false;
-                } else {
+                    event.Store(m_drag_helper->GetDragStartedId(), DragStartedData{*click});
+                    continue;
                 }
             } else if (press != nullptr) {
                 if (press->IsDownKey(GLFW_KEY_R)) {
@@ -215,6 +205,8 @@ void BuildInput::OnStateChanged(const FSM&, std::optional<State>, State to, cons
         res = BuildInputStates::PlaceTileMode;
     } else if (check == StateId::DeleteMode) {
         res = BuildInputStates::DeleteMode;
+    } else if (check == m_drag_helper->GetDragStateId()) {
+        res = BuildInputStates::PlaceTileDragMode;
     } else {
         assert(false);
     }

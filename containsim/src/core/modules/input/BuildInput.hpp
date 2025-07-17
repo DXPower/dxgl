@@ -1,5 +1,6 @@
 #pragma once
 
+#include <modules/input/DragHelper.hpp>
 #include <modules/core/Tile.hpp>
 #include <modules/application/EventManager.hpp>
 #include <modules/rendering/Camera.hpp>
@@ -40,7 +41,8 @@ namespace input {
         application::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
-
+        std::unique_ptr<DragHelper> m_drag_helper{};
+        
         BuildInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
 
         void EnterDeleteMode();

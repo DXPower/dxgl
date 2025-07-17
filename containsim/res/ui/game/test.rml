@@ -19,6 +19,7 @@
                     <span data-class-hidden="build_state != 'PlaceTileMode'">Place Tile</span>
                     <span data-class-hidden="build_state != 'WorldTileSelectedMode'">Selected Tile</span>
                     <span data-class-hidden="build_state != 'DeleteMode'">Delete</span>
+                    <span data-class-hidden="build_state != 'PlaceTileDragMode'">Dragging</span>
                 </p>
                 <div id="tile-choices" class="hgrid" data-model="tiles">
                     <div data-for="tile_meta : metas" class="item" data-attr-onclick="'bc SelectTileToPlace ' + tile_meta.type">

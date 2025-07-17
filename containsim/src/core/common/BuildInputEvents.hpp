@@ -4,6 +4,7 @@ enum class BuildInputStates {
     InactiveMode,
     IdleMode,
     PlaceTileMode,
+    PlaceTileDragMode,
     WorldTileSelectedMode,
     DeleteMode
 };
