@@ -151,6 +151,8 @@ void RoomInput::OnStateChanged(const FSM&, std::optional<State>, State to, const
         res =  RoomInputStates::IdleMode;
     } else if (check == StateId::Demarcation) {
         res =  RoomInputStates::DemarcationMode;
+    } else if (check == m_drag_helper->GetDragStateId()) {
+        res = RoomInputStates::DemarcationDragMode;
     }
 
     m_event_manager->FireSignal(RoomInputStateChanged{res});

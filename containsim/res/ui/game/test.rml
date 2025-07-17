@@ -33,6 +33,7 @@
                 <p>Mode: 
                     <span data-class-hidden="room_state != 'IdleMode'">Idle</span>
                     <span data-class-hidden="room_state != 'DemarcationMode'">Demarcation</span>
+                    <span data-class-hidden="room_state != 'DemarcationDragMode'">Dragging</span>
                 </p>
                 <div id="room-choices" class="hgrid" data-model="tiles">
                     <div class="item" data-attr-onclick="'bc SelectRoomClear'">
