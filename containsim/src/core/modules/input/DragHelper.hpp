@@ -1,7 +1,9 @@
 #pragma once
 
-#include <common/MeceFsm.hpp>
+#include <common/IdRegistry.hpp>
 #include <common/Action.hpp>
+
+#include <dxfsm/dxfsm.hpp>
 
 namespace input {
     struct DragStartedData {
@@ -14,7 +16,6 @@ namespace input {
     };
 
     class DragHelper {
-        MeceSubFsm* m_sub{};
         int m_return_state{};
         int m_drag_state{};
         int m_drag_started{};
@@ -23,7 +24,7 @@ namespace input {
         int m_action{};
 
     public:
-        DragHelper(MeceSubFsm& sub, int return_state_id, std::string name);
+        DragHelper(dxfsm::FSM<int, int>& fsm, IdRegistry& states, IdRegistry& events, int return_state_id, std::string name);
 
         int GetDragStateId() const { return m_drag_state; }
         int GetDragStartedId() const { return m_drag_started; }
@@ -31,6 +32,6 @@ namespace input {
         int GetDragCanceledId() const { return m_drag_canceled; }
 
     private:
-        MeceSubFsm::State StateDrag(MeceSubFsm::FSM& fsm, int) const;
+        dxfsm::State<int> StateDrag(dxfsm::FSM<int, int>& fsm, int) const;
     };
 }

@@ -56,8 +56,8 @@ BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& c
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectTileToPlace, place_tile.Id());
     fsm.AddTransition(delete_mode.Id(), EventId::SelectTileToPlace, place_tile.Id());
 
-    m_drag_helper_place = std::make_unique<DragHelper>(*this, StateId::PlaceTileMode, "PlaceTileDrag");
-    m_drag_helper_delete = std::make_unique<DragHelper>(*this, StateId::DeleteMode, "DeleteDrag");
+    m_drag_helper_place = std::make_unique<DragHelper>(fsm, GetStateInfo(), GetEventInfo(), StateId::PlaceTileMode, "PlaceTileDrag");
+    m_drag_helper_delete = std::make_unique<DragHelper>(fsm, GetStateInfo(), GetEventInfo(), StateId::DeleteMode, "DeleteDrag");
     AddExitTransitionsToAllStates();
 }
 

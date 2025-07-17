@@ -2,60 +2,16 @@
 
 #include <common/Logging.hpp>
 #include <common/DeducingThisHelper.hpp>
+#include <common/IdRegistry.hpp>
+
 #include <dxfsm/dxfsm.hpp>
 #include <string>
 #include <vector>
 #include <boost/bimap.hpp>
 #include <unordered_map>
 
-struct MeceId {
-    int id{};
-    std::string name{};
 
-    constexpr bool operator==(const MeceId& rhs) const {
-        return id == rhs.id;
-    }
-};
-
-template<>
-struct std::hash<MeceId> {
-    std::size_t operator()(const MeceId& o) const {
-        return std::hash<decltype(o.id)>{}(o.id);
-    }
-};
-
-class MeceIdRegistry {
-    boost::bimap<int, std::string> m_ids{};
-
-public:
-    int AddId(int id, std::string name) {
-        auto [it, ins] = m_ids.insert(decltype(m_ids)::value_type(id, std::move(name)));
-
-        if (!ins) {
-            throw std::runtime_error("Attempt to register an id that already exists");
-        }
-
-        return id;
-    }
-
-    int AddId(std::string name) {
-        return AddId(static_cast<int>(m_ids.size()), std::move(name));
-    }
-
-    int GetOrAddId(const std::string& name) {
-        auto it = m_ids.right.find(name);
-
-        if (it != m_ids.right.end()) {
-            return it->second;
-        } else {
-            return AddId(name);
-        }
-    }
-
-    auto& GetIds() const { return m_ids; }
-};
-
-class MeceSubStates : public MeceIdRegistry {
+class MeceSubStates : public IdRegistry {
 public:
     constexpr static int Inactive = 0;
     constexpr static int Idle = 1;
@@ -66,7 +22,7 @@ public:
     }
 };
 
-class MeceSubEvents : public MeceIdRegistry {
+class MeceSubEvents : public IdRegistry {
 public:
     constexpr static int EnteringSubFsm = 0;
     constexpr static int ExitingSubFsm = 1;

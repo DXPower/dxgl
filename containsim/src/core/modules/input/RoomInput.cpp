@@ -35,7 +35,7 @@ RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectRoomType, StateId::Demarcation);
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectRoomClear, StateId::Demarcation);
 
-    m_drag_helper = std::make_unique<DragHelper>(*this, StateId::Demarcation, "DemarcationDrag");
+    m_drag_helper = std::make_unique<DragHelper>(fsm, GetStateInfo(), GetEventInfo(), StateId::Demarcation, "DemarcationDrag");
 
     AddExitTransitionsToAllStates();
 }

@@ -4,22 +4,16 @@
 
 using namespace input;
 
-DragHelper::DragHelper(MeceSubFsm& sub, int return_state_id, std::string name) {
-    m_sub = &sub;
+DragHelper::DragHelper(dxfsm::FSM<int, int>& fsm, IdRegistry& states, IdRegistry& events, int return_state_id, std::string name) {
     m_return_state = return_state_id;
 
-    auto& states = sub.GetStateInfo();
     m_drag_state = states.AddId(std::move(name));
-
-    auto& events = sub.GetEventInfo();
 
     m_drag_started = events.GetOrAddId("DragStarted");
     m_drag_completed = events.GetOrAddId("DragCompleted");
     m_drag_canceled = events.GetOrAddId("DragCanceled");
     m_action = events.GetOrAddId("Action");
 
-    auto& fsm = sub.GetFsm();
-    
     StateDrag(fsm, m_drag_state);
 
     fsm.AddTransition(m_return_state, m_drag_started, m_drag_state);
@@ -27,8 +21,8 @@ DragHelper::DragHelper(MeceSubFsm& sub, int return_state_id, std::string name) {
     fsm.AddTransition(m_drag_state, m_drag_canceled, m_return_state);
 }
 
-MeceSubFsm::State DragHelper::StateDrag(MeceSubFsm::FSM& fsm, int) const {
-    MeceSubFsm::Event ev{};
+dxfsm::State<int> DragHelper::StateDrag(dxfsm::FSM<int, int>& fsm, int) const {
+    dxfsm::Event<int> ev{};
     DragStartedData drag_data{};
 
     while (true) {
