@@ -58,5 +58,7 @@ struct TileSelection {
 
     bool Contains(const TileCoord& coord) const;
     std::generator<TileCoord> Iterate() const;
+
+    int Area() const;
 };
 }

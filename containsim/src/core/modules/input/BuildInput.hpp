@@ -41,7 +41,8 @@ namespace input {
         application::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
-        std::unique_ptr<DragHelper> m_drag_helper{};
+        std::unique_ptr<DragHelper> m_drag_helper_place{};
+        std::unique_ptr<DragHelper> m_drag_helper_delete{};
         
         BuildInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);
 

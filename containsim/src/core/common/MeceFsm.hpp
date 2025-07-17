@@ -42,6 +42,16 @@ public:
         return AddId(static_cast<int>(m_ids.size()), std::move(name));
     }
 
+    int GetOrAddId(const std::string& name) {
+        auto it = m_ids.right.find(name);
+
+        if (it != m_ids.right.end()) {
+            return it->second;
+        } else {
+            return AddId(name);
+        }
+    }
+
     auto& GetIds() const { return m_ids; }
 };
 

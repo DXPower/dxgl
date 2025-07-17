@@ -13,10 +13,10 @@ DragHelper::DragHelper(MeceSubFsm& sub, int return_state_id, std::string name) {
 
     auto& events = sub.GetEventInfo();
 
-    m_drag_started = events.AddId("DragStarted");
-    m_drag_completed = events.AddId("DragCompleted");
-    m_drag_canceled = events.AddId("DragCanceled");
-    m_action = events.GetIds().right.at("Action");
+    m_drag_started = events.GetOrAddId("DragStarted");
+    m_drag_completed = events.GetOrAddId("DragCompleted");
+    m_drag_canceled = events.GetOrAddId("DragCanceled");
+    m_action = events.GetOrAddId("Action");
 
     auto& fsm = sub.GetFsm();
     

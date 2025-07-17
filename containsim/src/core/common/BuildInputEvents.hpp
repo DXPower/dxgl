@@ -6,7 +6,8 @@ enum class BuildInputStates {
     PlaceTileMode,
     PlaceTileDragMode,
     WorldTileSelectedMode,
-    DeleteMode
+    DeleteMode,
+    DeleteDragMode,
 };
 
 struct BuildInputStateChanged {

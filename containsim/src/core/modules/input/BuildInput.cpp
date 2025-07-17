@@ -56,7 +56,8 @@ BuildInput::BuildInput(application::EventManager& em, const rendering::Camera& c
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectTileToPlace, place_tile.Id());
     fsm.AddTransition(delete_mode.Id(), EventId::SelectTileToPlace, place_tile.Id());
 
-    m_drag_helper = std::make_unique<DragHelper>(*this, StateId::PlaceTileMode, "PlaceTileDrag");
+    m_drag_helper_place = std::make_unique<DragHelper>(*this, StateId::PlaceTileMode, "PlaceTileDrag");
+    m_drag_helper_delete = std::make_unique<DragHelper>(*this, StateId::DeleteMode, "DeleteDrag");
     AddExitTransitionsToAllStates();
 }
 
@@ -100,7 +101,7 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
         if (event == EventId::SelectTileToPlace) {
             selected_tile = event.Get<TileType>();
             m_logger.info("Selected tile: {}", static_cast<int>(selected_tile));
-        } else if (event == m_drag_helper->GetDragCompletedId()) {
+        } else if (event == m_drag_helper_place->GetDragCompletedId()) {
             const auto& drag_data = event.Get<DragData>();
             const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
             const auto end_tile = ScreenToTilePos(drag_data.end.pos);
@@ -112,8 +113,8 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
                     if (sel.start == sel.end) {
                         bm.PlaceTile(sel.start, type);
                     } else {
-                        for (auto cord : sel.Iterate()) {
-                            bm.PlaceTile(cord, type);
+                        for (auto coord : sel.Iterate()) {
+                            bm.PlaceTile(coord, type);
                         }
                     }
                 });
@@ -125,7 +126,7 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
 
             if (click != nullptr) {
                 if (click->button == 0 && click->dir == ButtonDir::Down) {
-                    event.Store(m_drag_helper->GetDragStartedId(), DragStartedData{*click});
+                    event.Store(m_drag_helper_place->GetDragStartedId(), DragStartedData{*click});
                     continue;
                 }
             } else if (press != nullptr) {
@@ -149,20 +150,32 @@ auto BuildInput::StateDelete(FSM& fsm, int) -> State {
     while (true) {
         co_await fsm.EmitAndReceive(event);
 
-        if (event == EventId::Action) {
+        if (event == m_drag_helper_delete->GetDragCompletedId()) {
+            const auto& drag_data = event.Get<DragData>();
+            const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
+            const auto end_tile = ScreenToTilePos(drag_data.end.pos);
+
+            if (start_tile.has_value() && end_tile.has_value()) {
+                const TileSelection sel{*start_tile, *end_tile};
+
+                m_event_manager->FireSignal<BuildCommand>([sel](BuildManager& bm) {
+                    if (sel.Area() == 1) {
+                        bm.DeleteTopmostTile(sel.start, TileLayer::Walls);
+                    } else {
+                        for (auto coord : sel.Iterate()) {
+                            bm.DeleteTopmostTile(coord, TileLayer::Walls);
+                        }
+                    }
+                });
+            }
+        } else if (event == EventId::Action) {
             const auto& action = event.Get<Action>();
             const auto* click = std::get_if<MouseClick>(&action.data);
             const auto* press = std::get_if<KeyPress>(&action.data);
 
-            if (click != nullptr && click->button == 0 && click->dir == ButtonDir::Up) {
-                m_logger.info("Delete tile at {}, {}", click->pos.x, click->pos.y);
-
-                const auto tile_pos = ScreenToTilePos(click->pos);
-                if (tile_pos.has_value()) {
-                    m_event_manager->FireSignal<BuildCommand>([tile_pos = *tile_pos](BuildManager& bm) {
-                        bm.DeleteTopmostTile(tile_pos, TileLayer::Walls);
-                    });
-                }
+            if (click != nullptr && click->button == 0 && click->dir == ButtonDir::Down) {
+                event.Store(m_drag_helper_delete->GetDragStartedId(), DragStartedData{*click});
+                continue;
             } else if (press != nullptr) {
                 if (press->IsDownKey(GLFW_KEY_B) || press->IsDownKey(GLFW_KEY_ESCAPE)) {
                     event = EventId::ExitMode;
@@ -205,8 +218,10 @@ void BuildInput::OnStateChanged(const FSM&, std::optional<State>, State to, cons
         res = BuildInputStates::PlaceTileMode;
     } else if (check == StateId::DeleteMode) {
         res = BuildInputStates::DeleteMode;
-    } else if (check == m_drag_helper->GetDragStateId()) {
+    } else if (check == m_drag_helper_place->GetDragStateId()) {
         res = BuildInputStates::PlaceTileDragMode;
+    } else if (check == m_drag_helper_delete->GetDragStateId()) {
+        res = BuildInputStates::DeleteDragMode;
     } else {
         assert(false);
     }

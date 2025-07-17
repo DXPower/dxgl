@@ -1,5 +1,6 @@
 #include <modules/core/Tile.hpp>
 
+#include <cmath>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <magic_enum/magic_enum.hpp>
@@ -88,4 +89,11 @@ std::generator<TileCoord> TileSelection::Iterate() const {
             co_yield TileCoord{x, y};
         }
     }
+}
+
+int TileSelection::Area() const {
+    // Add 1 because end is inclusive
+    int w = std::abs(start.x - end.x) + 1;
+    int h = std::abs(start.y - end.y) + 1;
+    return w * h;
 }
