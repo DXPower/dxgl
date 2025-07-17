@@ -1,5 +1,6 @@
 #pragma once
 
+#include <modules/input/DragHelper.hpp>
 #include <modules/core/Room.hpp>
 #include <modules/application/EventManager.hpp>
 
@@ -37,6 +38,7 @@ namespace input {
         application::EventManager* m_event_manager{};
         const rendering::Camera* m_camera{};
         const core::TileGrid* m_tiles{};
+        std::unique_ptr<DragHelper> m_drag_helper{};
 
     public:
         RoomInput(application::EventManager& em, const rendering::Camera& cam, const core::TileGrid& tiles);

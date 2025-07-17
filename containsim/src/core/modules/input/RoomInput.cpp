@@ -23,8 +23,6 @@ RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam
 
     auto demarcation = AddState("StateDemarcation", std::bind_front(&RoomInput::StateDemarcation, this));
     StateId::Demarcation = demarcation.Id();
-    
-    AddExitTransitionsToAllStates();
 
     auto& events = GetEventInfo();
     EventId::ExitMode = events.AddId("ExitMode");
@@ -36,6 +34,10 @@ RoomInput::RoomInput(application::EventManager& em, const rendering::Camera& cam
     fsm.AddTransition(MeceSubStates::Idle, EventId::ExitMode, MeceSubStates::Inactive);
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectRoomType, StateId::Demarcation);
     fsm.AddTransition(MeceSubStates::Idle, EventId::SelectRoomClear, StateId::Demarcation);
+
+    m_drag_helper = std::make_unique<DragHelper>(*this, StateId::Demarcation, "DemarcationDrag");
+
+    AddExitTransitionsToAllStates();
 }
 
 auto RoomInput::StateIdle(FSM& fsm, int self) -> State {
@@ -69,9 +71,6 @@ auto RoomInput::StateDemarcation(FSM& fsm, int) -> State {
     Event event{};
     std::optional<RoomType> selected_room{};
 
-    TileCoord drag_start{};
-    bool drag_valid = false;
-
     while (true) {
         co_await fsm.EmitAndReceive(event);
 
@@ -81,50 +80,41 @@ auto RoomInput::StateDemarcation(FSM& fsm, int) -> State {
         } else if (event == EventId::SelectRoomClear) {
             selected_room.reset();
             m_logger.info("Cleared room selection");
+        } else if (event == m_drag_helper->GetDragCompletedId()) {
+            const auto& drag_data = event.Get<DragData>();
+            const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
+            const auto end_tile = ScreenToTilePos(drag_data.end.pos);
+
+            if (start_tile.has_value() && end_tile.has_value()) {
+                TileSelection sel{*start_tile, *end_tile};
+
+                if (selected_room.has_value()) {
+                    m_event_manager->FireSignal<RoomCommand>([sel, type = *selected_room](RoomManager& rm) {
+                            rm.MarkTilesAsRoom(sel, type);
+                        });
+                } else {
+                    m_event_manager->FireSignal<RoomCommand>([sel](RoomManager& rm) {
+                            rm.UnmarkTiles(sel);
+                        });
+                }
+            }
         } else if (event == EventId::Action) {
-            // const auto& click = event.Get<MouseClick>();
             const auto& action = event.Get<Action>();
             const MouseClick* click = std::get_if<MouseClick>(&action.data);
             const KeyPress* press = std::get_if<KeyPress>(&action.data);
 
             if (click != nullptr) {
                 if (click->button == 0 && click->dir == ButtonDir::Down) {
-                    const auto tile_pos = ScreenToTilePos(click->pos);
-
-                    if (tile_pos.has_value()) {
-                        drag_start = *tile_pos;
-                        drag_valid = true;
-                    } else {
-                        drag_valid = false;
-                    }
-                } else if (click->button == 0 && click->dir == ButtonDir::Up && drag_valid) {
-                    const auto tile_pos = ScreenToTilePos(click->pos);
-
-                    if (tile_pos.has_value()) {
-                        if (selected_room.has_value()) {
-                            m_event_manager->FireSignal<RoomCommand>([drag_start = drag_start, drag_end = *tile_pos, type = *selected_room](RoomManager& rm) {
-                                    rm.MarkTilesAsRoom(TileSelection{drag_start, drag_end}, type);
-                                });
-                        } else {
-                            m_event_manager->FireSignal<RoomCommand>([drag_start = drag_start, drag_end = *tile_pos](RoomManager& rm) {
-                                    rm.UnmarkTiles(TileSelection{drag_start, drag_end});
-                                });
-                        }
-                    }
-
-                    drag_valid = false;
-                } else {
-                    // uncaptured_actions.Send(Action{click});
+                    event.Store(m_drag_helper->GetDragStartedId(), DragStartedData{*click});
+                    continue;
                 }
             } else if (press != nullptr) {
-                if (press->key == GLFW_KEY_ESCAPE) {
+                if (press->IsDownKey(GLFW_KEY_ESCAPE)) {
                     event = EventId::ExitMode;
                     continue;
-                } else if (press->key == GLFW_KEY_R) {
+                } else if (press->IsDownKey(GLFW_KEY_R)) {
                     event = EventId::SelectRoomClear;
                     continue;
-                } else {
-                    // uncaptured_actions.Send(Action{press});
                 }
             }
         } 

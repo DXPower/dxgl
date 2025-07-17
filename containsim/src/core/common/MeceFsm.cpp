@@ -17,13 +17,6 @@ void MeceSubFsm::InitializeDefaultStates() {
     m_fsm.SetTransitionObserver([this](const FSM& fsm, std::optional<State> from, State to, const Event& e) {
         LogTransition(from, to, e);
 
-        // Detect if we are just sending the enter/exit event
-        if (e == MeceSubEvents::EnteringSubFsm) {
-            m_parent->NotifySubFsmMadeActive(*this);
-        } else if (e == MeceSubEvents::ExitingSubFsm) {
-            m_parent->NotifySubFsmMadeInactive(*this);
-        }
-
         // Detect if we enter the active state for the first time or if we enter inactive state
         if (to.Id() == MeceSubStates::Idle && (!from.has_value() || from->Id() == MeceSubStates::Inactive)) {
             m_parent->NotifySubFsmMadeActive(*this);
@@ -55,7 +48,6 @@ void MeceSubFsm::MakeActive() {
         return;
 
     m_fsm.InsertEvent(MeceSubEvents::EnteringSubFsm);
-    m_parent->NotifySubFsmMadeActive(*this);
 }
 
 void MeceSubFsm::MakeInactive() {
@@ -65,7 +57,6 @@ void MeceSubFsm::MakeInactive() {
 
     m_fsm.SetCurrentState(MeceSubStates::Inactive);
     m_fsm.InsertEvent(MeceSubEvents::ExitingSubFsm);
-    m_parent->NotifySubFsmMadeInactive(*this);
 }
 
 int MeceSubFsm::GetCurState() const {
