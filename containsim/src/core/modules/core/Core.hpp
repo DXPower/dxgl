@@ -7,6 +7,7 @@
 #include <modules/core/RoomManager.hpp>
 #include <modules/core/TileGrid.hpp>
 #include <modules/core/Transform.hpp>
+#include <modules/core/Time.hpp>
 
 namespace core {
     class Core {
