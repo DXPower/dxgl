@@ -12,6 +12,7 @@
 
 #include <common/Logging.hpp>
 #include <common/ActionChain.hpp>
+#include <common/Ticks.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -30,11 +31,14 @@ namespace {
 
 struct GlobalActions : ActionConsumer {
     flecs::entity target{};
+    flecs::entity tick_source{};
+    float ticks_per_second{4.f};
+
     MeceFsm* input_state{};
     const rendering::Camera* cam{};
 
-    GlobalActions(flecs::entity target, const rendering::Camera& cam)
-        : target(target), cam(&cam) {
+    GlobalActions(flecs::entity target, flecs::entity tick_source, const rendering::Camera& cam)
+        : target(target), tick_source(tick_source), cam(&cam) {
         input_state = &target.world().lookup("input::Input::InputState")
             .get_mut<MeceFsm>();
     }
@@ -63,6 +67,25 @@ struct GlobalActions : ActionConsumer {
                     break;
                 case GLFW_KEY_R:
                     input_state->GetSubFsm("RoomInput")->MakeActive();
+                    break;
+                case GLFW_KEY_P:
+                    if (tick_source.has<PauseTicks>()) {
+                        tick_source.remove<PauseTicks>();
+                    } else {
+                        tick_source.add<PauseTicks>();
+                    }
+                    break;
+                case GLFW_KEY_COMMA:
+                    ticks_per_second /= 2;
+                    tick_source.world().set<TickRate>(TickRate{
+                        .period = ch::seconds(1) / ticks_per_second
+                    });
+                    break;
+                case GLFW_KEY_PERIOD:
+                    ticks_per_second *= 2;
+                    tick_source.world().set<TickRate>(TickRate{
+                        .period = ch::seconds(1) / ticks_per_second
+                    });
                     break;
                 default:
                     break;
@@ -183,9 +206,10 @@ Experiment::Experiment(flecs::world& world) {
         });
 
     const auto& camera = world.get<rendering::Camera>();
+    auto tick_source = world.lookup("core::Core::TickSource");
 
     world.component<GlobalActions>().add(flecs::Sparse);
-    world.emplace<GlobalActions>(test_actor, camera);
+    world.emplace<GlobalActions>(test_actor, tick_source, camera);
     auto& global_actions = world.get_mut<GlobalActions>();
 
     auto& action_router = world.get_mut<input::ActionRouter>();
@@ -199,4 +223,10 @@ Experiment::Experiment(flecs::world& world) {
     // chain::Connect(input_state.idle_actions, global_actions);
     // chain::Connect(build_input.uncaptured_actions, global_actions);
     // chain::Connect(room_input.uncaptured_actions, global_actions);
+
+    world.system()
+        .tick_source(tick_source)
+        .run([logger](flecs::iter&) {
+            logger->info("Ticking...! Time: {}", TickClock::now().time_since_epoch().count());
+        });
 }
