@@ -39,7 +39,7 @@ Application::Application(flecs::world& world) {
     auto main_window_e = world.entity()
         .add<MainWindow>();
 
-    constexpr bool start_fullscreen = false;
+    constexpr bool start_fullscreen = true;
 
     if (start_fullscreen) {
         main_window_e.emplace<dxgl::Window>(dxtl::cstring_view("Containment Simulator"), dxgl::Window::BorderlessWindow{});

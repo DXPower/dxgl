@@ -42,8 +42,25 @@ int main() {
         auto& main_window = world.query<application::MainWindow>()
             .first().get_mut<dxgl::Window>();
 
+        auto default_pipeline = world.get_pipeline();
+        auto ticks_paused_pipeline = world.pipeline()
+            .with(flecs::System)
+            .without<core::DependsOnTicks>()
+            .with(flecs::Phase).cascade(flecs::DependsOn)
+            .without(flecs::Disabled).up(flecs::DependsOn)
+            .without(flecs::Disabled).up(flecs::ChildOf)
+            .build();
+
+        auto tick_source = world.lookup("core::Core::TickSource");
+
         while (!main_window.ShouldClose()) {
             main_window.PollEvents();
+
+            if (!tick_source.has<core::PauseTicks>()) {
+                world.set_pipeline(default_pipeline);
+            } else {
+                world.set_pipeline(ticks_paused_pipeline);
+            }
 
             auto delta_time = delta_timer.Tick();
             world.progress(static_cast<float>(delta_time));

@@ -42,8 +42,10 @@ Core::Core(flecs::world& world) {
 
     // Register core configurations
     core::RegisterCoreConfigurations(world);
-
+    world.component<DependsOnTicks>();
+    world.component<PauseTicks>();
     world.component<TimeSinceLastTick>();
+
     world.add<TimeSinceLastTick>();
 
     auto tick_source = world.timer();

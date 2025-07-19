@@ -10,4 +10,6 @@ namespace core {
     };
 
     struct PauseTicks { };
+
+    struct DependsOnTicks { };
 }

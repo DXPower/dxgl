@@ -144,7 +144,7 @@ Experiment::Experiment(flecs::world& world) {
             .layer = RenderLayer::Objects
         })
         .add<rendering::SpriteRenderer>()
-        .set<core::Mobility>(core::Mobility{.speed = 350.f})
+        .set<core::Mobility>(core::Mobility{.speed = 87.5f})
         .set(physics::Collider{
             .is_listening = true
         })
