@@ -1,4 +1,5 @@
 #include <common/Logging.hpp>
+#include <modules/ai/Ai.hpp>
 #include <modules/application/Application.hpp>
 #include <modules/input/Input.hpp>
 #include <modules/physics/Physics.hpp>
@@ -8,6 +9,7 @@
 #include <modules/ui/Ui.hpp>
 #include <modules/experiment/Experiment.hpp>
 #include <modules/misc_gameplay/MiscGameplay.hpp>
+#include <modules/research/Research.hpp>
 
 #include "DeltaTimer.hpp"
 
@@ -37,7 +39,9 @@ int main() {
         world.import<pathing::Pathing>();
         world.import<experiment::Experiment>();
         world.import<misc_gameplay::MiscGameplay>();
-
+        world.import<research::Research>();
+        world.import<ai::Ai>();
+        
         DeltaTimer delta_timer{};
         auto& main_window = world.query<application::MainWindow>()
             .first().get_mut<dxgl::Window>();

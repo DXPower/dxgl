@@ -49,7 +49,8 @@ namespace {
     };
 
     struct SpriteRendererSystemData {
-        std::map<RenderLayer, InstanceData> layer_instances{};
+        // Maps texture to instances
+        std::map<RenderLayer, std::unordered_map<unsigned int, InstanceData>> layer_instances{};
 
         dxgl::Program program{};
         dxgl::Vbo quad_vbo{};
@@ -88,7 +89,7 @@ namespace {
         tex_mat = glm::translate(tex_mat, pos_mod / tex_size);
         tex_mat = glm::scale(tex_mat, sprite.cutout.size / tex_size);
 
-        auto& instance_data = sr_data.layer_instances[rdata.layer];
+        auto& instance_data = sr_data.layer_instances[rdata.layer][sprite.spritesheet->GetHandle()];
         
         instance_data.instance_data_buffer.push_back({
             .world = world_mat,
@@ -101,41 +102,42 @@ namespace {
     void OnStore(SpriteRendererSystemData& sr_data, DrawQueues& draw_queues) {
         using namespace dxgl;
 
-        for (const auto& [layer, instance_data] : sr_data.layer_instances) {
-            auto draw = sr_data.MakeDrawTemplate();
+        for (const auto& [layer, per_tex_instance_data] : sr_data.layer_instances) {
+            for (const auto& [tex, instance_data] : per_tex_instance_data) {
+                auto draw = sr_data.MakeDrawTemplate();
 
-            draw.vao_storage.emplace();
-            draw.vbo_storage.emplace_back().Upload(instance_data.instance_data_buffer, BufferUsage::Static);
-            draw.num_instances = (uint32_t) instance_data.instance_data_buffer.size();
-            // TODO: sort sprites by texture
-            draw.textures.push_back(instance_data.instance_data_misc.front().spritesheet);
+                draw.vao_storage.emplace();
+                draw.vbo_storage.emplace_back().Upload(instance_data.instance_data_buffer, BufferUsage::Static);
+                draw.num_instances = (uint32_t) instance_data.instance_data_buffer.size();
+                draw.textures.push_back(instance_data.instance_data_misc.front().spritesheet);
 
-            VaoAttribBuilder()
-                .Group(AttribGroup()
-                    .Vbo(sr_data.quad_vbo)
-                    .Attrib(Attribute()
-                        .Type(AttribType::Float)
-                        .Components(2)
-                        .Multiply(2)
+                VaoAttribBuilder()
+                    .Group(AttribGroup()
+                        .Vbo(sr_data.quad_vbo)
+                        .Attrib(Attribute()
+                            .Type(AttribType::Float)
+                            .Components(2)
+                            .Multiply(2)
+                        )
                     )
-                )
-                .Group(AttribGroup()
-                    .Vbo(draw.vbo_storage.back())
-                    .Attrib(Attribute()
-                        .Type(AttribType::Float)
-                        .Matrix(3, 3)
-                        .PerInstance()
+                    .Group(AttribGroup()
+                        .Vbo(draw.vbo_storage.back())
+                        .Attrib(Attribute()
+                            .Type(AttribType::Float)
+                            .Matrix(3, 3)
+                            .PerInstance()
+                        )
+                        .Attrib(Attribute()
+                            .Type(AttribType::Float)
+                            .Matrix(3, 3)
+                            .PerInstance()
+                        )
+                        // .Offset(sizeof(quad_vbo_data))
                     )
-                    .Attrib(Attribute()
-                        .Type(AttribType::Float)
-                        .Matrix(3, 3)
-                        .PerInstance()
-                    )
-                    // .Offset(sizeof(quad_vbo_data))
-                )
-                .Apply(*draw.vao_storage);
+                    .Apply(*draw.vao_storage);
 
-            draw_queues.QueueOwnedDraw(layer, std::move(draw));
+                draw_queues.QueueOwnedDraw(layer, std::move(draw));
+            }
         }
 
         sr_data.layer_instances.clear();

@@ -30,6 +30,13 @@ void core::TickSystem(flecs::iter& it, size_t, EcsTickSource& flecs_timer, TimeS
     if (time.value >= rate.period) {
         // Only subtract the period to account for overshoot
         time.value -= rate.period;
+        // If we've overshot by multiple ticks, just reset back to 0
+        // This is particularly useful when debugging so if we pause for a while,
+        // we don't throw out thousands of ticks at once
+        if (time.value > rate.period) {
+            time.value = {};
+        }
+
         flecs_timer.time_elapsed = time.value.count();
         flecs_timer.tick = true;
 
@@ -38,6 +45,8 @@ void core::TickSystem(flecs::iter& it, size_t, EcsTickSource& flecs_timer, TimeS
 }
 
 Core::Core(flecs::world& world) {
+    auto logger = logging::CreateSharedLogger("Core");
+
     world.import<application::Application>();
 
     // Register core configurations
@@ -98,4 +107,23 @@ Core::Core(flecs::world& world) {
 
     world.component<RoomManager>().add(flecs::Sparse);
     world.emplace<RoomManager>(tile_grid, event_manager);
+
+    world.component<Cooldown>();
+    world.component<Intent>().add(flecs::Inheritable);
+
+    SetupInteractionSystems(world);
+
+    world.component<TotalScience>();
+    world.add<TotalScience>();
+    world.component<ScienceGain>();
+
+    world.system<const ScienceGain, TotalScience>()
+        .term_at<TotalScience>().singleton()
+        .kind(flecs::PostUpdate)
+        .each([logger](flecs::entity e, const ScienceGain& g, TotalScience& t) {
+            t.value += g.value;
+            e.remove<ScienceGain>();
+
+            logger->debug("Gained {} science, now have {} total", g.value, t.value);
+        });
 }

@@ -49,3 +49,7 @@ using TickRep = TickClock::rep;
 using TickPeriod = TickClock::period;
 using TickDuration = TickClock::duration;
 using TickPoint = TickClock::time_point;
+
+inline TickDuration operator""_ticks(unsigned long long t) {
+    return TickDuration(static_cast<long long>(t));
+}
