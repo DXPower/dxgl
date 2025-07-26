@@ -4,7 +4,6 @@
 #include <modules/core/BuildManager.hpp>
 #include <modules/core/Configuration.hpp>
 #include <modules/core/Cooldown.hpp>
-#include <modules/core/Intent.hpp>
 #include <modules/core/Interaction.hpp>
 #include <modules/core/Mobility.hpp>
 #include <modules/core/RoomManager.hpp>

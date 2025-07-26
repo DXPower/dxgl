@@ -109,7 +109,16 @@ Core::Core(flecs::world& world) {
     world.emplace<RoomManager>(tile_grid, event_manager);
 
     world.component<Cooldown>();
-    world.component<Intent>().add(flecs::Inheritable);
+    world.system<Cooldown>()
+        .tick_source(tick_source)
+        .each([](flecs::entity e, Cooldown& c) {
+            c.time_remaining--;
+
+            if (c.time_remaining.count() == 0) {
+                e.remove<Cooldown>();
+            }
+        });
+
 
     SetupInteractionSystems(world);
 

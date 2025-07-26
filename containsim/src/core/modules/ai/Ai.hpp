@@ -1,6 +1,7 @@
 #pragma once
 
 #include <modules/ai/Perform.hpp>
+#include <modules/ai/Utility.hpp>
 #include <flecs.h>
 
 namespace ai {

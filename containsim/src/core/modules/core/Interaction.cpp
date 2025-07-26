@@ -1,4 +1,5 @@
 #include <modules/core/Interaction.hpp>
+#include <modules/core/Cooldown.hpp>
 
 using namespace core;
 
@@ -51,6 +52,9 @@ void core::SetupInteractionSystems(flecs::world& world) {
             if (p.time_needed >= p.time_elapsed) {
                 interactioner.enqueue<InteractionerCompleteEvent>({interactionee});
                 interactionee.enqueue<InteractioneeCompleteEvent>({interactioner});
+
+                TickDuration cooldown = interactionee.get<Interactable>().cooldown;
+                interactionee.set(Cooldown{.time_remaining = cooldown});
             } else {
                 interactioner.enqueue<InteractionerFailedEvent>({interactionee});
                 interactionee.enqueue<InteractioneeFailedEvent>({interactioner});

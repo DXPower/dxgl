@@ -153,12 +153,11 @@ Experiment::Experiment(flecs::world& world) {
         .set(physics::SquareCollider{
             .relative_size = {.9f, .95f}
         })
+        .add<ai::Performer>()
         .add<research::Researcher>();
+    // test_actor.get<ai::Performer>().performance->GetFsm().InsertEvent(ai::DefaultPerformerEvents::Begin);    
 
-    test_actor.set<ai::Performer>({
-        std::make_unique<research::ResearchPerformance>(test_actor)
-    });
-    test_actor.get<ai::Performer>().performance->GetFsm().InsertEvent(ai::DefaultPerformerEvents::Begin);    
+    logger->debug("Type of researcher: {}", test_actor.type().str().c_str());
 
     auto research_desk = world.entity().set_name("Desk1")
         .set(research::ResearchPoint{
@@ -184,7 +183,16 @@ Experiment::Experiment(flecs::world& world) {
         })
         .set(physics::SquareCollider{})
         .set(Interactable{
-            .time_needed = TickDuration(16)
+            .time_needed = TickDuration(16),
+            .cooldown = TickDuration(16)
+        });
+
+    world.entity()
+        .is_a(research_desk)
+        .set_name("desk2")
+        .set(Transform{
+            .position = {1200, 400},
+            .size = {64, 108}
         });
 
     const auto& camera = world.get<rendering::Camera>();

@@ -6,7 +6,9 @@
 namespace core {
     struct Interactable {
         TickDuration time_needed{};
+        TickDuration cooldown{};
     };
+
     struct InteractingWith { };
     struct InteractionProgress {
         TickDuration time_elapsed{};

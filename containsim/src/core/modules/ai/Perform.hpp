@@ -1,5 +1,7 @@
 #pragma once
 
+#include <modules/ai/Consideration.hpp>
+
 #include <common/Logging.hpp>
 #include <dxfsm/dxfsm.hpp>
 #include <flecs.h>
@@ -56,6 +58,45 @@ protected:
 
 struct Performer {
     std::unique_ptr<Performance> performance{};
+};
+
+
+class PerformanceFactory {
+public:
+    virtual ~PerformanceFactory() = default;
+
+    virtual std::unique_ptr<Performance> MakePerformance(flecs::entity_view potential_performance) = 0;
+};
+
+struct PerformanceFactoryStorage {
+    std::unique_ptr<PerformanceFactory> factory{};
+};
+
+struct PotentialPerformanceScorer {
+    std::shared_ptr<Consideration> consideration{};
+};
+
+
+// Anything that has this tag should also have:
+// 1. PotentialPerformancePerformer relationship to which Performer can perform this action
+// 2. PotentialPerformanceFactory relationship to which PerformanceFactory should create this action
+//    (it's argument will be the entity with the PotentialPerformanceTag component)
+// 3. (Optional): PotentialPerformanceTarget relationship(s) which the virtual PerformanceFactory can query for
+// Virtual PerformanceFactories can also query for more data as needed.
+struct PotentialPerformanceTag { };
+
+struct PotentialPerformancePerformer { };
+struct PotentialPerformanceTarget { };
+struct PotentialPerformanceFactory { };
+
+template<typename P>
+class BasicPerformerPerformanceFactory final : public PerformanceFactory {
+public:
+    std::unique_ptr<Performance> MakePerformance(flecs::entity_view potential_performance) override {
+        auto performer_e = potential_performance.target<PotentialPerformancePerformer>();
+        return std::make_unique<P>(performer_e);
+    };
+
 };
 
 }

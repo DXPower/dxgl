@@ -68,6 +68,9 @@ auto ResearchPerformance::StateResearch(FSM& fsm, StateId_t) -> State {
                 auto point = point_e.get<ResearchPoint>();
 
                 point_e.set(core::ScienceGain{point.science_per_success});
+                point_e.remove<ResearchPointReserved>();
+                m_performer.remove<AssignedResearchPoint>(flecs::Wildcard);
+
                 ev = ai::DefaultPerformerEvents::SubstepSuccess;
                 continue;
             } else if (ev == ai::DefaultPerformerEvents::InteractionFailed) {

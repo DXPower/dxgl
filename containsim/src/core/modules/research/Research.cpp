@@ -2,6 +2,8 @@
 #include <modules/core/Core.hpp>
 #include <modules/pathing/Pathing.hpp>
 #include <modules/physics/Physics.hpp>
+#include <modules/ai/Ai.hpp>
+
 #include <common/Logging.hpp>
 
 using namespace research;
@@ -12,6 +14,7 @@ Research::Research(flecs::world& world) {
     world.import<core::Core>();
     world.import<pathing::Pathing>();
     world.import<physics::Physics>();
+    world.import<ai::Ai>();
 
     world.component<Researcher>();
     world.component<ResearchPoint>();
@@ -20,35 +23,48 @@ Research::Research(flecs::world& world) {
     auto find_free_research_points = world.query_builder()
         .with<ResearchPoint>()
         .without<ResearchPointReserved>()
-        .cache_kind(flecs::QueryCacheAll)
+        .without<core::Cooldown>()
         .build();
 
     world.system("AssignResearchers")
         .immediate()
         .with<AwaitingResearchPoint>()
+        .without<AssignedResearchPoint>(flecs::Wildcard)
         .each([find_free_research_points, logger](flecs::entity researcher) {
             auto research_point = find_free_research_points.first();
 
             if (!research_point)
                 return;
 
+            logger->debug("Researcher: {}", researcher.type().str().c_str());
             research_point.add<ResearchPointReserved>();
             researcher.add<AssignedResearchPoint>(research_point);
             logger->debug("Assigning research point with id {}", research_point.id());
         });
 
-    // world.system("BeginResearching")
-    //     .with<Researcher>()
-    //     .with<IntentToResearch>()
-    //     .with<physics::CollisionBegan>(flecs::Wildcard)
-    //     .each([logger](flecs::iter& it, size_t idx) {
-    //         flecs::entity collision = it.pair(2).second();
-    //         flecs::entity self = it.entity(idx);
+    // Setup the research performance
+    auto research_performance_factory = world.entity("ResearchPerformanceFactory")
+        .set(ai::PerformanceFactoryStorage{
+            .factory = std::make_unique<ai::BasicPerformerPerformanceFactory<ResearchPerformance>>()
+        });
 
-    //         if (collision.has<ResearchPoint>()) {
-    //             self.remove<pathing::DestinationIntent>();
-    //             self.remove<pathing::Path>();
-    //         }
-    //     });
+    auto research_performance_scorer = world.entity("ResearchPerformanceScorer")
+        .set(ai::PotentialPerformanceScorer{
+            .consideration = std::make_shared<ai::ConstantConsideration>("ResearchConstant", 0.75f)
+        });
 
+    world.observer()
+        .with<Researcher>()
+        .event(flecs::OnAdd)
+        .yield_existing()
+        .each([=](flecs::entity e) {
+            using namespace ai;
+            auto p = e.world().entity()
+                .add<PotentialPerformanceTag>()
+                .add<PotentialPerformanceFactory>(research_performance_factory)
+                .add<PotentialPerformanceScorer>(research_performance_scorer)
+                .add<PotentialPerformancePerformer>(e);
+
+            logger->debug("Potential performance type: {}", p.type().str().c_str());
+        });
 }

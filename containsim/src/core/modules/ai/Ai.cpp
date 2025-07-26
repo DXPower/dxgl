@@ -42,4 +42,6 @@ Ai::Ai(flecs::world& world) {
                 e.get<Performer>().performance->GetFsm().InsertEvent("InteractionFailed", i.interactionee);
             });
         });
+
+    InitUtilitySystems(world);
 }
