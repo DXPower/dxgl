@@ -1,9 +1,11 @@
 #include <modules/ui/Ui.hpp>
 #include <modules/ui/InputStateBinding.hpp>
 #include <modules/ui/TilesBinding.hpp>
+#include <modules/ui/EconomyBinding.hpp>
 #include <modules/ui/BuildPanel.hpp>
 #include <modules/ui/RoomPanel.hpp>
 #include <modules/application/Application.hpp>
+#include <modules/core/Core.hpp>
 
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -13,6 +15,7 @@ using namespace ui;
 
 Ui::Ui(flecs::world& world) {
     world.import<application::Application>();
+    world.import<core::Core>();
 
     auto& event_manager = world.get_mut<application::EventManager>();
     
@@ -35,6 +38,12 @@ Ui::Ui(flecs::world& world) {
     world.component<TilesBinding>().add(flecs::Sparse);
     world.emplace<ui::TilesBinding>(
         *context_handle.context
+    );
+
+    world.component<EconomyBinding>().add(flecs::Sparse);
+    world.emplace<EconomyBinding>(
+        *context_handle.context,
+        world
     );
 
     // Load the document

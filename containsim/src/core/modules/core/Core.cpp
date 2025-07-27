@@ -129,11 +129,14 @@ Core::Core(flecs::world& world) {
 
     world.system<const ScienceGain, TotalScience>()
         .term_at<TotalScience>().singleton()
+        .write<TotalScience>()
         .kind(flecs::PostUpdate)
         .each([logger](flecs::entity e, const ScienceGain& g, TotalScience& t) {
             t.value += g.value;
             e.remove<ScienceGain>();
 
             logger->debug("Gained {} science, now have {} total", g.value, t.value);
+
+            e.world().modified<TotalScience>();
         });
 }

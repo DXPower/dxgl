@@ -6,6 +6,9 @@
 </head>
 <body>
     <div id="ui-contianer">
+        <div data-model="economy">
+            <p>Total science: {{total_science}}</p>
+        </div>
         <div id="bottom-bar" data-model="input_state">
             <div>
                 <button onclick="bc EnterBuildMode" data-class-hidden="build_state != 'InactiveMode'">Build</button>
