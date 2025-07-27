@@ -56,10 +56,11 @@ protected:
     void SetupDefaultStates();
 };
 
-struct Performer {
+struct Performer { };
+
+struct CurrentPerformance {
     std::unique_ptr<Performance> performance{};
 };
-
 
 class PerformanceFactory {
 public:

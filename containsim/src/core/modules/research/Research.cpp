@@ -19,6 +19,8 @@ Research::Research(flecs::world& world) {
     world.component<Researcher>();
     world.component<ResearchPoint>();
     world.component<ResearchPointReserved>();
+    world.component<AwaitingResearchPoint>();
+    world.component<AssignedResearchPoint>().add(flecs::Relationship);
 
     auto find_free_research_points = world.query_builder()
         .with<ResearchPoint>()
@@ -36,7 +38,6 @@ Research::Research(flecs::world& world) {
             if (!research_point)
                 return;
 
-            logger->debug("Researcher: {}", researcher.type().str().c_str());
             research_point.add<ResearchPointReserved>();
             researcher.add<AssignedResearchPoint>(research_point);
             logger->debug("Assigning research point with id {}", research_point.id());
@@ -59,12 +60,10 @@ Research::Research(flecs::world& world) {
         .yield_existing()
         .each([=](flecs::entity e) {
             using namespace ai;
-            auto p = e.world().entity()
+            e.world().entity()
                 .add<PotentialPerformanceTag>()
                 .add<PotentialPerformanceFactory>(research_performance_factory)
                 .add<PotentialPerformanceScorer>(research_performance_scorer)
                 .add<PotentialPerformancePerformer>(e);
-
-            logger->debug("Potential performance type: {}", p.type().str().c_str());
         });
 }

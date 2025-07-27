@@ -42,25 +42,24 @@ void ai::InitUtilitySystems(flecs::world& world) {
             potential_performance.set(UtilityScore{.value = score});
         });
 
-    world.system<Performer>("SetCurrentAction")
+    world.system<CurrentPerformance>("CurrentPerformanceCleanup")
+        .kind(flecs::PreUpdate)
+        .each([](flecs::entity e, CurrentPerformance& p) {
+            auto cur_state = p.performance->GetFsm().GetCurrentState();
+            
+            if (cur_state.has_value() && cur_state->Id() == DefaultPerformerStates::Complete) {
+                e.remove<CurrentPerformance>();
+            }
+        }); 
+
+    world.system("SetCurrentAction")
+        .with<Performer>()
+        .without<CurrentPerformance>()
+        .write<CurrentPerformance>()
         .read<UtilityScore>()
         .read<PerformanceFactoryStorage>()
         .kind(flecs::PreUpdate)
-        .each([](flecs::entity e, Performer& performer) {
-            if (performer.performance != nullptr) {
-                auto cur_state = performer.performance->GetFsm().GetCurrentState();
-                // If there is no state set, we're considering it not started.
-                // Should probably change this in the future to detect error states
-                bool still_running = !cur_state.has_value() || cur_state->Id() != DefaultPerformerStates::Complete;
-                if (still_running) {
-                    // Don't select a new action until it's done
-                    // TODO: Interruptions
-                    return;
-                } else {
-                    performer.performance.reset();
-                }
-            }
-
+        .each([](flecs::entity e) {
             struct ScoredPerformance {
                 flecs::entity performance{};
                 float score{};
@@ -89,7 +88,9 @@ void ai::InitUtilitySystems(flecs::world& world) {
             const auto& factory = factory_e.get<PerformanceFactoryStorage>().factory;
 
             auto new_performance = factory->MakePerformance(highest->performance);
-            performer.performance = std::move(new_performance);
-            performer.performance->GetFsm().InsertEvent(ai::DefaultPerformerEvents::Begin);
+            auto* new_performance_ptr = new_performance.get();
+
+            e.set(CurrentPerformance{std::move(new_performance)});
+            new_performance_ptr->GetFsm().InsertEvent(ai::DefaultPerformerEvents::Begin);
         });
 }

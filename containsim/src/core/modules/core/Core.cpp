@@ -117,7 +117,8 @@ Core::Core(flecs::world& world) {
             if (c.time_remaining.count() == 0) {
                 e.remove<Cooldown>();
             }
-        });
+        })
+        .add<core::DependsOnTicks>();
 
 
     SetupInteractionSystems(world);

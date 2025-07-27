@@ -10,6 +10,7 @@
 #include <modules/experiment/Experiment.hpp>
 #include <modules/misc_gameplay/MiscGameplay.hpp>
 #include <modules/research/Research.hpp>
+#include <modules/prefabs/Prefabs.hpp>
 
 #include "DeltaTimer.hpp"
 
@@ -41,6 +42,7 @@ int main() {
         world.import<misc_gameplay::MiscGameplay>();
         world.import<research::Research>();
         world.import<ai::Ai>();
+        world.import<prefabs::Prefabs>();
         
         DeltaTimer delta_timer{};
         auto& main_window = world.query<application::MainWindow>()

@@ -1,5 +1,6 @@
 #include <modules/core/Interaction.hpp>
 #include <modules/core/Cooldown.hpp>
+#include <modules/core/Time.hpp>
 
 using namespace core;
 
@@ -39,7 +40,8 @@ void core::SetupInteractionSystems(flecs::world& world) {
             flecs::entity interactionee = it.pair(1).second();
 
             interactioner.remove<InteractingWith>(interactionee);
-        });
+        })
+        .add<core::DependsOnTicks>();
 
     world.observer<InteractionProgress>()
         .term_at(0).filter()

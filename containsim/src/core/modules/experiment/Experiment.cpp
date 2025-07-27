@@ -6,6 +6,7 @@
 #include <modules/pathing/Pathing.hpp>
 #include <modules/input/Input.hpp>
 #include <modules/research/Research.hpp>
+#include <modules/prefabs/Prefabs.hpp>
 
 #include <modules/core/Actor.hpp>
 #include <modules/core/Transform.hpp>
@@ -103,6 +104,7 @@ Experiment::Experiment(flecs::world& world) {
     world.import<pathing::Pathing>();
     world.import<input::Input>();
     world.import<research::Research>();
+    world.import<prefabs::Prefabs>();
 
     auto logger = logging::CreateSharedLogger("Experiment");
 
@@ -118,82 +120,21 @@ Experiment::Experiment(flecs::world& world) {
         build_manager.PlaceTile(tile_coord, TileType::Grass);
     }
 
-    auto gardner_sheet_e = world.entity("GardnerSheet")
-        .set<dxgl::Texture>(dxgl::LoadTextureFromFile("res/img/gardner.png"));
-
-    const auto& gardner_sheet = gardner_sheet_e.get<dxgl::Texture>();
-
-    auto objects_sheet_e = world.entity("ObjectsSheet")
-        .set<dxgl::Texture>(dxgl::LoadTextureFromFile("res/img/objects.png"));
-    const auto& objects_sheet = objects_sheet_e.get<dxgl::Texture>();
-
     // Populate world actors
-    auto test_actor = world.entity().set_name("TestActor")
-        .set<core::Actor>(core::Actor{.id = 1})
-        .set<pathing::PathMover>(pathing::PathMover{})
-        .set(core::Transform{
-            .position = {400, 400},
-            .size = {95, 95},
-        })
-        .set(rendering::Sprite{
-            .spritesheet = gardner_sheet,
-            .cutout = {
-                .position = {0, 0},
-                .size = {64, 64}
-            }
-        })
-        .set(rendering::RenderData{
-            .layer = RenderLayer::Objects
-        })
-        .add<rendering::SpriteRenderer>()
-        .set<core::Mobility>(core::Mobility{.speed = 87.5f})
-        .set(physics::Collider{
-            .is_listening = true
-        })
-        .set(physics::SquareCollider{
-            .relative_size = {.9f, .95f}
-        })
-        .add<ai::Performer>()
-        .add<research::Researcher>();
-    // test_actor.get<ai::Performer>().performance->GetFsm().InsertEvent(ai::DefaultPerformerEvents::Begin);    
+    auto test_actor = world.entity()
+        .is_a<prefabs::Researcher>()
+        .set_name("TestResearcher");
+    test_actor.get_mut<Transform>().position = {400, 400};
 
-    logger->debug("Type of researcher: {}", test_actor.type().str().c_str());
+    auto desk1 = world.entity()
+        .is_a<prefabs::ResearchDesk>()
+        .set_name("desk1");
+    desk1.get_mut<Transform>().position = {1300, 200};
 
-    auto research_desk = world.entity().set_name("Desk1")
-        .set(research::ResearchPoint{
-            .science_per_success = 100
-        })
-        .set(core::Transform{
-            .position = {1300, 200},
-            .size = {64, 108}
-        })
-        .set(rendering::Sprite{
-            .spritesheet = objects_sheet,
-            .cutout = {
-                .position = {895, 1870},
-                .size = {64, 108}
-            }
-        })
-        .set(rendering::RenderData{
-            .layer = RenderLayer::Objects
-        })
-        .add<rendering::SpriteRenderer>()
-        .set(physics::Collider{
-            .is_trigger = true
-        })
-        .set(physics::SquareCollider{})
-        .set(Interactable{
-            .time_needed = TickDuration(16),
-            .cooldown = TickDuration(16)
-        });
-
-    world.entity()
-        .is_a(research_desk)
-        .set_name("desk2")
-        .set(Transform{
-            .position = {1200, 400},
-            .size = {64, 108}
-        });
+    auto desk2 = world.entity()
+        .is_a<prefabs::ResearchDesk>()
+        .set_name("desk2");
+    desk2.get_mut<Transform>().position = {1200, 400};
 
     const auto& camera = world.get<rendering::Camera>();
     auto tick_source = world.lookup("core::Core::TickSource");

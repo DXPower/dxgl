@@ -10,24 +10,25 @@ Ai::Ai(flecs::world& world) {
     
     world.component<Performer>();
 
-    world.system<const Performer>("AiInputCollisionBegin")
+    world.system<CurrentPerformance>("AiInputCollisionBegin")
         .with<physics::CollisionBegan>(flecs::Wildcard)
-        .each([](flecs::iter& it, size_t, const Performer& p) {
+        .each([](flecs::iter& it, size_t, const CurrentPerformance& p) {
             if (p.performance == nullptr)
                 return;
 
             p.performance->GetFsm().InsertEvent("CollisionBegan", it.pair(1).second());
         });
 
-    world.system<const Performer>("AiInputTick")
+    world.system<const CurrentPerformance>("AiInputTick")
         .tick_source(world.lookup("core::Core::TickSource"))
         .kind(flecs::OnUpdate)
-        .each([](const Performer& p) {
+        .each([](const CurrentPerformance& p) {
             if (p.performance == nullptr)
                 return;
 
             p.performance->GetFsm().InsertEvent("Tick");
-        });
+        })
+        .add<core::DependsOnTicks>();
 
     world.observer()
         .with<Performer>()
@@ -35,11 +36,21 @@ Ai::Ai(flecs::world& world) {
         .yield_existing()
         .each([](flecs::entity e) {
             e.observe([](flecs::entity e, const core::InteractionerCompleteEvent& i) {
-                e.get<Performer>().performance->GetFsm().InsertEvent("InteractionComplete", i.interactionee);
+                const auto* p = e.try_get<CurrentPerformance>();
+
+                if (p == nullptr)
+                    return;
+
+                p->performance->GetFsm().InsertEvent("InteractionComplete", i.interactionee);
             });
 
             e.observe([](flecs::entity e, const core::InteractionerFailedEvent& i) {
-                e.get<Performer>().performance->GetFsm().InsertEvent("InteractionFailed", i.interactionee);
+                const auto* p = e.try_get<CurrentPerformance>();
+
+                if (p == nullptr)
+                    return;
+
+                p->performance->GetFsm().InsertEvent("InteractionFailed", i.interactionee);
             });
         });
 
