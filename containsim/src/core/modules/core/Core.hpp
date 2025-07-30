@@ -7,6 +7,7 @@
 #include <modules/core/Interaction.hpp>
 #include <modules/core/Mobility.hpp>
 #include <modules/core/RoomManager.hpp>
+#include <modules/core/RoomTypeMeta.hpp>
 #include <modules/core/Science.hpp>
 #include <modules/core/TileGrid.hpp>
 #include <modules/core/Transform.hpp>

@@ -27,6 +27,7 @@ Checks: '
     -cppcoreguidelines-avoid-do-while,
     -cppcoreguidelines-pro-type-union-access,
     -cppcoreguidelines-missing-std-forward,
+    -cppcoreguidelines-avoid-magic-numbers,
   misc-*,
     -misc-non-private-member-variables-in-classes,
     -misc-no-recursion,

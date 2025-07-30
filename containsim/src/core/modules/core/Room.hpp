@@ -6,14 +6,10 @@
 #include <glm/gtx/hash.hpp>
 
 namespace core {
-enum class RoomType {
-    ContainmentCell,
-    Deliveries,
-    Research,
-    Security,
-};
-
+    
+using RoomType = int;
 using RoomId = uint32_t;
+
 inline constexpr RoomId NoRoom = 0;
 
 class Room {

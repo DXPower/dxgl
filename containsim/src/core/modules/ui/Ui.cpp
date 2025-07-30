@@ -4,6 +4,7 @@
 #include <modules/ui/EconomyBinding.hpp>
 #include <modules/ui/BuildPanel.hpp>
 #include <modules/ui/RoomPanel.hpp>
+#include <modules/ui/RoomTypesBinding.hpp>
 #include <modules/application/Application.hpp>
 #include <modules/core/Core.hpp>
 
@@ -46,6 +47,12 @@ Ui::Ui(flecs::world& world) {
         world
     );
 
+    world.component<RoomTypesBinding>().add(flecs::Sparse);
+    world.emplace<RoomTypesBinding>(
+        *context_handle.context,
+        world
+    );
+
     // Load the document
     auto* document = context_handle.context->LoadDocument("res/ui/game/test.rml");
 
@@ -60,7 +67,7 @@ Ui::Ui(flecs::world& world) {
     world.emplace<BuildPanel>(event_manager);
 
     world.component<RoomPanel>().add(flecs::Sparse);;
-    world.emplace<RoomPanel>(event_manager);
+    world.emplace<RoomPanel>(event_manager, world.get<core::RoomTypeMetas>());
 
     // UI render phase, which comes after the world is rendered
     // (This is why this system is in the UI module, not the application module)

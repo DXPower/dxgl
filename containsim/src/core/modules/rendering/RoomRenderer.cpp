@@ -110,7 +110,7 @@ namespace {
             return vertices;
         }
 
-        dxgl::Draw BuildDraw(const Room& room) const {
+        dxgl::Draw BuildDraw(const RoomManager& room_manager, const RoomTypeMetas& room_types, const Room& room) const {
             auto vertex_data = BuildRoomBorders(room);
 
             // Make the draw to be queued using the generated instance data
@@ -122,6 +122,20 @@ namespace {
             draw.vbo_storage.emplace_back().Upload(vertex_data, dxgl::BufferUsage::Static);
             draw.options.wireframe = true;
             draw.options.line_width = 4.f;
+
+            const auto& type_meta = room_types.Get(room.GetType());
+
+            if (type_meta == nullptr) {
+                throw std::runtime_error(std::format("Could not find meta information for room type {}", room.GetType()));
+            }
+
+            const glm::vec4 color = glm::vec4(type_meta->color, 1.f);
+            const float ombre_width = room_manager.GetTileGrid().GetTileWorldSize().x / 5.f;
+
+            draw.uniform_applicator = [color, ombre_width](dxgl::ProgramRef program) {
+                dxgl::Uniform::Set(*program, "color", color);
+                dxgl::Uniform::Set(*program, "ombre_width", ombre_width);
+            };
 
             using namespace dxgl;
 
@@ -156,31 +170,12 @@ namespace {
         }
     };
 
-    void Render(const RoomRendererData& data, DrawQueues& draws) {
-        constexpr std::array colors {
-            glm::vec4(1, 0, 0, 1),
-            glm::vec4(0, 1, 0, 1),
-            glm::vec4(0, 0, 1, 1),
-            glm::vec4(1, 1, 0, 1),
-            glm::vec4(1, 0, 1, 1),
-            glm::vec4(0, 1, 1, 1)
-        };
-
-        std::size_t color_index = 0;
+    void Render(const RoomRendererData& data, const RoomTypeMetas& room_type_metas, DrawQueues& draws) {
         for (auto& [room_id, draw] : data.cached_draws) {
             if (!draw.has_value()) {
-                draw = data.BuildDraw(*data.room_manager->GetRoom(room_id));
+                draw = data.BuildDraw(*data.room_manager, room_type_metas, *data.room_manager->GetRoom(room_id));
             }
             
-            draw->uniform_applicator = [color = colors[color_index], rooms = data.room_manager](dxgl::ProgramRef program) {
-                dxgl::Uniform::Set(*program, "color", color);
-                
-                const float ombre_width = rooms->GetTileGrid().GetTileWorldSize().x / 10.f;
-                dxgl::Uniform::Set(*program, "ombre_width", ombre_width);
-            };
-
-            color_index = (color_index + 1) % colors.size();
-
             draws.QueueViewedDraw(RenderLayer::Objects, *draw);
         }
     }
@@ -196,8 +191,9 @@ void rendering::RoomRendererSystem(flecs::world& world) {
     world.component<RoomRendererData>();
     world.emplace<RoomRendererData>(room_manager, ubos, event_manager);
 
-    world.system<const RoomRendererData, DrawQueues>()
+    world.system<const RoomRendererData, const RoomTypeMetas, DrawQueues>()
         .term_at<RoomRendererData>().singleton()
+        .term_at<RoomTypeMetas>().singleton()
         .term_at<DrawQueues>().singleton()
         .each(&Render);
 }

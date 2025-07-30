@@ -39,15 +39,12 @@
                     <span data-class-hidden="room_state != 'DemarcationMode'">Demarcation</span>
                     <span data-class-hidden="room_state != 'DemarcationDragMode'">Dragging</span>
                 </p>
-                <div id="room-choices" class="hgrid" data-model="tiles">
+                <div id="room-choices" class="hgrid" data-model="room_types">
                     <div class="item" data-attr-onclick="'bc SelectRoomClear'">
                         <p>Clear</p>
                     </div>
-                    <div class="item" data-attr-onclick="'bc SelectRoomType 0'">
-                        <p>Containment Cell</p>
-                    </div>
-                    <div class="item" data-attr-onclick="'bc SelectRoomType 1'">
-                        <p>Deliveries</p>
+                    <div data-for="bound_meta : bound_metas" class="item" data-attr-onclick="'bc SelectRoomType ' + bound_meta.meta.type">
+                        <p>{{bound_meta.meta.display_name}}</p>
                     </div>
                 </div>
             </div>

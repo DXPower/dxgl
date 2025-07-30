@@ -4,6 +4,7 @@
 #include <modules/ui/Panel.hpp>
 #include <modules/input/InputState.hpp>
 #include <modules/input/RoomInput.hpp>
+#include <modules/core/RoomTypeMeta.hpp>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -11,10 +12,11 @@ namespace ui {
 
 class RoomPanel : public Panel {
     application::EventManager* m_event_manager{};
+    const core::RoomTypeMetas* m_room_metas{};
 
 public:
-    RoomPanel(application::EventManager& em)
-        : Panel("room-panel"), m_event_manager(&em) {
+    RoomPanel(application::EventManager& em, const core::RoomTypeMetas& room_metas)
+        : Panel("room-panel"), m_event_manager(&em), m_room_metas(&room_metas) {
 
         em.GetOrRegisterSignal<ui_events::ElementEvent>()
             .signal.connect<&RoomPanel::ProcessElementEvent>(this);
@@ -39,7 +41,7 @@ public:
                 throw std::runtime_error("SelectRoomType requires 1 argument");
 
             m_logger.info("Sending SelectRoomType: {}", args[1]);
-            auto room_type = magic_enum::enum_cast<core::RoomType>(std::stoi(args[1]));
+            auto room_type = m_room_metas->GetIdOfType(args[1]);
 
             if (!room_type.has_value()) {
                 throw std::runtime_error(std::format("Invalid argument for SelectRoomType: {}", args[1]));

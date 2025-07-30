@@ -108,6 +108,15 @@ Core::Core(flecs::world& world) {
     world.component<RoomManager>().add(flecs::Sparse);
     world.emplace<RoomManager>(tile_grid, event_manager);
 
+    world.component<RoomTypeMetas>().add(flecs::Sparse);
+    world.add<RoomTypeMetas>();
+
+    auto& room_type_metas = world.get_mut<RoomTypeMetas>();
+
+    for (auto&& meta : LoadRoomTypeMetasFromFile("res/rooms.json")) {
+        room_type_metas.Add(std::move(meta));
+    }
+
     world.component<Cooldown>();
     world.system<Cooldown>()
         .tick_source(tick_source)

@@ -1,0 +1,14 @@
+{
+    "room_types": [
+        {
+            "type": "research",
+            "display_name": "Research Hall",
+            "color": 1173498
+        },
+        {
+            "type": "staff_room",
+            "display_name": "Staff Room",
+            "color": 16562691
+        }
+    ]
+}
