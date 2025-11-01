@@ -21,7 +21,6 @@ target_compile_definitions(containsim_core PUBLIC _SILENCE_STDEXT_ARR_ITERS_DEPR
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/common)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/systems)
 
 target_include_directories(containsim_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
