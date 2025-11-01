@@ -20,7 +20,7 @@ namespace core {
         glm::vec2 m_tile_world_size{};
         const TileTypeMetas* m_tile_metas{};
         flecs::world* m_world{};
-        logging::Logger m_logger{"TileGrid"};
+        logging::Logger m_logger = logging::CreateLogger("TileGrid");
 
     public:
         mutable Nano::Signal<void(const TileGrid&, const Tile&)> tile_update_signal{};
