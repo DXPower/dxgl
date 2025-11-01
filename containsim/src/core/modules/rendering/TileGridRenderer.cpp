@@ -3,6 +3,7 @@
 #include <modules/rendering/UboLocs.hpp>
 #include <modules/core/Tile.hpp>
 #include <modules/core/TileGrid.hpp>
+#include <modules/core/TileTypeMeta.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
@@ -39,25 +40,22 @@ namespace {
     };
 
     struct TileSpriteData {
+        dxgl::TextureView spritesheet{};
         glm::ivec2 origin{};
         glm::ivec2 size{};
     };
 
     struct TileGridRendererData {
-        magic_enum::containers::array<TileType, TileSpriteData> tile_sprites{};
+        std::unordered_map<TileType, TileSpriteData> tile_sprites{};
 
         // Draw data
         mutable magic_enum::containers::array<TileLayer, std::optional<dxgl::Draw>> cached_draws{};
         
         mutable dxgl::Program program{};
         dxgl::Vbo quad_vbo{};
-        dxgl::Texture spritesheet{};
 
-        TileGridRendererData(const core::TileGrid& tiles, const dxgl::UboBindingManager& ubo_manager) {
+        TileGridRendererData(const core::TileGrid& tiles, const core::TileTypeMetas& metas, const dxgl::UboBindingManager& ubo_manager) {
             tiles.tile_update_signal.connect<&TileGridRendererData::OnTileUpdate>(this);
-            
-            spritesheet = dxgl::LoadTextureFromFile("res/img/tiles.png");
-            spritesheet.SetFilterMode(dxgl::FilterMode::Nearest);
             
             program = dxgl::ProgramBuilder()
                 .Vert("shaders/sprite.vert")
@@ -74,38 +72,15 @@ namespace {
 
             quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
 
-            LoadTileSpriteData();
+            LoadTileSpriteData(metas);
         }
 
-        void LoadTileSpriteData() {
-            std::ifstream json_file("res/spritesheets.json");
-            nlohmann::json json_data = nlohmann::json::parse(json_file);
-
-            for (const auto& sheet_json : json_data["sheets"]) {
-                if (sheet_json["name"] == "tiles") {
-                    for (const auto& sprite_json : sheet_json["sprites"]) {
-                        auto name = sprite_json["name"].template get<std::string>();
-                        TileType type{};
-                        
-                        if (auto casted = magic_enum::enum_cast<TileType>(name)) {
-                            type = casted.value();
-                        } else {
-                            throw std::runtime_error("Invalid TileType in JSON file: " + name);
-                        }
-
-                        auto& sprite_data = tile_sprites[type];
-                        
-                        sprite_data.origin = {
-                            sprite_json["x"].template get<int>(),
-                            sprite_json["y"].template get<int>()
-                        };
-
-                        sprite_data.size = {
-                            sprite_json["w"].template get<int>(),
-                            sprite_json["h"].template get<int>()
-                        };
-                    }
-                }
+        void LoadTileSpriteData(const core::TileTypeMetas& metas) {
+            for (const auto& [id, meta] : metas.GetMetas()) {
+                auto& sprite_data = tile_sprites[id];
+                sprite_data.spritesheet = meta.spritesheet;
+                sprite_data.origin = meta.sprite_origin;
+                sprite_data.size = meta.sprite_size;
             }
         }
 
@@ -117,7 +92,7 @@ namespace {
             // Build the instanced sprite data for each tile
             for (const auto& col : tiles.GetUnderlyingGrid()[layer]) {
                 for (const Tile& tile : col) {
-                    if (tile.data.type == TileType::Nothing)
+                    if (tile.data.type == NothingTile)
                         continue;
                         
                     const glm::vec2 world_pos = (glm::vec2) tile.coord * tile_world_size;
@@ -126,18 +101,18 @@ namespace {
                     world_mat = glm::translate(world_mat, world_pos);
                     world_mat = glm::scale(world_mat, tile_world_size);
 
-                    const auto& cutout = tile_sprites[tile.data.type];
-                    const glm::vec2 tex_size = spritesheet.GetSize();
+                    const auto& sprite_data = tile_sprites.at(tile.data.type);
+                    const glm::vec2 tex_size = sprite_data.spritesheet->GetSize();
 
                     // Need to flip the Y coordinate for OpenGL
                     glm::vec2 pos_mod = { 
-                        cutout.origin.x,
-                        tex_size.y - (cutout.origin.y + cutout.size.y)
+                        sprite_data.origin.x,
+                        tex_size.y - (sprite_data.origin.y + sprite_data.size.y)
                     };
 
                     auto tex_mat = glm::mat3(1);
                     tex_mat = glm::translate(tex_mat, pos_mod / tex_size);
-                    tex_mat = glm::scale(tex_mat, (glm::vec2) cutout.size / tex_size);
+                    tex_mat = glm::scale(tex_mat, (glm::vec2) sprite_data.size / tex_size);
 
                     instances.push_back({
                         .world = world_mat,
@@ -160,7 +135,8 @@ namespace {
             draw.num_instances = (uint32_t) instances.size();
             draw.vao_storage.emplace();
             draw.vbo_storage.emplace_back().Upload(instances, dxgl::BufferUsage::Static);
-            draw.textures.push_back(spritesheet);
+            // TODO: Don't assume all tiles have the same spritesheet
+            draw.textures.push_back(tile_sprites.begin()->second.spritesheet);
 
             using namespace dxgl;
 
@@ -215,9 +191,10 @@ namespace {
 void rendering::TileGridRendererSystem(flecs::world& world) {
     const auto& ubos = world.get<dxgl::UboBindingManager>();
     const auto& tiles = world.get<core::TileGrid>();
+    const auto& metas = world.get<core::TileTypeMetas>();
 
     world.component<TileGridRendererData>();
-    world.emplace<TileGridRendererData>(tiles, ubos);
+    world.emplace<TileGridRendererData>(tiles, metas, ubos);
 
     world.system<const TileGridRendererData, const core::TileGrid, DrawQueues>()
         .term_at<TileGridRendererData>().singleton()

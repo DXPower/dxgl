@@ -4,19 +4,12 @@
 #include <modules/core/Room.hpp>
 #include <glm/vec2.hpp>
 #include <flecs.h>
-#include <string>
-#include <map>
-#include <optional>
 #include <generator>
 
 namespace core {
-enum class TileType {
-    Nothing,
-    Grass,
-    Dirt,
-    Tile,
-    Wall
-};
+
+using TileType = int;
+constexpr TileType NothingTile = 0;
 
 struct TileData {
     TileType type{};
@@ -38,19 +31,6 @@ struct Tile {
     RoomId room{};
     flecs::entity entity{};
 };
-
-struct TileMeta {
-    TileType type{};
-    TileLayer layer{};
-    std::string friendly_name{};
-    std::optional<std::string> prefab_name{};
-    // TODO: Use asset manager for this
-    std::string spritesheet_name{};
-    glm::ivec2 sprite_origin{};
-    glm::ivec2 sprite_size{};
-};
-
-std::map<TileType, TileMeta> LoadTileMetas();
 
 struct TileSelection {
     TileCoord start{}; // Inclusive

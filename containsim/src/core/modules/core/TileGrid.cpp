@@ -9,6 +9,7 @@ TileGrid::TileGrid(flecs::world& world)
 {
     m_tile_world_size = world.get<core::TileWorldSize>().value;
     m_grid_size = world.get<core::MapSize>().value;
+    m_tile_metas = &world.get<core::TileTypeMetas>();
 
     for (auto& layer : m_tiles) {
         layer.resize(boost::extents[m_grid_size.x][m_grid_size.y]);
@@ -20,15 +21,13 @@ TileGrid::TileGrid(flecs::world& world)
                 auto& tile = m_tiles[layer][x][y];
                 tile.coord = {x, y};
                 tile.layer = layer;
-                tile.data.type = TileType::Nothing;
+                tile.data.type = NothingTile;
             }
         }
     }
 }
 
 void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
-    static auto tile_metas = LoadTileMetas();
-
     auto& tile = m_tiles[layer][coord.x][coord.y];
 
     if (tile.data != data) {
@@ -38,24 +37,26 @@ void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
 
         tile.data = data;
 
-        // Lookup the prefab
-        auto meta_it = tile_metas.find(data.type);
+        const auto* meta = m_tile_metas->Get(data.type);
 
-        if (meta_it != tile_metas.end() && meta_it->second.prefab_name.has_value()) {
-            const auto& meta = meta_it->second;
-            auto prefab = m_world->lookup(meta.prefab_name->c_str());
+        if (meta != nullptr && !meta->prefab.empty()) {
+            auto prefab_e = m_world->lookup(meta->prefab.c_str());
 
-            if (!prefab) {
-                throw std::runtime_error("Prefab not found: " + *meta.prefab_name);
+            if (prefab_e) {
+                tile.entity = m_world->entity()
+                    .is_a(prefab_e)
+                    .set<TileCoord>(coord);
+
+                auto* transform = tile.entity.try_get_mut<Transform>();
+
+                if (transform != nullptr) {
+                    transform->position = TileCoordToWorldPos(coord);
+                } else {
+                    m_logger.warn("Tile prefab missing Transform component: {}; cannot set position to tile.", meta->prefab);
+                }
+            } else {
+                m_logger.warn("Prefab not found: {}", meta->prefab);
             }
-
-            assert(prefab.has<Transform>());
-
-            tile.entity = m_world->entity()
-                .is_a(prefab)
-                .set<TileCoord>(coord);
-
-            tile.entity.get_mut<Transform>().position = TileCoordToWorldPos(coord);
         }
 
         tile_update_signal.fire(*this, tile);

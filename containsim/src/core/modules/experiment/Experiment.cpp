@@ -116,8 +116,11 @@ Experiment::Experiment(flecs::world& world) {
         .end = tile_grid.GetGridSize() - glm::ivec2{1, 1}
     };
 
+    const auto& tile_type_metas = world.get<core::TileTypeMetas>();
+    const TileType grass = tile_type_metas.GetIdOfType("grass").value();
+
     for (auto tile_coord : tile_sel.Iterate()) {
-        build_manager.PlaceTile(tile_coord, TileType::Grass);
+        build_manager.PlaceTile(tile_coord, grass);
     }
 
     // Populate world actors

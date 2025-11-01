@@ -2,6 +2,7 @@
 #include <modules/application/Application.hpp>
 
 #include <common/Ticks.hpp>
+#include <dxgl/Texture.hpp>
 
 using namespace core;
 
@@ -95,15 +96,16 @@ Core::Core(flecs::world& world) {
     world.component<Actor>();
     world.component<Transform>();
     world.component<Mobility>();
+    world.component<dxgl::Texture>().add(flecs::Sparse);
 
+    world.component<TileTypeMetas>().add(flecs::Sparse);
+    world.add<TileTypeMetas>();
+    
     world.component<TileGrid>().add(flecs::Sparse);
     world.emplace<TileGrid>(world);
 
     auto& tile_grid = world.get_mut<TileGrid>();
     auto& event_manager = world.get_mut<application::EventManager>();
-
-    world.component<BuildManager>().add(flecs::Sparse);
-    world.emplace<BuildManager>(tile_grid, event_manager);
 
     world.component<RoomManager>().add(flecs::Sparse);
     world.emplace<RoomManager>(tile_grid, event_manager);
@@ -116,6 +118,15 @@ Core::Core(flecs::world& world) {
     for (auto&& meta : LoadRoomTypeMetasFromFile("res/rooms.json")) {
         room_type_metas.Add(std::move(meta));
     }
+
+    auto& tile_type_metas = world.get_mut<TileTypeMetas>();
+
+    for (auto&& meta : LoadTileTypeMetasFromFile(world, "res/tiles.json")) {
+        tile_type_metas.Add(std::move(meta));
+    }
+
+    world.component<BuildManager>().add(flecs::Sparse);
+    world.emplace<BuildManager>(tile_grid, tile_type_metas, event_manager);
 
     world.component<Cooldown>();
     world.system<Cooldown>()

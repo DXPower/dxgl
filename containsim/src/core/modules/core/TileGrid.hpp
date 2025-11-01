@@ -1,6 +1,8 @@
 #pragma once
 
 #include <modules/core/Tile.hpp>
+#include <modules/core/TileTypeMeta.hpp>
+#include <common/Logging.hpp>
 
 #include <glm/vec2.hpp>
 #include <flecs.h>
@@ -16,7 +18,9 @@ namespace core {
         magic_enum::containers::array<TileLayer, boost::multi_array<Tile, 2>> m_tiles;
         TileCoord m_grid_size{};
         glm::vec2 m_tile_world_size{};
+        const TileTypeMetas* m_tile_metas{};
         flecs::world* m_world{};
+        logging::Logger m_logger{"TileGrid"};
 
     public:
         mutable Nano::Signal<void(const TileGrid&, const Tile&)> tile_update_signal{};

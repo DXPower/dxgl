@@ -10,6 +10,7 @@
 #include <modules/core/RoomTypeMeta.hpp>
 #include <modules/core/Science.hpp>
 #include <modules/core/TileGrid.hpp>
+#include <modules/core/TileTypeMeta.hpp>
 #include <modules/core/Transform.hpp>
 #include <modules/core/Time.hpp>
 

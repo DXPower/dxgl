@@ -24,10 +24,10 @@
                     <span data-class-hidden="build_state != 'DeleteMode'">Delete</span>
                     <span data-class-hidden="build_state != 'PlaceTileDragMode'">Dragging</span>
                 </p>
-                <div id="tile-choices" class="hgrid" data-model="tiles">
-                    <div data-for="tile_meta : metas" class="item" data-attr-onclick="'bc SelectTileToPlace ' + tile_meta.type">
-                        <img data-attr-src="'/res/img/' + tile_meta.spritesheet_name" 
-                             data-attr-rect="tile_meta.sprite_origin.x + ' ' + tile_meta.sprite_origin.y + ' ' + tile_meta.sprite_size.x + ' ' + tile_meta.sprite_size.y">
+                <div id="tile-choices" class="hgrid" data-model="tile_types">
+                    <div data-for="tile_meta : metas" class="item" data-attr-onclick="'bc SelectTileToPlace ' + tile_meta.id">
+                        <img data-attr-src="'/' + tile_meta.meta.spritesheet_path" 
+                             data-attr-rect="tile_meta.meta.sprite_origin.x + ' ' + tile_meta.meta.sprite_origin.y + ' ' + tile_meta.meta.sprite_size.x + ' ' + tile_meta.meta.sprite_size.y">
                         </img>
                         <div class="after"></div>
                     </div>

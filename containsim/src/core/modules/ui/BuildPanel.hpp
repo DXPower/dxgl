@@ -32,14 +32,10 @@ public:
                 throw std::runtime_error("SelectTileToPlace requires 1 argument");
 
             m_logger.info("SelectTileToPlace: {}", args[1]);
-            auto tile_type = magic_enum::enum_cast<core::TileType>(args[1]);
-
-            if (!tile_type.has_value()) {
-                throw std::runtime_error(std::format("Invalid argument for SelectTileToPlace: {}", args[1]));
-            }
+            int tile_type = std::stoi(args[1]);
 
             m_event_manager->GetSignal<input::BuildInputCommand>()
-                .signal.fire([tile_type = tile_type.value()](input::BuildInput& fsm) {
+                .signal.fire([tile_type](input::BuildInput& fsm) {
                         fsm.SelectTileToPlace(tile_type);
                     });
         } else if (args[0] == "EnterBuildMode") {

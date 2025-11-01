@@ -1,0 +1,44 @@
+{
+    "spritesheet_path": "res/img/tilesetpadded.tga",
+    "spritesheet_entity": "TileSpritesheet",
+    "spritesheet_scope": "core::Core",
+    "tiles": [
+        {
+            "type": "grass",
+            "display_name": "Grass",
+            "layer": "Ground",
+            "x": 0,
+            "y": 288,
+            "w": 72,
+            "h": 72
+        },
+        {
+            "type": "dirt",
+            "display_name": "Dirt",
+            "layer": "Ground",
+            "x": 360,
+            "y": 288,
+            "w": 72,
+            "h": 72
+        },
+        {
+            "type": "tile",
+            "display_name": "Tile",
+            "layer": "Ground",
+            "x": 720,
+            "y": 288,
+            "w": 72,
+            "h": 72
+        },
+        {
+            "type": "wall_vert",
+            "display_name": "Wall",
+            "layer": "Walls",
+            "prefab": "misc_gameplay::MiscGameplay::cs:PrefabWall",
+            "x": 10,
+            "y": 4,
+            "w": 52,
+            "h": 64
+        }
+    ]
+}

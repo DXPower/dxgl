@@ -98,7 +98,7 @@ std::vector<TileCoord> Pathfinder::AStar(const TileCoord& start, const TileCoord
         open_set_unique.erase(current.coord);
 
         for (auto neighbor : GetTileCoordNeighbors(*m_tile_grid, current.coord).ToList()) {
-            if (m_tile_grid->GetTile(neighbor, TileLayer::Walls).type != TileType::Nothing) {
+            if (m_tile_grid->GetTile(neighbor, TileLayer::Walls).type != NothingTile) {
                 continue; // Skip walls
             }
 

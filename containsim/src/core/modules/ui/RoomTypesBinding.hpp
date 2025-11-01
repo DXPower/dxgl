@@ -4,10 +4,7 @@
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Context.h>
-#include <magic_enum/magic_enum.hpp>
 #include <flecs.h>
-
-#include <ranges>
 
 namespace ui {
 

@@ -38,7 +38,8 @@ Ui::Ui(flecs::world& world) {
 
     world.component<TilesBinding>().add(flecs::Sparse);
     world.emplace<ui::TilesBinding>(
-        *context_handle.context
+        *context_handle.context,
+        world
     );
 
     world.component<EconomyBinding>().add(flecs::Sparse);
