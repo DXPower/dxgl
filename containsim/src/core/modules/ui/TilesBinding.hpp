@@ -3,11 +3,11 @@
 #include <modules/core/Tile.hpp>
 #include <modules/core/TileTypeMeta.hpp>
 
+#include <common/ResourceRegistry.hpp>
+
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Context.h>
 #include <magic_enum/magic_enum.hpp>
-
-#include <ranges>
 
 namespace ui {
 
@@ -27,10 +27,10 @@ public:
     TilesBinding(Rml::Context& context, flecs::world& world) {
         using namespace core;
 
-        const auto& metas_map = world.get<TileTypeMetas>().GetMetas();
+        auto metas = world.get<ResourceRegistry>().GetAllOfType<TileTypeMeta>();
 
-        for (const auto& [k, v] : metas_map) {
-            m_data.metas.emplace_back(k, v);
+        for (auto res : metas) {
+            m_data.metas.emplace_back(res.GetId(), res.GetResource());
         }
 
         Rml::DataModelConstructor constructor = context.CreateDataModel("tile_types");

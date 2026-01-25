@@ -1,0 +1,19 @@
+{
+    "staff_sets": [
+        {
+            "spritesheet_path": "res/img/researcher.tga",
+            "spritesheet_entity": "ResearcherSpritesheet",
+            "spritesheet_scope": "core::Core",
+            "staff":[
+                {
+                    "type": "researcher",
+                    "display_name": "Researcher",
+                    "x": 0,
+                    "y": 64,
+                    "w": 64,
+                    "h": 64
+                }
+            ]
+        }
+    ]
+}

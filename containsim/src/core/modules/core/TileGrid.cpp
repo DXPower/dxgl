@@ -9,7 +9,7 @@ TileGrid::TileGrid(flecs::world& world)
 {
     m_tile_world_size = world.get<core::TileWorldSize>().value;
     m_grid_size = world.get<core::MapSize>().value;
-    m_tile_metas = &world.get<core::TileTypeMetas>();
+    m_tile_metas = &world.get<ResourceRegistry>();
 
     for (auto& layer : m_tiles) {
         layer.resize(boost::extents[m_grid_size.x][m_grid_size.y]);
@@ -37,9 +37,9 @@ void TileGrid::SetTile(TileCoord coord, TileLayer layer, TileData data) {
 
         tile.data = data;
 
-        const auto* meta = m_tile_metas->Get(data.type);
+        const auto meta = m_tile_metas->TryGetById<TileTypeMeta>(data.type);
 
-        if (meta != nullptr && !meta->prefab.empty()) {
+        if (meta && !meta->prefab.empty()) {
             auto prefab_e = m_world->lookup(meta->prefab.c_str());
 
             if (prefab_e) {

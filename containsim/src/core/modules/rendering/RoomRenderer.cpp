@@ -2,6 +2,7 @@
 #include <modules/rendering/UboLocs.hpp>
 #include <modules/core/Core.hpp>
 #include <modules/application/EventManager.hpp>
+#include <common/ResourceRegistry.hpp>
 
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
@@ -110,7 +111,7 @@ namespace {
             return vertices;
         }
 
-        dxgl::Draw BuildDraw(const RoomManager& room_manager, const RoomTypeMetas& room_types, const Room& room) const {
+        dxgl::Draw BuildDraw(const RoomManager& room_manager, const ResourceRegistry& resources, const Room& room) const {
             auto vertex_data = BuildRoomBorders(room);
 
             // Make the draw to be queued using the generated instance data
@@ -123,13 +124,9 @@ namespace {
             draw.options.wireframe = true;
             draw.options.line_width = 4.f;
 
-            const auto& type_meta = room_types.Get(room.GetType());
+            const auto type_meta = resources.GetById<RoomTypeMeta>(room.GetType()).GetResource();
 
-            if (type_meta == nullptr) {
-                throw std::runtime_error(std::format("Could not find meta information for room type {}", room.GetType()));
-            }
-
-            const glm::vec4 color = glm::vec4(type_meta->color, 1.f);
+            const glm::vec4 color = glm::vec4(type_meta.color, 1.f);
             const float ombre_width = room_manager.GetTileGrid().GetTileWorldSize().x / 5.f;
 
             draw.uniform_applicator = [color, ombre_width](dxgl::ProgramRef program) {
@@ -170,10 +167,10 @@ namespace {
         }
     };
 
-    void Render(const RoomRendererData& data, const RoomTypeMetas& room_type_metas, DrawQueues& draws) {
+    void Render(const RoomRendererData& data, const ResourceRegistry& resources, DrawQueues& draws) {
         for (auto& [room_id, draw] : data.cached_draws) {
             if (!draw.has_value()) {
-                draw = data.BuildDraw(*data.room_manager, room_type_metas, *data.room_manager->GetRoom(room_id));
+                draw = data.BuildDraw(*data.room_manager, resources, *data.room_manager->GetRoom(room_id));
             }
             
             draws.QueueViewedDraw(RenderLayer::Objects, *draw);
@@ -191,9 +188,9 @@ void rendering::RoomRendererSystem(flecs::world& world) {
     world.component<RoomRendererData>();
     world.emplace<RoomRendererData>(room_manager, ubos, event_manager);
 
-    world.system<const RoomRendererData, const RoomTypeMetas, DrawQueues>()
+    world.system<const RoomRendererData, const ResourceRegistry, DrawQueues>()
         .term_at<RoomRendererData>().singleton()
-        .term_at<RoomTypeMetas>().singleton()
+        .term_at<ResourceRegistry>().singleton()
         .term_at<DrawQueues>().singleton()
         .each(&Render);
 }

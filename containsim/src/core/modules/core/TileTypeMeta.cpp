@@ -6,45 +6,6 @@
 
 using namespace core;
 
-TileTypeMetas::TileTypeMetas() {
-    m_ids.AddId(0, "Nothing");
-}
-
-TileType TileTypeMetas::Add(TileTypeMeta meta) {
-    int new_id = m_ids.AddId(meta.type);
-    m_metas.try_emplace(new_id, std::move(meta));
-    return new_id;
-}
-
-const TileTypeMeta* TileTypeMetas::Get(TileType id) const {
-    auto it = m_metas.find(id);
-
-    if (it == m_metas.end())
-        return nullptr;
-
-    return &it->second;
-}
-
-const TileTypeMeta* TileTypeMetas::Get(std::string_view type) const {
-    auto id = GetIdOfType(type);
-
-    if (id.has_value())
-        return Get(*id);
-    else
-        return nullptr;
-}
-
-std::optional<TileType> TileTypeMetas::GetIdOfType(std::string_view type) const {
-    const auto& id_map = m_ids.GetIds();
-
-    auto it = id_map.right.find(std::string(type));
-
-    if (it == id_map.right.end())
-        return std::nullopt;
-
-    return it->second;
-}
-
 std::generator<TileTypeMeta> core::LoadTileTypeMetasFromFile(flecs::world& world, std::string_view file) {
     std::ifstream json_file{std::string(file)};
 

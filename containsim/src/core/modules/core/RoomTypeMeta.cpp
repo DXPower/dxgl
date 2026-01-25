@@ -4,41 +4,6 @@
 
 using namespace core;
 
-RoomType RoomTypeMetas::Add(RoomTypeMeta meta) {
-    int new_id = m_ids.AddId(meta.type);
-    m_metas.try_emplace(new_id, std::move(meta));
-    return new_id;
-}
-
-const RoomTypeMeta* RoomTypeMetas::Get(RoomType id) const {
-    auto it = m_metas.find(id);
-
-    if (it == m_metas.end())
-        return nullptr;
-
-    return &it->second;
-}
-
-const RoomTypeMeta* RoomTypeMetas::Get(std::string_view type) const {
-    auto id = GetIdOfType(type);
-
-    if (id.has_value())
-        return Get(*id);
-    else
-        return nullptr;
-}
-
-std::optional<RoomType> RoomTypeMetas::GetIdOfType(std::string_view type) const {
-    const auto& id_map = m_ids.GetIds();
-
-    auto it = id_map.right.find(std::string(type));
-
-    if (it == id_map.right.end())
-        return std::nullopt;
-
-    return it->second;
-}
-
 std::generator<RoomTypeMeta> core::LoadRoomTypeMetasFromFile(std::string_view file) {
     std::ifstream json_file{std::string(file)};
 

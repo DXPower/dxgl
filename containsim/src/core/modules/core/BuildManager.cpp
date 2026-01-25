@@ -5,18 +5,16 @@
 
 using namespace core;
 
-BuildManager::BuildManager(core::TileGrid& tile_grid, core::TileTypeMetas& tile_type_metas, application::EventManager& em)
+BuildManager::BuildManager(core::TileGrid& tile_grid, const ResourceRegistry& resources, application::EventManager& em)
     : EventCommandable(em)
     , m_tile_grid(&tile_grid)
-    , m_tile_type_metas(&tile_type_metas) {
+    , m_resources(&resources) {
 }
 
 void BuildManager::PlaceTile(TileCoord coord, TileType type) {
-    // TODO: Use a proper asset manager for this
-    // static const auto metas = LoadTileMetas();
-    const auto* meta = m_tile_type_metas->Get(type);
+    const auto meta = m_resources->TryGetById<TileTypeMeta>(type);
 
-    if (meta == nullptr) {
+    if (!meta) {
         throw std::runtime_error(std::format("Invalid tile type: {}", type));
     }
 

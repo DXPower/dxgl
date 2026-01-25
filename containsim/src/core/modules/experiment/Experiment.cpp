@@ -116,8 +116,8 @@ Experiment::Experiment(flecs::world& world) {
         .end = tile_grid.GetGridSize() - glm::ivec2{1, 1}
     };
 
-    const auto& tile_type_metas = world.get<core::TileTypeMetas>();
-    const TileType grass = tile_type_metas.GetIdOfType("grass").value();
+    const auto& resource_registry = world.get<ResourceRegistry>();
+    const TileType grass = resource_registry.GetByName<TileTypeMeta>("grass").GetId();
 
     for (auto tile_coord : tile_sel.Iterate()) {
         build_manager.PlaceTile(tile_coord, grass);

@@ -5,6 +5,8 @@
 #include <modules/core/TileGrid.hpp>
 #include <modules/core/TileTypeMeta.hpp>
 
+#include <common/ResourceRegistry.hpp>
+
 #include <dxgl/Uniform.hpp>
 #include <dxgl/Texture.hpp>
 #include <dxgl/Vbo.hpp>
@@ -12,7 +14,6 @@
 #include <dxgl/Ubo.hpp>
 
 #include <array>
-#include <fstream>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <magic_enum/magic_enum_containers.hpp>
 #include <nlohmann/json.hpp>
@@ -54,7 +55,7 @@ namespace {
         mutable dxgl::Program program{};
         dxgl::Vbo quad_vbo{};
 
-        TileGridRendererData(const core::TileGrid& tiles, const core::TileTypeMetas& metas, const dxgl::UboBindingManager& ubo_manager) {
+        TileGridRendererData(const core::TileGrid& tiles, const ResourceRegistry& resources, const dxgl::UboBindingManager& ubo_manager) {
             tiles.tile_update_signal.connect<&TileGridRendererData::OnTileUpdate>(this);
             
             program = dxgl::ProgramBuilder()
@@ -72,15 +73,15 @@ namespace {
 
             quad_vbo.Upload(quad_vbo_data, dxgl::BufferUsage::Static);
 
-            LoadTileSpriteData(metas);
+            LoadTileSpriteData(resources);
         }
 
-        void LoadTileSpriteData(const core::TileTypeMetas& metas) {
-            for (const auto& [id, meta] : metas.GetMetas()) {
-                auto& sprite_data = tile_sprites[id];
-                sprite_data.spritesheet = meta.spritesheet;
-                sprite_data.origin = meta.sprite_origin;
-                sprite_data.size = meta.sprite_size;
+        void LoadTileSpriteData(const ResourceRegistry& resources) {
+            for (const auto res : resources.GetAllOfType<TileTypeMeta>()) {
+                auto& sprite_data = tile_sprites[res.GetId()];
+                sprite_data.spritesheet = res->spritesheet;
+                sprite_data.origin = res->sprite_origin;
+                sprite_data.size = res->sprite_size;
             }
         }
 
@@ -191,10 +192,10 @@ namespace {
 void rendering::TileGridRendererSystem(flecs::world& world) {
     const auto& ubos = world.get<dxgl::UboBindingManager>();
     const auto& tiles = world.get<core::TileGrid>();
-    const auto& metas = world.get<core::TileTypeMetas>();
+    const auto& resources = world.get<ResourceRegistry>();
 
     world.component<TileGridRendererData>();
-    world.emplace<TileGridRendererData>(tiles, metas, ubos);
+    world.emplace<TileGridRendererData>(tiles, resources, ubos);
 
     world.system<const TileGridRendererData, const core::TileGrid, DrawQueues>()
         .term_at<TileGridRendererData>().singleton()

@@ -1,6 +1,7 @@
 #include <modules/core/Core.hpp>
 #include <modules/application/Application.hpp>
 
+#include <common/ResourceRegistry.hpp>
 #include <common/Ticks.hpp>
 #include <dxgl/Texture.hpp>
 
@@ -98,8 +99,13 @@ Core::Core(flecs::world& world) {
     world.component<Mobility>();
     world.component<dxgl::Texture>().add(flecs::Sparse);
 
-    world.component<TileTypeMetas>().add(flecs::Sparse);
-    world.add<TileTypeMetas>();
+    world.component<ResourceRegistry>().add(flecs::Sparse);
+    world.emplace<ResourceRegistry>();
+
+    auto& resource_registry = world.get_mut<ResourceRegistry>();
+
+    // world.component<TileTypeMetas>().add(flecs::Sparse);
+    // world.add<TileTypeMetas>();
     
     world.component<TileGrid>().add(flecs::Sparse);
     world.emplace<TileGrid>(world);
@@ -110,23 +116,35 @@ Core::Core(flecs::world& world) {
     world.component<RoomManager>().add(flecs::Sparse);
     world.emplace<RoomManager>(tile_grid, event_manager);
 
-    world.component<RoomTypeMetas>().add(flecs::Sparse);
-    world.add<RoomTypeMetas>();
-
-    auto& room_type_metas = world.get_mut<RoomTypeMetas>();
-
     for (auto&& meta : LoadRoomTypeMetasFromFile("res/rooms.json")) {
-        room_type_metas.Add(std::move(meta));
+        // room_type_metas.Add(std::move(meta));
+        resource_registry.Register(meta.type, std::move(meta));
     }
 
-    auto& tile_type_metas = world.get_mut<TileTypeMetas>();
+    // auto& tile_type_metas = world.get_mut<TileTypeMetas>();
 
     for (auto&& meta : LoadTileTypeMetasFromFile(world, "res/tiles.json")) {
-        tile_type_metas.Add(std::move(meta));
+        resource_registry.Register(meta.type, std::move(meta));
     }
 
     world.component<BuildManager>().add(flecs::Sparse);
-    world.emplace<BuildManager>(tile_grid, tile_type_metas, event_manager);
+    world.emplace<BuildManager>(tile_grid, resource_registry, event_manager);
+
+    world.component<StaffTypeMetas>().add(flecs::Sparse);
+    world.add<StaffTypeMetas>();
+
+    // auto& staff_type_metas = world.get_mut<StaffTypeMetas>();
+
+    // for (auto&& meta : LoadStaffTypeMetasFromFile(world, "res/staff.json")) {
+    //     staff_type_metas.Add(std::move(meta));
+    // }
+
+    // for (auto&& meta : LoadStaffTypeMetasFromFile(world, "res/staff.json")) {
+    //     resource_registry.Register(meta.type, std::move(meta));
+    // }
+
+    // world.component<StaffManager>().add(flecs::Sparse);
+    // world.emplace<StaffManager>(world);
 
     world.component<Cooldown>();
     world.system<Cooldown>()

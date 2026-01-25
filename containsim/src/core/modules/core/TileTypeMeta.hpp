@@ -19,20 +19,20 @@ struct TileTypeMeta {
     glm::ivec2 sprite_size{};
 };
 
-class TileTypeMetas {
-    IdRegistry m_ids{};
-    std::unordered_map<TileType, TileTypeMeta> m_metas{};
-public:
-    TileTypeMetas();
+// class TileTypeMetas {
+//     IdRegistry m_ids{};
+//     std::unordered_map<TileType, TileTypeMeta> m_metas{};
+// public:
+//     TileTypeMetas();
     
-    TileType Add(TileTypeMeta meta);
-    const TileTypeMeta* Get(TileType id) const;
-    const TileTypeMeta* Get(std::string_view type) const;
+//     TileType Add(TileTypeMeta meta);
+//     const TileTypeMeta* Get(TileType id) const;
+//     const TileTypeMeta* Get(std::string_view type) const;
     
-    std::optional<TileType> GetIdOfType(std::string_view type) const;
+//     std::optional<TileType> GetIdOfType(std::string_view type) const;
 
-    const auto& GetMetas() const { return m_metas; }
-};
+//     const auto& GetMetas() const { return m_metas; }
+// };
 
 std::generator<TileTypeMeta> LoadTileTypeMetasFromFile(flecs::world& world, std::string_view file);
 

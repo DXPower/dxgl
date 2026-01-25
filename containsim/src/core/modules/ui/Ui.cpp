@@ -68,7 +68,7 @@ Ui::Ui(flecs::world& world) {
     world.emplace<BuildPanel>(event_manager);
 
     world.component<RoomPanel>().add(flecs::Sparse);;
-    world.emplace<RoomPanel>(event_manager, world.get<core::RoomTypeMetas>());
+    world.emplace<RoomPanel>(event_manager, world.get<ResourceRegistry>());
 
     // UI render phase, which comes after the world is rendered
     // (This is why this system is in the UI module, not the application module)
