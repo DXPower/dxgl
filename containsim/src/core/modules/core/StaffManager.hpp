@@ -1,7 +1,7 @@
 #pragma once
 
 #include <modules/core/Staff.hpp>
-#include <modules/core/StaffTypeMeta.hpp>
+#include <common/ResourceRegistry.hpp>
 #include <common/Logging.hpp>
 #include <flecs.h>
 
@@ -11,10 +11,10 @@ class StaffManager {
     logging::Logger m_logger{logging::CreateLogger("StaffManager")};
 
     flecs::world* m_world{};
-    const StaffTypeMetas* m_metas{};
+    const ResourceRegistry* m_resources{};
 
 public:
-    StaffManager(flecs::world& world);
+    StaffManager(flecs::world& world, const ResourceRegistry& resources);
 
     flecs::entity CreateStaffMember(StaffType type);
 };

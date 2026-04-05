@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/ResourceId.hpp>
 #include <modules/core/TileCoord.hpp>
 #include <modules/core/Room.hpp>
 #include <glm/vec2.hpp>
@@ -8,8 +9,8 @@
 
 namespace core {
 
-using TileType = int;
-constexpr TileType NothingTile = 0;
+using TileType = ResourceId;
+constexpr TileType NothingTile = ResourceId::Null;
 
 struct TileData {
     TileType type{};

@@ -32,7 +32,7 @@ bool Room::ContainsTile(TileCoord tile) const {
 Room Room::Merge(RoomId new_id, Room&& a, Room&& b) {
     if (a.m_type != b.m_type) {
         throw std::invalid_argument(std::format("Cannot merge rooms of different types: {} and {}",
-            a.m_type, b.m_type));
+            std::to_underlying(a.m_type), std::to_underlying(b.m_type)));
     }
 
     Room merged(new_id, a.m_type);

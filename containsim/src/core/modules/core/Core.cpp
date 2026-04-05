@@ -130,9 +130,6 @@ Core::Core(flecs::world& world) {
     world.component<BuildManager>().add(flecs::Sparse);
     world.emplace<BuildManager>(tile_grid, resource_registry, event_manager);
 
-    world.component<StaffTypeMetas>().add(flecs::Sparse);
-    world.add<StaffTypeMetas>();
-
     // auto& staff_type_metas = world.get_mut<StaffTypeMetas>();
 
     // for (auto&& meta : LoadStaffTypeMetasFromFile(world, "res/staff.json")) {

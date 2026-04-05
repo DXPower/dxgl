@@ -1,11 +1,10 @@
 #pragma once
 
-#include <concepts>
+#include <common/ResourceId.hpp>
+
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-
-using ResourceId = int;
 
 template<typename T>
 concept StoredResourceType = std::is_class_v<T> && !std::is_void_v<T> && !std::is_reference_v<T> && !std::is_const_v<T>;

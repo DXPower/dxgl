@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/ResourceId.hpp>
 #include <modules/core/TileCoord.hpp>
 #include <span>
 #include <unordered_set>
@@ -7,7 +8,8 @@
 
 namespace core {
     
-using RoomType = int;
+using RoomType = ResourceId;
+
 using RoomId = uint32_t;
 
 inline constexpr RoomId NoRoom = 0;

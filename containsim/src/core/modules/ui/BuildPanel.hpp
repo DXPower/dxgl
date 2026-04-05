@@ -32,7 +32,7 @@ public:
                 throw std::runtime_error("SelectTileToPlace requires 1 argument");
 
             m_logger.info("SelectTileToPlace: {}", args[1]);
-            int tile_type = std::stoi(args[1]);
+            auto tile_type = static_cast<core::TileType>(std::stoi(args[1]));
 
             m_event_manager->GetSignal<input::BuildInputCommand>()
                 .signal.fire([tile_type](input::BuildInput& fsm) {

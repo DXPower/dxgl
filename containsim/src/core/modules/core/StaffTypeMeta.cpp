@@ -4,41 +4,6 @@
 
 using namespace core;
 
-StaffType StaffTypeMetas::Add(StaffTypeMeta meta) {
-    int new_id = m_ids.AddId(meta.type);
-    m_metas.try_emplace(new_id, std::move(meta));
-    return new_id;
-}
-
-const StaffTypeMeta* StaffTypeMetas::Get(StaffType id) const {
-    auto it = m_metas.find(id);
-
-    if (it == m_metas.end())
-        return nullptr;
-
-    return &it->second;
-}
-
-const StaffTypeMeta* StaffTypeMetas::Get(std::string_view type) const {
-    auto id = GetIdOfType(type);
-
-    if (id.has_value())
-        return Get(*id);
-    else
-        return nullptr;
-}
-
-std::optional<StaffType> StaffTypeMetas::GetIdOfType(std::string_view type) const {
-    const auto& id_map = m_ids.GetIds();
-
-    auto it = id_map.right.find(std::string(type));
-
-    if (it == id_map.right.end())
-        return std::nullopt;
-
-    return it->second;
-}
-
 std::generator<StaffTypeMeta> core::LoadStaffTypeMetasFromFile(flecs::world& world, std::string_view file) {
     std::ifstream json_file{std::string(file)};
 

@@ -16,7 +16,10 @@ class ResourceRegistry {
     IdRegistry m_ids{};
 
 public:
-    ResourceRegistry() = default;
+    ResourceRegistry() {
+        m_ids.AddId(std::to_underlying(ResourceId::Null), "Null");
+    }
+
     ResourceRegistry(const ResourceRegistry&) = delete;
     ResourceRegistry& operator=(const ResourceRegistry&) = delete;
     ResourceRegistry(ResourceRegistry&&) noexcept = default;
@@ -25,7 +28,7 @@ public:
     template<StoredResourceType T>
     ResourceOf<T> Register(std::string name, T&& resource) {
         using Resource_t = detail::GetStoredResourceType<T>;
-        ResourceId rid = m_ids.AddId(std::move(name));
+        auto rid = static_cast<ResourceId>(m_ids.AddId(std::move(name)));
 
         auto storage = std::make_unique<detail::TypedResourceStorage<Resource_t>>(rid, std::forward<T>(resource));
         ResourceOf<T> result(storage.get());
@@ -57,7 +60,7 @@ public:
             return Resource<T>();
         }
 
-        return TryGetById<T>(id_it->second);
+        return TryGetById<T>(static_cast<ResourceId>(id_it->second));
     }
 
     template<ResourceTypeOrVoid T = void>
@@ -65,7 +68,7 @@ public:
         auto res = TryGetById<T>(rid);
 
         if (!res.IsValid()) {
-            throw std::runtime_error(std::format("Resource with given ID {} does not exist", rid));
+            throw std::runtime_error(std::format("Resource with given ID {} does not exist", std::to_underlying(rid)));
         }
 
         return res;
