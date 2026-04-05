@@ -103,11 +103,11 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
             m_logger.info("Selected tile: {}", static_cast<int>(selected_tile));
         } else if (event == m_drag_helper_place->GetDragCompletedId()) {
             const auto& drag_data = event.Get<DragData>();
-            const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
+            const auto start_tile = std::any_cast<TileCoord>(drag_data.user_data);
             const auto end_tile = ScreenToTilePos(drag_data.end.pos);
 
-            if (start_tile.has_value() && end_tile.has_value()) {
-                const TileSelection sel{*start_tile, *end_tile};
+            if (end_tile.has_value()) {
+                const TileSelection sel{start_tile, *end_tile};
 
                 m_event_manager->FireSignal<BuildCommand>([sel, type = selected_tile](BuildManager& bm) {
                     if (sel.start == sel.end) {
@@ -126,7 +126,17 @@ auto BuildInput::StatePlaceTile(FSM& fsm, int) -> State {
 
             if (click != nullptr) {
                 if (click->button == 0 && click->dir == ButtonDir::Down) {
-                    event.Store(m_drag_helper_place->GetDragStartedId(), DragStartedData{*click});
+                    auto clicked_tile_coord = ScreenToTilePos(click->pos);
+
+                    if (!clicked_tile_coord.has_value()) {
+                        event.Clear();
+                        continue;
+                    }
+
+                    DragStartedData drag_data{};
+                    drag_data.begin = *click;
+                    drag_data.user_data = *clicked_tile_coord;
+                    event.Store(m_drag_helper_place->GetDragStartedId(), std::move(drag_data));
                     continue;
                 }
             } else if (press != nullptr) {
@@ -152,11 +162,11 @@ auto BuildInput::StateDelete(FSM& fsm, int) -> State {
 
         if (event == m_drag_helper_delete->GetDragCompletedId()) {
             const auto& drag_data = event.Get<DragData>();
-            const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
+            const auto start_tile = std::any_cast<TileCoord>(drag_data.user_data);
             const auto end_tile = ScreenToTilePos(drag_data.end.pos);
 
-            if (start_tile.has_value() && end_tile.has_value()) {
-                const TileSelection sel{*start_tile, *end_tile};
+            if (end_tile.has_value()) {
+                const TileSelection sel{start_tile, *end_tile};
 
                 m_event_manager->FireSignal<BuildCommand>([sel](BuildManager& bm) {
                     if (sel.Area() == 1) {
@@ -174,7 +184,17 @@ auto BuildInput::StateDelete(FSM& fsm, int) -> State {
             const auto* press = std::get_if<KeyPress>(&action.data);
 
             if (click != nullptr && click->button == 0 && click->dir == ButtonDir::Down) {
-                event.Store(m_drag_helper_delete->GetDragStartedId(), DragStartedData{*click});
+                auto clicked_tile_coord = ScreenToTilePos(click->pos);
+
+                if (!clicked_tile_coord.has_value()) {
+                    event.Clear();
+                    continue;
+                }
+
+                DragStartedData drag_data{};
+                drag_data.begin = *click;
+                drag_data.user_data = *clicked_tile_coord;
+                event.Store(m_drag_helper_delete->GetDragStartedId(), std::move(drag_data));
                 continue;
             } else if (press != nullptr) {
                 if (press->IsDownKey(GLFW_KEY_B) || press->IsDownKey(GLFW_KEY_ESCAPE)) {

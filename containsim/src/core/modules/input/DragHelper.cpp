@@ -47,12 +47,14 @@ dxfsm::State<int> DragHelper::StateDrag(dxfsm::FSM<int, int>& fsm, int) const {
                 DragData finished_data{};
                 finished_data.begin = drag_data.begin;
                 finished_data.end = *click;
+                finished_data.user_data = std::move(drag_data.user_data);
 
                 ev.Store(m_drag_completed, finished_data);
                 continue;
             } else if (press != nullptr) {
                 if (press->IsDownKey(GLFW_KEY_ESCAPE)) {
                     ev = m_drag_canceled;
+                    drag_data = {};
                     continue;
                 }
             }

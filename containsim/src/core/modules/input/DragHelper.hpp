@@ -4,15 +4,18 @@
 #include <common/Action.hpp>
 
 #include <dxfsm/dxfsm.hpp>
+#include <any>
 
 namespace input {
     struct DragStartedData {
         MouseClick begin{};
+        std::any user_data{};
     };
 
     struct DragData {
         MouseClick begin{};
         MouseClick end{};
+        std::any user_data{};
     };
 
     class DragHelper {

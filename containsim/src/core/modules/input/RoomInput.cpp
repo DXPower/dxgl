@@ -82,11 +82,11 @@ auto RoomInput::StateDemarcation(FSM& fsm, int) -> State {
             m_logger.info("Cleared room selection");
         } else if (event == m_drag_helper->GetDragCompletedId()) {
             const auto& drag_data = event.Get<DragData>();
-            const auto start_tile = ScreenToTilePos(drag_data.begin.pos);
+            const auto start_tile = std::any_cast<TileCoord>(drag_data.user_data);
             const auto end_tile = ScreenToTilePos(drag_data.end.pos);
 
-            if (start_tile.has_value() && end_tile.has_value()) {
-                TileSelection sel{*start_tile, *end_tile};
+            if (end_tile.has_value()) {
+                TileSelection sel{start_tile, *end_tile};
 
                 if (selected_room.has_value()) {
                     m_event_manager->FireSignal<RoomCommand>([sel, type = *selected_room](RoomManager& rm) {
@@ -105,7 +105,17 @@ auto RoomInput::StateDemarcation(FSM& fsm, int) -> State {
 
             if (click != nullptr) {
                 if (click->button == 0 && click->dir == ButtonDir::Down) {
-                    event.Store(m_drag_helper->GetDragStartedId(), DragStartedData{*click});
+                    auto clicked_tile_coord = ScreenToTilePos(click->pos);
+
+                    if (!clicked_tile_coord.has_value()) {
+                        event.Clear();
+                        continue;
+                    }
+
+                    DragStartedData drag_data{};
+                    drag_data.begin = *click;
+                    drag_data.user_data = *clicked_tile_coord;
+                    event.Store(m_drag_helper->GetDragStartedId(), std::move(drag_data));
                     continue;
                 }
             } else if (press != nullptr) {
