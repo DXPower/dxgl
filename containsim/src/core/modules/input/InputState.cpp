@@ -20,7 +20,7 @@ void input::SetupInputState(flecs::world& world) {
         event_manager, camera, tile_grid
     ));
 
-    input_state_mece.AddSubFsm(std::make_unique<RoomInput>(
-        event_manager, camera, tile_grid
-    ));
+    // input_state_mece.AddSubFsm(std::make_unique<RoomInput>(
+    //     event_manager, camera, tile_grid
+    // ));
 }

@@ -64,12 +64,12 @@ struct GlobalActions : ActionConsumer {
         const KeyPress* key = std::get_if<KeyPress>(&action.data);
         if (key != nullptr && key->dir == ButtonDir::Down) {
             switch (key->key) {
-                case GLFW_KEY_B:
-                    input_state->GetSubFsm("BuildInput")->MakeActive();
-                    break;
-                case GLFW_KEY_R:
-                    input_state->GetSubFsm("RoomInput")->MakeActive();
-                    break;
+                // case GLFW_KEY_B:
+                //     input_state->GetSubFsm("BuildInput")->MakeActive();
+                //     break;
+                // case GLFW_KEY_R:
+                //     input_state->GetSubFsm("RoomInput")->MakeActive();
+                //     break;
                 case GLFW_KEY_P:
                     if (tick_source.has<PauseTicks>()) {
                         tick_source.remove<PauseTicks>();
