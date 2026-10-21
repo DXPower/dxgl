@@ -29,12 +29,12 @@ bool InputTool::Dispatch(const ToolEvent& dispatch_event) {
     for (InputTool* probe = &GetActiveChild(); probe != nullptr; probe = probe->Parent()) {
         // Try to convert this as a hotkey 
         std::optional<int> hotkey_translation{};
-        GetLogger().info("dispatch id: {}; keypress id: {}", dispatch_event.id, ToolEvent::Builtin::KeyPress);
+
         if (dispatch_event.id == ToolEvent::Builtin::KeyPress) {
             const auto& kp = GetPayloadAs<KeyPayload>(dispatch_event.payload);
             hotkey_translation = probe->Hotkeys().TryTranslateKey(kp.key, kp.dir);
         } else if (dispatch_event.id == ToolEvent::Builtin::Click) {
-            const auto& c = GetPayloadAs<ClickPayload>(dispatch_event.payload);
+            const auto& c = GetPayloadAs<MousePayload>(dispatch_event.payload);
             hotkey_translation = probe->Hotkeys().TryTranslateMouse(c.button, c.dir);
         }
         

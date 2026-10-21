@@ -12,4 +12,5 @@ target_sources(containsim_core PRIVATE
     InputTool.cpp
     RootTool.hpp
     RootTool.cpp
+    DragTracker.cpp
 )

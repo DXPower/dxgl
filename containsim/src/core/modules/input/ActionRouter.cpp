@@ -72,6 +72,17 @@ void ActionRouter::Consume(Action&& action) {
             event.id = *id;
             event.payload = MakePayloadFromAction(action, *m_camera, *m_tiles);
             handled_by_tool = m_root_tool->Dispatch(event);
+        } else if (auto* move = std::get_if<MouseMove>(&action.data)) {
+            const auto cam_view = m_camera->GetViewMatrix();
+            const auto world_pos = glm::inverse(cam_view) * glm::vec4(move->to, 1, 1);
+
+            MousePayload payload{};
+            payload.screen_pos = move->to;
+            payload.world_pos = world_pos;
+            payload.tile_coord = m_tiles->WorldPosToTileCoord(payload.world_pos);
+            payload.dir = ButtonDir::None;
+
+            m_root_tool->UpdateMousePos(payload);
         }
 
         if (!handled_by_tool) {

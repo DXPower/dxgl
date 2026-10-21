@@ -11,7 +11,7 @@
 
 namespace input {
 
-struct ClickPayload {
+struct MousePayload {
     glm::dvec2 screen_pos{};
     glm::vec2 world_pos{};
     std::optional<core::TileCoord> tile_coord{};
@@ -23,8 +23,8 @@ struct ClickPayload {
 struct KeyPayload : KeyPress { };
 
 struct DragPayload {
-    ClickPayload begin{};
-    ClickPayload end{};
+    MousePayload begin{};
+    MousePayload end{};
 };
 
 struct AnyPayload {
@@ -33,7 +33,7 @@ struct AnyPayload {
 
 using ToolEventPayload = std::variant<
     std::monostate,
-    ClickPayload,
+    MousePayload,
     KeyPayload,
     DragPayload,
     AnyPayload
@@ -81,7 +81,11 @@ struct ToolEvent {
         inline static int Cancel{};
         inline static int Click{};
         inline static int KeyPress{};
-        inline static int Drag{};
+        inline static int DragStart{};
+        inline static int DragUpdate{};
+        inline static int DragComplete{};
+        inline static int DragCancel{};
+        inline static int Tap{}; // Same thing as a click, but fired on a mouse up that wasn't a drag.
 
         static void InitIds(IdRegistry& registry);
     };

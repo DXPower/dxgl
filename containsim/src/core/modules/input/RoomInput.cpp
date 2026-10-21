@@ -76,7 +76,7 @@ void RoomInput::DemarcationTool::OnExit() {
 }
 
 void RoomInput::DemarcationTool::OnClick(InputTool&, const ToolEvent& event, ToolEventControl&) {
-    const auto& click = GetPayloadAs<ClickPayload>(event.payload);
+    const auto& click = GetPayloadAs<MousePayload>(event.payload);
 
     if (!click.tile_coord.has_value()) {
         m_logger.info("Click at {} is not on a tile", glm::to_string(click.screen_pos));
