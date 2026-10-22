@@ -29,15 +29,9 @@ Input::Input(flecs::world& world) {
     // world.emplace<BuildInput>(event_manager, camera, tile_grid);
     // auto& build_input = world.get_mut<BuildInput>();
 
-    // world.component<RoomInput>().add(flecs::Sparse);
-    // world.emplace<RoomInput>(event_manager, camera, tile_grid);
-    // auto& room_input = world.get_mut<RoomInput>();
     auto& event_manager = world.get_mut<application::EventManager>();
 
     SetupInputState(world);
-
-    auto& input_state = world.lookup("input::Input::InputState")
-        .get_mut<MeceFsm>();
 
     world.component<RootTool>().add(flecs::Sparse);
     world.emplace<RootTool>();

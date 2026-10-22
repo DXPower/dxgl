@@ -43,8 +43,8 @@ public:
     bool HasChild() const;
 
     // Returns null if this tool has no parent
-    InputTool* Parent(this auto&& self) {
-        return self.m_parent;
+    InputTool* Parent() {
+        return m_parent;
     }
 
     auto& Hotkeys(this auto&& self) {
