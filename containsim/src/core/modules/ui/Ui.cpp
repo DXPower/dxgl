@@ -69,9 +69,9 @@ Ui::Ui(flecs::world& world) {
 
     // TODO: Componentize the Panels
     world.component<BuildPanel>().add(flecs::Sparse);
-    world.emplace<BuildPanel>(event_manager);
+    world.emplace<BuildPanel>(event_manager, root_tool);
 
-    world.component<RoomPanel>().add(flecs::Sparse);;
+    world.component<RoomPanel>().add(flecs::Sparse);
     world.emplace<RoomPanel>(event_manager, world.get<ResourceRegistry>(), root_tool);
 
     // UI render phase, which comes after the world is rendered

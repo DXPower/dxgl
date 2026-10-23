@@ -36,13 +36,13 @@ struct GlobalActions : ActionConsumer {
     flecs::entity tick_source{};
     float ticks_per_second{4.f};
 
-    MeceFsm* input_state{};
+    // MeceFsm* input_state{};
     const rendering::Camera* cam{};
 
     GlobalActions(flecs::entity target, flecs::entity tick_source, const rendering::Camera& cam)
         : target(target), tick_source(tick_source), cam(&cam) {
-        input_state = &target.world().lookup("input::Input::InputState")
-            .get_mut<MeceFsm>();
+        // input_state = &target.world().lookup("input::Input::InputState")
+            // .get_mut<MeceFsm>();
     }
 
     void Consume(Action&& action) override {

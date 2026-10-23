@@ -43,6 +43,10 @@ Input::Input(flecs::world& world) {
     root_tool.RegisterTool(std::make_unique<RoomInput>(event_manager, tool_registry), enter_room_tool);
     root_tool.Hotkeys().BindKey(GLFW_KEY_R, enter_room_tool);
 
+    int enter_build_tool = tool_registry.AddId("RootTool.EnterBuildTool");
+    root_tool.RegisterTool(std::make_unique<BuildInput>(event_manager, tool_registry), enter_build_tool);
+    root_tool.Hotkeys().BindKey(GLFW_KEY_B, enter_build_tool);
+
     world.component<ActionRouter>().add(flecs::Sparse);
     world.emplace<ActionRouter>(main_window, root_tool, world.get<rendering::Camera>(), world.get<core::TileGrid>());
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modules/core/Room.hpp>
+#include <modules/core/TileCoord.hpp>
 #include <modules/application/EventManager.hpp>
 #include <common/RoomInputEvents.hpp>
 #include <common/Logging.hpp>
