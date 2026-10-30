@@ -7,6 +7,7 @@
 #include <modules/ui/RoomTypesBinding.hpp>
 #include <modules/application/Application.hpp>
 #include <modules/core/Core.hpp>
+#include <modules/input/Input.hpp>
 
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -17,6 +18,7 @@ using namespace ui;
 Ui::Ui(flecs::world& world) {
     world.import<application::Application>();
     world.import<core::Core>();
+    world.import<input::Input>();
 
     auto& event_manager = world.get_mut<application::EventManager>();
     
@@ -63,12 +65,14 @@ Ui::Ui(flecs::world& world) {
 
     document->Show();
 
+    auto& root_tool = world.get_mut<input::RootTool>();
+
     // TODO: Componentize the Panels
     world.component<BuildPanel>().add(flecs::Sparse);
-    world.emplace<BuildPanel>(event_manager);
+    world.emplace<BuildPanel>(event_manager, root_tool);
 
-    world.component<RoomPanel>().add(flecs::Sparse);;
-    world.emplace<RoomPanel>(event_manager, world.get<ResourceRegistry>());
+    world.component<RoomPanel>().add(flecs::Sparse);
+    world.emplace<RoomPanel>(event_manager, world.get<ResourceRegistry>(), root_tool);
 
     // UI render phase, which comes after the world is rendered
     // (This is why this system is in the UI module, not the application module)
