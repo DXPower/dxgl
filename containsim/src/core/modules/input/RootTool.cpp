@@ -29,9 +29,8 @@ RootTool::RootTool() {
 
 void RootTool::RegisterTool(std::unique_ptr<InputTool> tool, int event_to_activate) {
     On(event_to_activate, [this, tool_ptr = tool.get()](InputTool&, const ToolEvent&, ToolEventControl&) {
+        ReturnToSelf();
         EnterChild(*tool_ptr);
-    }, {
-        .only_when_active = true
     });
 
     m_tools.push_back(std::move(tool));

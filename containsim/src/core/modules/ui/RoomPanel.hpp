@@ -35,9 +35,6 @@ public:
         if (args[0] == "SelectRoomClear") {
             m_logger.info("Sending SelectRoomClear");
 
-            // m_event_manager->FireSignal<RoomInputCommand>([](RoomInput& ri) {
-            //     ri.SelectRoomClear();
-            // });
             input::ToolEvent tool_ev{};
             tool_ev.id = m_root_tool->Registry().GetOrAddId("RoomInput.SelectRoomClear");
             m_root_tool->Dispatch(tool_ev);
@@ -57,17 +54,9 @@ public:
             };
 
             m_root_tool->Dispatch(tool_ev);
-            
-            // m_event_manager->FireSignal<RoomInputCommand>(
-            //     [room_type = room_res.GetId()](RoomInput& ri) {
-            //         ri.SelectRoomType(room_type);
-            //     }
-            // );
         } else if (args[0] == "EnterRoomMode") {
             m_logger.info("Making RoomInput active...");
-            // m_event_manager->FireSignal<RoomInputCommand>([](RoomInput& ri) {
-            //     ri.MakeActive();
-            // });
+
             input::ToolEvent tool_ev{
                 .id = m_root_tool->Registry().GetOrAddId("RootTool.EnterRoomTool")
             };
