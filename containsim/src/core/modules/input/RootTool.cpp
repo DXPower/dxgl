@@ -6,6 +6,11 @@ using namespace input;
 RootTool::RootTool() {
     ToolEvent::Builtin::InitIds(m_registry);
 
+    auto exit_to_root = m_registry.AddId("RootTool.ExitToRoot");
+    On(exit_to_root, [this](InputTool&, const ToolEvent&, ToolEventControl&) {
+        ReturnToSelf();
+    });
+
     // By default, if cancel isn't captured, exit to the next parent tool.
     On(ToolEvent::Builtin::Cancel, [this](InputTool&, const ToolEvent&, ToolEventControl&) {
         // If we're currently dragging, cancel the drag.

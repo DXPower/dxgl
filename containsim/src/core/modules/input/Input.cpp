@@ -38,9 +38,10 @@ Input::Input(flecs::world& world) {
     auto& root_tool = world.get_mut<RootTool>();
 
     auto& tool_registry = root_tool.Registry();
+    const auto& resources = world.get<ResourceRegistry>();
 
     int enter_room_tool = tool_registry.AddId("RootTool.EnterRoomTool");
-    root_tool.RegisterTool(std::make_unique<RoomInput>(event_manager, tool_registry), enter_room_tool);
+    root_tool.RegisterTool(std::make_unique<RoomInput>(event_manager, tool_registry, resources), enter_room_tool);
     root_tool.Hotkeys().BindKey(GLFW_KEY_R, enter_room_tool);
 
     int enter_build_tool = tool_registry.AddId("RootTool.EnterBuildTool");

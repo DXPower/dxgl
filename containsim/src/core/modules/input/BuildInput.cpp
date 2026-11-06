@@ -52,8 +52,19 @@ BuildInput::EditingTool::EditingTool(application::EventManager& em, IdRegistry& 
     });
 
     On(m_action_select_type, [this](InputTool&, const ToolEvent& event, ToolEventControl&) {
-        const auto& select = GetPayloadAs<SelectTileType>(event.payload);
-        m_selected_type = select.type;
+        if (const auto* select = GetPayloadAs<SelectTileType>(&event.payload)) {
+            m_selected_type = select->type;
+        } else if (const auto* ui_payload = GetPayloadAs<UiPayload>(&event.payload)) {
+            // Try parse from UI event
+            if (ui_payload->args->size() != 2) {
+                throw std::runtime_error("SelectTileType event requires 1 argument");
+            }
+
+            auto tile_type = static_cast<core::TileType>(std::stoi((*ui_payload->args)[1]));
+            m_selected_type = tile_type;
+        } else {
+            throw std::runtime_error("SelectTileType event missing payload");
+        }
     });
 
     On(ToolEvent::Builtin::Cancel, [this](InputTool&, const ToolEvent&, ToolEventControl& control) {

@@ -1,7 +1,7 @@
 #include <modules/input/RoomInput.hpp>
 #include <modules/core/RoomManager.hpp>
+#include <modules/core/RoomTypeMeta.hpp>
 #include <common/Logging.hpp>
-
 #include <magic_enum/magic_enum.hpp>
 #include <GLFW/glfw3.h>
 
@@ -13,8 +13,8 @@
 using namespace input;
 using namespace core;
 
-RoomInput::RoomInput(application::EventManager& em, IdRegistry& registry)
-    : m_em(&em), m_demarcation_tool(em, registry) {
+RoomInput::RoomInput(application::EventManager& em, IdRegistry& registry, const ResourceRegistry& resources)
+    : m_em(&em), m_demarcation_tool(em, registry, resources) {
 
     On(m_demarcation_tool.m_action_select_type, [this](InputTool&, const ToolEvent& ev, ToolEventControl&) {
         EnterChild(m_demarcation_tool);
@@ -41,8 +41,8 @@ void RoomInput::OnExit() {
     });
 }
 
-RoomInput::DemarcationTool::DemarcationTool(application::EventManager& em, IdRegistry& registry) 
-    : m_em(&em) {
+RoomInput::DemarcationTool::DemarcationTool(application::EventManager& em, IdRegistry& registry, const ResourceRegistry& resources) 
+    : m_em(&em), m_resources(&resources) {
     m_action_clear = registry.AddId("RoomInput.SelectRoomClear");
     m_action_select_type = registry.AddId("RoomInput.SelectRoomType");
     Hotkeys().BindKey(GLFW_KEY_R, m_action_clear);
@@ -52,8 +52,19 @@ RoomInput::DemarcationTool::DemarcationTool(application::EventManager& em, IdReg
     });
 
     On(m_action_select_type, [this](InputTool&, const ToolEvent& event, ToolEventControl&) {
-        const auto& select = GetPayloadAs<SelectRoomType>(event.payload);
-        m_selected_type = select.type;
+        if (const auto* select = GetPayloadAs<SelectRoomType>(&event.payload)) {
+            m_selected_type = select->type;
+        } else if (const auto* ui_payload = GetPayloadAs<UiPayload>(&event.payload)) {
+            // Try parse from UI event
+            if (ui_payload->args->size() != 2) {
+                throw std::runtime_error("SelectRoomType event requires 1 argument");
+            }
+
+            auto room_res = m_resources->GetByName<core::RoomTypeMeta>((*ui_payload->args)[1]);
+            m_selected_type = room_res.GetId();
+        } else {
+            throw std::runtime_error("SelectRoomType event missing payload");
+        }
     });
 
     On(ToolEvent::Builtin::DragComplete, [this](InputTool&, const ToolEvent& ev, ToolEventControl&) {

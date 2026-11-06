@@ -4,6 +4,7 @@
 #include <modules/application/EventManager.hpp>
 #include <common/RoomInputEvents.hpp>
 #include <common/Logging.hpp>
+#include <common/ResourceRegistry.hpp>
 #include <modules/input/InputTool.hpp>
 
 namespace input {
@@ -11,17 +12,18 @@ namespace input {
 class RoomInput final : public InputTool {
     logging::Logger m_logger{logging::CreateLogger("RoomInput")};
     application::EventManager* m_em{};
-
+    
     class DemarcationTool final : public InputTool {
         logging::Logger m_logger{logging::CreateLogger("RoomInput.DemarcationTool")};
         application::EventManager* m_em{};
+        const ResourceRegistry* m_resources{};
 
         std::optional<core::RoomType> m_selected_type{};
     public:
         int m_action_select_type{};
         int m_action_clear{};
 
-        DemarcationTool(application::EventManager& em, IdRegistry& registry);
+        DemarcationTool(application::EventManager& em, IdRegistry& registry, const ResourceRegistry& resources);
 
     private:
         void MarkTiles(const core::TileSelection& selection);
@@ -34,7 +36,7 @@ class RoomInput final : public InputTool {
     } m_demarcation_tool;
 
 public:
-    RoomInput(application::EventManager& em, IdRegistry& registry);
+    RoomInput(application::EventManager& em, IdRegistry& registry, const ResourceRegistry& resources);
 
     void OnEnter() override;
     void OnExit() override;

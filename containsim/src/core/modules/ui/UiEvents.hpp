@@ -2,7 +2,8 @@
 
 #include <RmlUi/Core/Event.h>
 #include <string_view>
-#include <span>
+#include <memory>
+#include <vector>
 
 namespace ui_events {
     struct PanelEvent {
@@ -15,6 +16,6 @@ namespace ui_events {
 
     struct ElementEvent {
         const Rml::Event* event{};
-        std::span<const std::string> args{};
+        std::shared_ptr<const std::vector<std::string>> args{};
     };
 }

@@ -27,6 +27,10 @@ struct DragPayload {
     MousePayload end{};
 };
 
+struct UiPayload {
+    std::shared_ptr<const std::vector<std::string>> args{};
+};
+
 struct AnyPayload {
     std::any data{};
 };
@@ -36,6 +40,7 @@ using ToolEventPayload = std::variant<
     MousePayload,
     KeyPayload,
     DragPayload,
+    UiPayload,
     AnyPayload
 >;
 
