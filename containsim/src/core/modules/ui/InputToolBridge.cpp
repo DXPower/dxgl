@@ -23,7 +23,7 @@ void InputToolBridge::ProcessElementEvent(const ui_events::ElementEvent& event) 
     input::ToolEvent tool_event{
         .id = *id,
         .payload = input::UiPayload{
-            .args = event.args
+            .full_command = event.args
         }
     };
 

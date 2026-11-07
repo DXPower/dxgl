@@ -28,7 +28,11 @@ struct DragPayload {
 };
 
 struct UiPayload {
-    std::shared_ptr<const std::vector<std::string>> args{};
+    std::shared_ptr<const std::vector<std::string>> full_command{};
+
+    std::string_view Command() const { return full_command->at(0); }
+    std::string_view Arg(std::size_t i) const { return full_command->at(i + 1); }
+    std::size_t NumArgs() const { return full_command->size() - 1; }
 };
 
 struct AnyPayload {
