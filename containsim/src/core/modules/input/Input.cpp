@@ -31,8 +31,6 @@ Input::Input(flecs::world& world) {
 
     auto& event_manager = world.get_mut<application::EventManager>();
 
-    SetupInputState(world);
-
     world.component<RootTool>().add(flecs::Sparse);
     world.emplace<RootTool>();
     auto& root_tool = world.get_mut<RootTool>();

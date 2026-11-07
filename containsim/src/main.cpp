@@ -77,6 +77,7 @@ int main() {
 #ifdef CATCH_EXCEPTIONS
     } catch (const std::exception& e) {
         logger.error("Unhandled exception: {}", e.what());
+        throw;
     }
 #endif    
 

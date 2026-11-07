@@ -1,7 +1,6 @@
 #pragma once
 
 #include <modules/input/BuildInput.hpp>
-#include <modules/input/InputState.hpp>
 #include <modules/input/RoomInput.hpp>
 #include <modules/input/BasicMouseTester.hpp>
 #include <modules/input/UiActionReceiver.hpp>

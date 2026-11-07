@@ -6,7 +6,6 @@
 #include <modules/input/RootTool.hpp>
 #include <modules/rendering/Camera.hpp>
 #include <modules/core/TileGrid.hpp>
-#include <common/MeceFsm.hpp>
 
 #include <glm/vec2.hpp>
 
