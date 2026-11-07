@@ -11,10 +11,10 @@
         </div>
         <div id="bottom-bar" data-model="input_state">
             <div>
-                <button onclick="bc EnterBuildMode" data-class-hidden="build_state != 'InactiveMode'">Build</button>
-                <button onclick="bc ExitBuildMode" data-class-hidden="build_state == 'InactiveMode'">Exit Build</button>
-                <button onclick="bc EnterRoomMode" data-class-hidden="room_state != 'InactiveMode'">Room</button>
-                <button onclick="bc ExitRoomMode" data-class-hidden="room_state == 'InactiveMode'">Exit Room</button>
+                <button onclick="RootTool.EnterBuildTool" data-class-hidden="build_state != 'InactiveMode'">Build</button>
+                <button onclick="RootTool.ExitToRoot" data-class-hidden="build_state == 'InactiveMode'">Exit Build</button>
+                <button onclick="RootTool.EnterRoomTool" data-class-hidden="room_state != 'InactiveMode'">Room</button>
+                <button onclick="RootTool.ExitToRoot" data-class-hidden="room_state == 'InactiveMode'">Exit Room</button>
             </div>
             <div id="build-panel" class="panel" data-class-hidden="build_state == 'InactiveMode'">
                 <p>Mode: 
@@ -25,7 +25,7 @@
                     <span data-class-hidden="build_state != 'PlaceTileDragMode'">Dragging</span>
                 </p>
                 <div id="tile-choices" class="hgrid" data-model="tile_types">
-                    <div data-for="tile_meta : metas" class="item" data-attr-onclick="'bc SelectTileToPlace ' + tile_meta.id">
+                    <div data-for="tile_meta : metas" class="item" data-attr-onclick="'BuildInput.SelectTileType ' + tile_meta.id">
                         <img data-attr-src="'/' + tile_meta.meta.spritesheet_path" 
                              data-attr-rect="tile_meta.meta.sprite_origin.x + ' ' + tile_meta.meta.sprite_origin.y + ' ' + tile_meta.meta.sprite_size.x + ' ' + tile_meta.meta.sprite_size.y">
                         </img>
@@ -40,10 +40,10 @@
                     <span data-class-hidden="room_state != 'DemarcationDragMode'">Dragging</span>
                 </p>
                 <div id="room-choices" class="hgrid" data-model="room_types">
-                    <div class="item" data-attr-onclick="'bc SelectRoomClear'">
+                    <div class="item" data-attr-onclick="'RoomInput.SelectRoomClear'">
                         <p>Clear</p>
                     </div>
-                    <div data-for="bound_meta : bound_metas" class="item" data-attr-onclick="'bc SelectRoomType ' + bound_meta.meta.type">
+                    <div data-for="bound_meta : bound_metas" class="item" data-attr-onclick="'RoomInput.SelectRoomType ' + bound_meta.meta.type">
                         <p>{{bound_meta.meta.display_name}}</p>
                     </div>
                 </div>

@@ -32,5 +32,15 @@ public:
         }
     }
 
+    std::optional<int> GetId(std::string_view name) const {
+        auto it = m_ids.right.find(std::string(name));
+
+        if (it != m_ids.right.end()) {
+            return it->second;
+        } else {
+            return std::nullopt;
+        }
+    }
+
     auto& GetIds() const { return m_ids; }
 };

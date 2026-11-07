@@ -8,7 +8,8 @@
 enum class ButtonDir : uint8_t {
     Up, 
     Down,
-    Repeat
+    Repeat,
+    None,
 };
 
 struct KeyPress {

@@ -5,9 +5,11 @@
 
 using namespace input;
 
-ActionRouter::ActionRouter(const dxgl::Window& window, MeceFsm& actions_out)
+ActionRouter::ActionRouter(const dxgl::Window& window, RootTool& root_tool, const rendering::Camera& camera, const core::TileGrid& tiles)
     : m_mouse_tester(window)
-    , m_actions_out(&actions_out)
+    , m_root_tool(&root_tool)
+    , m_camera(&camera)
+    , m_tiles(&tiles)
 { }
 
 void ActionRouter::Consume(Action&& action) {
@@ -52,21 +54,55 @@ void ActionRouter::Consume(Action&& action) {
     }
 
     if (routes[InputLayer::Game] || routes[InputLayer::Offscreen]) {
-        auto* sub_fsm = m_actions_out->GetActiveSubFsm();
 
-        if (sub_fsm == nullptr) {
+        auto id = std::visit([]<typename T>(const T&) -> std::optional<int> {
+            if constexpr (std::same_as<T, KeyPress>) {
+                return ToolEvent::Builtin::KeyPress;
+            } else if constexpr (std::same_as<T, MouseClick>) {
+                return ToolEvent::Builtin::Click;
+            }
+
+            return std::nullopt;
+        }, action.data);
+
+        bool handled_by_tool = false;
+
+        if (id.has_value()) {
+            ToolEvent event{};
+            event.id = *id;
+            event.payload = MakePayloadFromAction(action, *m_camera, *m_tiles);
+            handled_by_tool = m_root_tool->Dispatch(event);
+        } else if (auto* move = std::get_if<MouseMove>(&action.data)) {
+            const auto cam_view = m_camera->GetViewMatrix();
+            const auto world_pos = glm::inverse(cam_view) * glm::vec4(move->to, 1, 1);
+
+            MousePayload payload{};
+            payload.screen_pos = move->to;
+            payload.world_pos = world_pos;
+            payload.tile_coord = m_tiles->WorldPosToTileCoord(payload.world_pos);
+            payload.dir = ButtonDir::None;
+
+            m_root_tool->UpdateMousePos(payload);
+        }
+
+        if (!handled_by_tool) {
             global_action_producer.Send(std::move(action));
-            return;
         }
+        // auto* sub_fsm = m_actions_out->GetActiveSubFsm();
+        // global_action_producer.Send(std::move(action));
 
-        const auto& events = sub_fsm->GetEventInfo().GetIds();
-        auto action_id_it = events.right.find("Action");
+        // if (sub_fsm == nullptr) {
+        //     return;
+        // }
 
-        if (action_id_it == events.right.end()) {
-            m_logger.warn("Expected to send this Action somewhere, but {} can't accept it", sub_fsm->GetName());
-            return;
-        }
+        // const auto& events = sub_fsm->GetEventInfo().GetIds();
+        // auto action_id_it = events.right.find("Action");
 
-        sub_fsm->GetFsm().InsertEvent(action_id_it->second, std::move(action));
+        // if (action_id_it == events.right.end()) {
+        //     m_logger.warn("Expected to send this Action somewhere, but {} can't accept it", sub_fsm->GetName());
+        //     return;
+        // }
+
+        // sub_fsm->GetFsm().InsertEvent(action_id_it->second, std::move(action));
     }
 }

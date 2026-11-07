@@ -6,8 +6,8 @@
 #include <common/Logging.hpp>
 #include <modules/application/EventManager.hpp>
 
+#include <memory>
 #include <string>
-#include <span>
 #include <vector>
 
 namespace ui {
@@ -15,12 +15,13 @@ namespace ui {
 class RmlEventManager : public Rml::EventListenerInstancer {
     class InlineEventForwarder : public Rml::EventListener {
         RmlEventManager* m_event_manager{};
-        std::vector<std::string> m_args{};
+        std::shared_ptr<std::vector<std::string>> m_args{};
 
     public:
         InlineEventForwarder(RmlEventManager* manager, const std::string& event_value) 
             : m_event_manager(manager) {
-                Rml::StringUtilities::ExpandString(m_args, event_value, ' ');
+                m_args = std::make_shared<std::vector<std::string>>();
+                Rml::StringUtilities::ExpandString(*m_args, event_value, ' ');
             }
 
         void ProcessEvent(Rml::Event& event) override {
@@ -44,14 +45,12 @@ public:
     }
 
 private:
-    void ProcessEvent(Rml::Event& event, std::span<const std::string> args) {
-        if (args.size() == 0)
+    void ProcessEvent(Rml::Event& event, std::shared_ptr<const std::vector<std::string>> args) {
+        if (args->size() == 0)
             return;
 
-        if (args[0] == "bc") {
-            // Broadcast event to all listeners
-            m_element_event_signal->signal.fire(ui_events::ElementEvent{&event, args.subspan(1)});
-        }
+        // Broadcast event to all listeners
+        m_element_event_signal->signal.fire(ui_events::ElementEvent{&event, std::move(args)});
     }
 };
 
